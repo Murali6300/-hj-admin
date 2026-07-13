@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
+import { getVehicleIcon, getVehicleColor } from '../utils/vehicleIcons';
 
 interface Driver {
   id: number;
@@ -12,6 +13,13 @@ interface Driver {
   documentVerificationStatus: string;
   availabilityStatus: string;
   licenseNumber?: string;
+  profilePhotoUrl?: string;
+  rating?: number;
+  totalRides?: number;
+  totalEarnings?: number;
+  panNumber?: string;
+  bankAccountNumber?: string;
+  bankIfsc?: string;
 }
 
 interface DriverDocument {
@@ -39,6 +47,9 @@ export default function DriversPage() {
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [showDocs, setShowDocs] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
+  const [detailDriver, setDetailDriver] = useState<Driver | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [driverDocs, setDriverDocs] = useState<DriverDocument | null>(null);
   const [reuploadReason, setReuploadReason] = useState('');
 
@@ -74,11 +85,31 @@ export default function DriversPage() {
     setShowDocs(true);
   };
 
+  const viewProfile = async (driver: Driver) => {
+    setDetailLoading(true);
+    setShowDetail(true);
+    try {
+      const res = await api.get(`/drivers/${driver.id}`);
+      setDetailDriver(res.data);
+    } catch {
+      setDetailDriver(driver);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
   const handleReupload = async () => {
     if (!selectedDriver) return;
     await api.put(`/drivers/${selectedDriver.id}/request-reupload`, { remarks: reuploadReason || 'Please re-upload documents' });
     alert('Re-upload requested');
     setShowDocs(false);
+    fetchDrivers();
+  };
+
+  const toggleAccountStatus = async (driver: Driver) => {
+    const newStatus = driver.accountStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+    await api.put(`/drivers/${driver.id}/account-status`, { status: newStatus });
+    setShowDetail(false);
     fetchDrivers();
   };
 
@@ -94,6 +125,23 @@ export default function DriversPage() {
     };
     const c = colors[status] || { bg: '#F5F5F5', text: '#616161' };
     return <span style={{ padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: c.bg, color: c.text }}>{status}</span>;
+  };
+
+  const renderStars = (rating?: number) => {
+    if (rating == null) return <span style={{ color: '#9E9E9E', fontSize: 13 }}>No ratings yet</span>;
+    const full = Math.floor(rating);
+    const half = rating - full >= 0.5;
+    const stars = [];
+    for (let i = 0; i < 5; i++) {
+      if (i < full) {
+        stars.push(<span key={i} style={{ color: '#FFC107', fontSize: 16 }}>&#9733;</span>);
+      } else if (i === full && half) {
+        stars.push(<span key={i} style={{ color: '#FFC107', fontSize: 16 }}>&#9733;</span>);
+      } else {
+        stars.push(<span key={i} style={{ color: '#E0E0E0', fontSize: 16 }}>&#9733;</span>);
+      }
+    }
+    return <span>{stars} <span style={{ fontSize: 13, color: '#616161', marginLeft: 4 }}>({rating.toFixed(1)})</span></span>;
   };
 
   return (
@@ -144,7 +192,11 @@ export default function DriversPage() {
                 <td style={tdStyle}>{d.id}</td>
                 <td style={tdStyle}>{d.name}</td>
                 <td style={tdStyle}>{d.phoneNumber}</td>
-                <td style={tdStyle}>{d.vehicleType}</td>
+                <td style={tdStyle}>
+                  <span style={{ color: getVehicleColor(d.vehicleType), fontWeight: 500 }}>
+                    {getVehicleIcon(d.vehicleType)} {d.vehicleType}
+                  </span>
+                </td>
                 <td style={tdStyle}>{d.vehicleNumber}</td>
                 <td style={tdStyle}>
                   <span style={{ color: d.availabilityStatus === 'AVAILABLE' ? '#4CAF50' : '#9E9E9E' }}>
@@ -154,14 +206,113 @@ export default function DriversPage() {
                 <td style={tdStyle}>{getStatusBadge(d.accountStatus)}</td>
                 <td style={tdStyle}>{getStatusBadge(d.documentVerificationStatus)}</td>
                 <td style={tdStyle}>
-                  <button onClick={() => viewDocuments(d)} style={{ padding: '6px 12px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 4, fontSize: 12, cursor: 'pointer' }}>
-                    View Docs
-                  </button>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={() => viewDocuments(d)} style={{ padding: '6px 12px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 4, fontSize: 12, cursor: 'pointer' }}>
+                      View Docs
+                    </button>
+                    <button onClick={() => viewProfile(d)} style={{ padding: '6px 12px', background: '#5C6BC0', color: '#fff', border: 'none', borderRadius: 4, fontSize: 12, cursor: 'pointer' }}>
+                      View Profile
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      )}
+
+      {showDetail && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 30, maxWidth: 560, width: '90%', maxHeight: '85vh', overflow: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
+              <h2 style={{ fontSize: 20, margin: 0 }}>Driver Profile</h2>
+              <button onClick={() => setShowDetail(false)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer' }}>X</button>
+            </div>
+
+            {detailLoading ? (
+              <p>Loading driver details...</p>
+            ) : detailDriver ? (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+                  {detailDriver.profilePhotoUrl ? (
+                    <img src={detailDriver.profilePhotoUrl} alt={detailDriver.name} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: 64, height: 64, borderRadius: '50%', background: getVehicleColor(detailDriver.vehicleType), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 24, fontWeight: 700 }}>
+                      {detailDriver.name?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: 18 }}>{detailDriver.name}</h3>
+                    <p style={{ margin: '2px 0', fontSize: 13, color: '#616161' }}>{detailDriver.email}</p>
+                    <p style={{ margin: '2px 0', fontSize: 13, color: '#616161' }}>{detailDriver.phoneNumber}</p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+                  <div style={{ padding: 12, background: '#F5F5F5', borderRadius: 8 }}>
+                    <div style={{ fontSize: 11, color: '#9E9E9E', marginBottom: 4 }}>Vehicle</div>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: getVehicleColor(detailDriver.vehicleType) }}>
+                      {getVehicleIcon(detailDriver.vehicleType)} {detailDriver.vehicleType}
+                    </div>
+                  </div>
+                  <div style={{ padding: 12, background: '#F5F5F5', borderRadius: 8 }}>
+                    <div style={{ fontSize: 11, color: '#9E9E9E', marginBottom: 4 }}>Vehicle Number</div>
+                    <div style={{ fontSize: 14, fontWeight: 500 }}>{detailDriver.vehicleNumber || '-'}</div>
+                  </div>
+                  <div style={{ padding: 12, background: '#F5F5F5', borderRadius: 8 }}>
+                    <div style={{ fontSize: 11, color: '#9E9E9E', marginBottom: 4 }}>Rating</div>
+                    {renderStars(detailDriver.rating)}
+                  </div>
+                  <div style={{ padding: 12, background: '#F5F5F5', borderRadius: 8 }}>
+                    <div style={{ fontSize: 11, color: '#9E9E9E', marginBottom: 4 }}>Total Rides</div>
+                    <div style={{ fontSize: 14, fontWeight: 500 }}>{detailDriver.totalRides ?? '-'}</div>
+                  </div>
+                  <div style={{ padding: 12, background: '#F5F5F5', borderRadius: 8 }}>
+                    <div style={{ fontSize: 11, color: '#9E9E9E', marginBottom: 4 }}>Total Earnings</div>
+                    <div style={{ fontSize: 14, fontWeight: 500 }}>{detailDriver.totalEarnings != null ? `₹${detailDriver.totalEarnings.toLocaleString()}` : '-'}</div>
+                  </div>
+                  <div style={{ padding: 12, background: '#F5F5F5', borderRadius: 8 }}>
+                    <div style={{ fontSize: 11, color: '#9E9E9E', marginBottom: 4 }}>Account Status</div>
+                    {getStatusBadge(detailDriver.accountStatus)}
+                  </div>
+                  <div style={{ padding: 12, background: '#F5F5F5', borderRadius: 8 }}>
+                    <div style={{ fontSize: 11, color: '#9E9E9E', marginBottom: 4 }}>Verification Status</div>
+                    {getStatusBadge(detailDriver.documentVerificationStatus)}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: 20 }}>
+                  <h4 style={{ marginBottom: 8, color: '#1A73E8' }}>Financial Details</h4>
+                  <div style={{ fontSize: 13, lineHeight: 1.8 }}>
+                    <div><strong>PAN:</strong> {detailDriver.panNumber || 'Not provided'}</div>
+                    <div><strong>Bank Account:</strong> {detailDriver.bankAccountNumber || 'Not provided'}</div>
+                    <div><strong>IFSC:</strong> {detailDriver.bankIfsc || 'Not provided'}</div>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid #eee', paddingTop: 16, textAlign: 'right' }}>
+                  <button
+                    onClick={() => toggleAccountStatus(detailDriver)}
+                    style={{
+                      padding: '8px 20px',
+                      background: detailDriver.accountStatus === 'ACTIVE' ? '#E53935' : '#43A047',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 6,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {detailDriver.accountStatus === 'ACTIVE' ? 'Suspend Driver' : 'Activate Driver'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p>Driver details not available.</p>
+            )}
+          </div>
+        </div>
       )}
 
       {showDocs && selectedDriver && (

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
 import DriversPage from './pages/DriversPage';
@@ -17,6 +18,7 @@ import WalletPage from './pages/WalletPage';
 import CouponsPage from './pages/CouponsPage';
 import AuditLogsPage from './pages/AuditLogsPage';
 import RolesPermissionsPage from './pages/RolesPermissionsPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import Layout from './components/Layout';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -29,6 +31,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
           <Route index element={<DashboardPage />} />
           <Route path="users" element={<UsersPage />} />
@@ -41,6 +44,7 @@ export default function App() {
           <Route path="sos" element={<SOSManagementPage />} />
           <Route path="config" element={<SystemConfigPage />} />
           <Route path="reports" element={<ReportsPage />} />
+          <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="support" element={<SupportTicketsPage />} />
           <Route path="wallets" element={<WalletPage />} />
