@@ -1,18 +1,16 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-  return {
-    plugins: [react()],
-    server: {
-      port: 3001,
-      proxy: {
-        '/api': {
-          target: env.VITE_BACKEND_URL || 'https://hj-backend-vj4c.onrender.com',
-          changeOrigin: true,
-        },
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3001,
+    proxy: {
+      '/api': {
+        target: 'https://hj-backend-vj4c.onrender.com',
+        changeOrigin: true,
+        secure: true,
       },
     },
-  };
+  },
 });

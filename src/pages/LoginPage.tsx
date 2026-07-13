@@ -16,10 +16,27 @@ export default function LoginPage() {
 
     try {
       const res = await api.post('/login', { email, password });
-      localStorage.setItem('admin_token', res.data.accessToken);
-      navigate('/');
+      const token = res.data?.accessToken;
+      if (!token) {
+        setError('Invalid server response - no token received');
+        setLoading(false);
+        return;
+      }
+      localStorage.setItem('admin_token', token);
+      navigate('/', { replace: true });
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+      const status = err?.response?.status;
+      const serverMsg = err?.response?.data?.message || err?.response?.data?.error;
+
+      if (status === 401) {
+        setError(serverMsg || 'Invalid email or password');
+      } else if (status === 500) {
+        setError('Server error. The backend may be starting up - please try again in 30 seconds.');
+      } else if (!err?.response) {
+        setError('Cannot reach the server. Check if the backend is running.');
+      } else {
+        setError(serverMsg || 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -31,7 +48,11 @@ export default function LoginPage() {
         <h1 style={{ textAlign: 'center', marginBottom: 8, color: '#1A73E8' }}>HJ Admin</h1>
         <p style={{ textAlign: 'center', color: '#757575', marginBottom: 24 }}>Sign in to your admin account</p>
 
-        {error && <div style={{ background: '#FFEBEE', color: '#D32F2F', padding: 10, borderRadius: 6, marginBottom: 16, fontSize: 13 }}>{error}</div>}
+        {error && (
+          <div style={{ background: '#FFEBEE', color: '#D32F2F', padding: 12, borderRadius: 6, marginBottom: 16, fontSize: 13, lineHeight: 1.5 }}>
+            {error}
+          </div>
+        )}
 
         <label style={{ display: 'block', marginBottom: 16 }}>
           <span style={{ fontSize: 13, fontWeight: 500, color: '#333' }}>Email</span>
@@ -48,7 +69,7 @@ export default function LoginPage() {
         </label>
 
         <button type="submit" disabled={loading}
-          style={{ width: '100%', padding: 12, background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, fontSize: 15, fontWeight: 600, opacity: loading ? 0.7 : 1 }}>
+          style={{ width: '100%', padding: 12, background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, fontSize: 15, fontWeight: 600, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>

@@ -1,8 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || '/api/v1/admin';
-
-const api = axios.create({ baseURL: BASE_URL });
+const api = axios.create({ baseURL: '/api/v1/admin' });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('admin_token');
@@ -13,7 +11,10 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    const url = err?.config?.url || '';
+    const isLoginRequest = url.includes('/login');
+
+    if (err.response?.status === 401 && !isLoginRequest) {
       localStorage.removeItem('admin_token');
       window.location.href = '/login';
     }
