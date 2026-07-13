@@ -13,6 +13,10 @@ import SystemConfigPage from './pages/SystemConfigPage';
 import ReportsPage from './pages/ReportsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import SupportTicketsPage from './pages/SupportTicketsPage';
+import WalletPage from './pages/WalletPage';
+import CouponsPage from './pages/CouponsPage';
+import AuditLogsPage from './pages/AuditLogsPage';
+import RolesPermissionsPage from './pages/RolesPermissionsPage';
 import Layout from './components/Layout';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -39,6 +43,10 @@ export default function App() {
           <Route path="reports" element={<ReportsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="support" element={<SupportTicketsPage />} />
+          <Route path="wallets" element={<WalletPage />} />
+          <Route path="coupons" element={<CouponsPage />} />
+          <Route path="audit-logs" element={<AuditLogsPage />} />
+          <Route path="roles" element={<RolesPermissionsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
