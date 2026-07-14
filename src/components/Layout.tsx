@@ -1,4 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: '📊' },
@@ -28,9 +29,18 @@ const navItems = [
 
 export default function Layout() {
   const navigate = useNavigate();
+  const [adminName, setAdminName] = useState('Admin');
+
+  useEffect(() => {
+    const name = localStorage.getItem('admin_name');
+    if (name) setAdminName(name);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_refresh_token');
+    localStorage.removeItem('admin_name');
+    localStorage.removeItem('admin_remember');
     navigate('/login');
   };
 
@@ -39,7 +49,7 @@ export default function Layout() {
       <aside style={{ width: 260, background: '#1A237E', color: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
         <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>HJ Admin</h2>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', margin: '4px 0 0' }}>Ride Booking Platform</p>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', margin: '4px 0 0' }}>{adminName}</p>
         </div>
 
         <nav style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
