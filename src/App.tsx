@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
 import DriversPage from './pages/DriversPage';
 import PendingDriversPage from './pages/PendingDriversPage';
+import VehiclesPage from './pages/VehiclesPage';
 import PaymentsPage from './pages/PaymentsPage';
 import RideMonitoringPage from './pages/RideMonitoringPage';
 import CancellationManagementPage from './pages/CancellationManagementPage';
@@ -36,6 +37,7 @@ export default function App() {
           <Route index element={<DashboardPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="drivers" element={<DriversPage />} />
+          <Route path="vehicles" element={<VehiclesPage />} />
           <Route path="drivers/pending" element={<PendingDriversPage />} />
           <Route path="payments" element={<PaymentsPage />} />
           <Route path="rides" element={<RideMonitoringPage />} />

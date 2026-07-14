@@ -10,6 +10,7 @@ const navItems = [
   { divider: true, label: 'Management' },
   { path: '/users', label: 'Users', icon: '👥' },
   { path: '/drivers', label: 'Drivers', icon: '🚗' },
+  { path: '/vehicles', label: 'Vehicles', icon: '🚕' },
   { path: '/drivers/pending', label: 'Pending Approvals', icon: '⏳' },
   { divider: true, label: 'Finance' },
   { path: '/payments', label: 'Payments', icon: '💳' },

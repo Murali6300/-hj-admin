@@ -1,218 +1,269 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import api from '../api';
 import { getVehicleIcon, getVehicleColor } from '../utils/vehicleIcons';
 
-interface Driver {
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface DriverListResponse {
   id: number;
   name: string;
   email: string;
   phoneNumber: string;
   vehicleType: string;
   vehicleNumber: string;
+  vehicleBrand: string;
+  vehicleModel: string;
+  availabilityStatus: string;
   accountStatus: string;
   documentVerificationStatus: string;
-  availabilityStatus: string;
-  licenseNumber?: string;
-  profilePhotoUrl?: string;
-  rating?: number;
-  totalRides?: number;
-  totalEarnings?: number;
-  panNumber?: string;
-  bankAccountNumber?: string;
-  bankIfsc?: string;
+  averageRating: number;
+  ratingCount: number;
+  totalEarnings: number;
+  totalRides: number;
+  profilePhotoUrl: string | null;
+  createdAt: string;
 }
 
-interface DriverDocument {
-  id: number;
-  driverId: number;
-  dlNumber?: string;
-  dlExpiry?: string;
-  dlFrontUrl?: string;
-  dlBackUrl?: string;
-  rcNumber?: string;
-  rcFrontUrl?: string;
-  rcBackUrl?: string;
-  aadhaarNumber?: string;
-  aadhaarFrontUrl?: string;
-  aadhaarBackUrl?: string;
-  selfieUrl?: string;
-  verificationStatus: string;
-  remarks?: string;
+interface DriversPageData {
+  drivers: DriverListResponse[];
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
+  size: number;
 }
+
+interface DocumentSummary {
+  id: number;
+  dlNumber: string; dlExpiry: string; dlFrontUrl: string; dlBackUrl: string;
+  rcNumber: string; rcFrontUrl: string; rcBackUrl: string;
+  aadhaarNumber: string; aadhaarFrontUrl: string; aadhaarBackUrl: string;
+  panNumber: string; panUrl: string;
+  insuranceProvider: string; insurancePolicyNumber: string; insuranceExpiry: string; insuranceImageUrl: string;
+  selfieUrl: string;
+  vehicleFrontUrl: string; vehicleBackUrl: string;
+  verificationStatus: string; remarks: string;
+  emergencyContactName: string; emergencyContactPhone: string; emergencyContactRelationship: string;
+}
+
+interface EarningsSummary {
+  totalNetEarnings: number;
+  totalPlatformCommission: number;
+  totalRides: number;
+  todayEarnings: number;
+  todayRides: number;
+  weekEarnings: number;
+  weekRides: number;
+  monthEarnings: number;
+  monthRides: number;
+}
+
+interface RideSummary {
+  id: number;
+  pickupAddress: string;
+  dropoffAddress: string;
+  status: string;
+  actualFare: number;
+  actualDistanceKm: number;
+  completedAt: string;
+}
+
+interface RatingSummary {
+  id: number;
+  rideId: number;
+  raterId: number;
+  score: number;
+  comment: string;
+  createdAt: string;
+}
+
+interface DriverDetailResponse {
+  driverInfo: DriverListResponse;
+  documents: DocumentSummary | null;
+  earnings: EarningsSummary;
+  recentRides: RideSummary[];
+  ratingsReceived: RatingSummary[];
+  wallet: { walletId: number; balance: number; currency: string } | null;
+}
+
+type DetailTab = 'overview' | 'documents' | 'earnings' | 'rides' | 'ratings';
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function DriversPage() {
-  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [data, setData] = useState<DriversPageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
-  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
-  const [showDocs, setShowDocs] = useState(false);
-  const [showDetail, setShowDetail] = useState(false);
-  const [detailDriver, setDetailDriver] = useState<Driver | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [driverDocs, setDriverDocs] = useState<DriverDocument | null>(null);
-  const [reuploadReason, setReuploadReason] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
+  const [page, setPage] = useState(0);
+  const pageSize = 20;
 
-  const fetchDrivers = async () => {
+  // Detail modal
+  const [detail, setDetail] = useState<DriverDetailResponse | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailTab, setDetailTab] = useState<DetailTab>('overview');
+
+  // Edit modal
+  const [editDriver, setEditDriver] = useState<DriverListResponse | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', phoneNumber: '', vehicleBrand: '', vehicleModel: '', vehicleColor: '' });
+  const [editSaving, setEditSaving] = useState(false);
+
+  const fetchDrivers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get('/drivers');
-      setDrivers(res.data);
-    } catch { /* ignore */ } finally {
-      setLoading(false);
-    }
-  };
+      const params: Record<string, string | number> = { page, size: pageSize, sort: sortBy };
+      if (search.trim()) params.search = search.trim();
+      if (filterStatus !== 'ALL') params.status = filterStatus;
+      const res = await api.get('/drivers', { params });
+      setData(res.data);
+    } catch { /* ignore */ } finally { setLoading(false); }
+  }, [page, search, filterStatus, sortBy]);
 
-  useEffect(() => { fetchDrivers(); }, []);
+  useEffect(() => { fetchDrivers(); }, [fetchDrivers]);
 
-  const filteredDrivers = drivers.filter(d => {
-    if (filterStatus !== 'ALL' && d.accountStatus !== filterStatus) return false;
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      return d.name?.toLowerCase().includes(q) || d.email?.toLowerCase().includes(q) || d.phoneNumber?.includes(q) || d.vehicleNumber?.toLowerCase().includes(q);
-    }
-    return true;
-  });
+  const handleSearch = () => { setPage(0); setSearch(searchInput); };
 
-  const viewDocuments = async (driver: Driver) => {
-    setSelectedDriver(driver);
-    try {
-      const res = await api.get(`/drivers/${driver.id}/documents`);
-      setDriverDocs(res.data);
-    } catch {
-      setDriverDocs(null);
-    }
-    setShowDocs(true);
-  };
-
-  const viewProfile = async (driver: Driver) => {
+  const handleViewDetail = async (driverId: number) => {
     setDetailLoading(true);
-    setShowDetail(true);
+    setDetailTab('overview');
     try {
-      const res = await api.get(`/drivers/${driver.id}`);
-      setDetailDriver(res.data);
-    } catch {
-      setDetailDriver(driver);
-    } finally {
-      setDetailLoading(false);
-    }
+      const res = await api.get(`/drivers/${driverId}`);
+      setDetail(res.data);
+    } catch { /* ignore */ } finally { setDetailLoading(false); }
   };
 
-  const handleReupload = async () => {
-    if (!selectedDriver) return;
-    await api.put(`/drivers/${selectedDriver.id}/request-reupload`, { remarks: reuploadReason || 'Please re-upload documents' });
-    alert('Re-upload requested');
-    setShowDocs(false);
+  const handleSuspend = async (id: number) => {
+    if (!confirm('Suspend this driver?')) return;
+    await api.put(`/drivers/${id}/account-status`, { status: 'SUSPENDED' });
     fetchDrivers();
   };
 
-  const toggleAccountStatus = async (driver: Driver) => {
-    const newStatus = driver.accountStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
-    await api.put(`/drivers/${driver.id}/account-status`, { status: newStatus });
-    setShowDetail(false);
+  const handleActivate = async (id: number) => {
+    await api.put(`/drivers/${id}/account-status`, { status: 'ACTIVE' });
     fetchDrivers();
   };
 
-  const getStatusBadge = (status: string) => {
-    const colors: Record<string, { bg: string; text: string }> = {
-      ACTIVE: { bg: '#E8F5E9', text: '#2E7D32' },
-      PENDING_VERIFICATION: { bg: '#FFF3E0', text: '#E65100' },
-      DOCUMENTS_UNDER_REVIEW: { bg: '#E3F2FD', text: '#1565C0' },
-      REJECTED: { bg: '#FFEBEE', text: '#C62828' },
-      SUSPENDED: { bg: '#FCE4EC', text: '#880E4F' },
-      APPROVED: { bg: '#E8F5E9', text: '#2E7D32' },
-      PENDING: { bg: '#FFF3E0', text: '#E65100' },
-    };
-    const c = colors[status] || { bg: '#F5F5F5', text: '#616161' };
-    return <span style={{ padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: c.bg, color: c.text }}>{status}</span>;
+  const handleEdit = (driver: DriverListResponse) => {
+    setEditDriver(driver);
+    setEditForm({
+      name: driver.name,
+      phoneNumber: driver.phoneNumber,
+      vehicleBrand: driver.vehicleBrand || '',
+      vehicleModel: driver.vehicleModel || '',
+      vehicleColor: '',
+    });
   };
 
-  const renderStars = (rating?: number) => {
-    if (rating == null) return <span style={{ color: '#9E9E9E', fontSize: 13 }}>No ratings yet</span>;
-    const full = Math.floor(rating);
-    const half = rating - full >= 0.5;
-    const stars = [];
-    for (let i = 0; i < 5; i++) {
-      if (i < full) {
-        stars.push(<span key={i} style={{ color: '#FFC107', fontSize: 16 }}>&#9733;</span>);
-      } else if (i === full && half) {
-        stars.push(<span key={i} style={{ color: '#FFC107', fontSize: 16 }}>&#9733;</span>);
-      } else {
-        stars.push(<span key={i} style={{ color: '#E0E0E0', fontSize: 16 }}>&#9733;</span>);
-      }
-    }
-    return <span>{stars} <span style={{ fontSize: 13, color: '#616161', marginLeft: 4 }}>({rating.toFixed(1)})</span></span>;
+  const handleEditSave = async () => {
+    if (!editDriver) return;
+    setEditSaving(true);
+    try {
+      await api.put(`/drivers/${editDriver.id}`, editForm);
+      setEditDriver(null);
+      fetchDrivers();
+      if (detail?.driverInfo.id === editDriver.id) handleViewDetail(editDriver.id);
+    } catch (err: unknown) {
+      alert((err as any)?.response?.data?.message || 'Update failed');
+    } finally { setEditSaving(false); }
   };
+
+  const handleExportCsv = () => {
+    if (!data?.drivers?.length) return;
+    const headers = ['ID', 'Name', 'Phone', 'Vehicle', 'Number', 'Online', 'Account', 'Verification', 'Rating', 'Earnings', 'Rides', 'Registered'];
+    const rows = data.drivers.map(d => [
+      d.id, d.name, d.phoneNumber, d.vehicleType, d.vehicleNumber,
+      d.availabilityStatus, d.accountStatus, d.documentVerificationStatus || '—',
+      d.averageRating.toFixed(1), d.totalEarnings.toFixed(0), d.totalRides,
+      new Date(d.createdAt).toLocaleDateString('en-IN')
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `drivers_export_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
+  const drivers = data?.drivers || [];
+  const totalPages = data?.totalPages || 0;
 
   return (
     <div>
-      <h1 style={{ marginBottom: 24, fontSize: 24 }}>Driver Management</h1>
-
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-        <input
-          type="text"
-          placeholder="Search by name, phone, vehicle number..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 14, minWidth: 300 }}
-        />
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 14 }}
-        >
-          <option value="ALL">All Status</option>
-          <option value="ACTIVE">Active</option>
-          <option value="DOCUMENTS_UNDER_REVIEW">Under Review</option>
-          <option value="REJECTED">Rejected</option>
-          <option value="SUSPENDED">Suspended</option>
-        </select>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h1 style={{ fontSize: 24, margin: 0 }}>Driver Management</h1>
+        <span style={{ fontSize: 13, color: '#757575' }}>{data?.totalElements || 0} drivers</span>
       </div>
 
-      {loading ? (
-        <p>Loading drivers...</p>
+      {/* Toolbar */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
+        <input type="text" placeholder="Search name, email, phone, vehicle..." value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          style={inputStyle} />
+        <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(0); }} style={inputStyle}>
+          <option value="ALL">All Status</option>
+          <option value="ACTIVE">Active</option>
+          <option value="SUSPENDED">Suspended</option>
+          <option value="PENDING_VERIFICATION">Pending Verification</option>
+          <option value="DOCUMENTS_UNDER_REVIEW">Documents Under Review</option>
+          <option value="REJECTED">Rejected</option>
+          <option value="LOCKED">Locked</option>
+        </select>
+        <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(0); }} style={inputStyle}>
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="name">Name A-Z</option>
+        </select>
+        <button onClick={handleSearch} style={btnPrimary}>Search</button>
+        <button onClick={handleExportCsv} style={{ ...btnPrimary, background: '#4CAF50', marginLeft: 'auto' }}>Export CSV</button>
+      </div>
+
+      {/* Table */}
+      {loading ? <p>Loading drivers...</p> : drivers.length === 0 ? (
+        <p style={{ textAlign: 'center', padding: 40, color: '#757575' }}>No drivers found.</p>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 8, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
           <thead>
             <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
-              <th style={thStyle}>ID</th>
-              <th style={thStyle}>Name</th>
-              <th style={thStyle}>Phone</th>
-              <th style={thStyle}>Vehicle</th>
-              <th style={thStyle}>Number</th>
-              <th style={thStyle}>Online</th>
-              <th style={thStyle}>Account</th>
-              <th style={thStyle}>Verification</th>
-              <th style={thStyle}>Actions</th>
+              {['ID', 'Name', 'Vehicle', 'Number', 'Online', 'Account', 'Verification', 'Rating', 'Earnings', 'Actions'].map(h => (
+                <th key={h} style={thStyle}>{h}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {filteredDrivers.map((d) => (
+            {drivers.map((d) => (
               <tr key={d.id} style={{ borderBottom: '1px solid #E0E0E0' }}>
                 <td style={tdStyle}>{d.id}</td>
-                <td style={tdStyle}>{d.name}</td>
-                <td style={tdStyle}>{d.phoneNumber}</td>
                 <td style={tdStyle}>
-                  <span style={{ color: getVehicleColor(d.vehicleType), fontWeight: 500 }}>
-                    {getVehicleIcon(d.vehicleType)} {d.vehicleType}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: getVehicleColor(d.vehicleType), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
+                      {getVehicleIcon(d.vehicleType)}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 500, fontSize: 13 }}>{d.name}</div>
+                      <div style={{ fontSize: 11, color: '#999' }}>{d.phoneNumber}</div>
+                    </div>
+                  </div>
                 </td>
+                <td style={tdStyle}>{d.vehicleType}</td>
                 <td style={tdStyle}>{d.vehicleNumber}</td>
-                <td style={tdStyle}>
-                  <span style={{ color: d.availabilityStatus === 'AVAILABLE' ? '#4CAF50' : '#9E9E9E' }}>
-                    {d.availabilityStatus === 'AVAILABLE' ? '● Online' : '○ Offline'}
-                  </span>
-                </td>
+                <td style={tdStyle}>{getStatusBadge(d.availabilityStatus === 'AVAILABLE' ? 'ONLINE' : 'OFFLINE')}</td>
                 <td style={tdStyle}>{getStatusBadge(d.accountStatus)}</td>
-                <td style={tdStyle}>{getStatusBadge(d.documentVerificationStatus)}</td>
+                <td style={tdStyle}>{getStatusBadge(d.documentVerificationStatus || 'PENDING')}</td>
                 <td style={tdStyle}>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button onClick={() => viewDocuments(d)} style={{ padding: '6px 12px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 4, fontSize: 12, cursor: 'pointer' }}>
-                      View Docs
-                    </button>
-                    <button onClick={() => viewProfile(d)} style={{ padding: '6px 12px', background: '#5C6BC0', color: '#fff', border: 'none', borderRadius: 4, fontSize: 12, cursor: 'pointer' }}>
-                      View Profile
-                    </button>
+                  {d.ratingCount > 0 ? <span>⭐ {d.averageRating.toFixed(1)} <span style={{ color: '#999', fontSize: 11 }}>({d.ratingCount})</span></span> : <span style={{ color: '#999' }}>—</span>}
+                </td>
+                <td style={tdStyle}>₹{d.totalEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                <td style={tdStyle}>
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    <button onClick={() => handleViewDetail(d.id)} style={btnSmall('#1A73E8')} disabled={detailLoading}>View</button>
+                    <button onClick={() => handleEdit(d)} style={btnSmall('#FF9800')}>Edit</button>
+                    {d.accountStatus === 'ACTIVE' ? (
+                      <button onClick={() => handleSuspend(d.id)} style={btnSmall('#F44336')}>Suspend</button>
+                    ) : (
+                      <button onClick={() => handleActivate(d.id)} style={btnSmall('#4CAF50')}>Activate</button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -221,161 +272,200 @@ export default function DriversPage() {
         </table>
       )}
 
-      {showDetail && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#fff', borderRadius: 12, padding: 30, maxWidth: 560, width: '90%', maxHeight: '85vh', overflow: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-              <h2 style={{ fontSize: 20, margin: 0 }}>Driver Profile</h2>
-              <button onClick={() => setShowDetail(false)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer' }}>X</button>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 20 }}>
+          <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} style={pageBtnStyle(page === 0)}>← Previous</button>
+          <span style={{ padding: '6px 12px', fontSize: 13, color: '#555' }}>Page {page + 1} of {totalPages}</span>
+          <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1} style={pageBtnStyle(page >= totalPages - 1)}>Next →</button>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {(detail || detailLoading) && (
+        <div style={modalOverlay} onClick={() => setDetail(null)}>
+          <div style={{ ...modalContent, maxWidth: 850 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 18, margin: 0 }}>Driver Details</h2>
+              <button onClick={() => setDetail(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer' }}>×</button>
             </div>
 
-            {detailLoading ? (
-              <p>Loading driver details...</p>
-            ) : detailDriver ? (
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-                  {detailDriver.profilePhotoUrl ? (
-                    <img src={detailDriver.profilePhotoUrl} alt={detailDriver.name} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: 64, height: 64, borderRadius: '50%', background: getVehicleColor(detailDriver.vehicleType), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 24, fontWeight: 700 }}>
-                      {detailDriver.name?.charAt(0)?.toUpperCase() || '?'}
+            {detailLoading ? <p>Loading...</p> : detail && (
+              <>
+                {/* Driver Header */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, padding: 16, background: '#f5f5f5', borderRadius: 8 }}>
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: getVehicleColor(detail.driverInfo.vehicleType), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
+                    {getVehicleIcon(detail.driverInfo.vehicleType)}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>{detail.driverInfo.name}</p>
+                    <p style={{ fontSize: 13, color: '#757575', margin: '4px 0 0' }}>
+                      {detail.driverInfo.vehicleBrand} {detail.driverInfo.vehicleModel} • {detail.driverInfo.vehicleNumber}
+                    </p>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    {getStatusBadge(detail.driverInfo.accountStatus)}
+                    <div style={{ marginTop: 4 }}>{getStatusBadge(detail.driverInfo.availabilityStatus === 'AVAILABLE' ? 'ONLINE' : 'OFFLINE')}</div>
+                  </div>
+                </div>
+
+                {/* Tabs */}
+                <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #E0E0E0', marginBottom: 16 }}>
+                  {(['overview', 'documents', 'earnings', 'rides', 'ratings'] as DetailTab[]).map(tab => (
+                    <button key={tab} onClick={() => setDetailTab(tab)}
+                      style={{ padding: '8px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: detailTab === tab ? 600 : 400, color: detailTab === tab ? '#1A73E8' : '#757575', borderBottom: detailTab === tab ? '2px solid #1A73E8' : '2px solid transparent', marginBottom: -2 }}>
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Tab Content */}
+                <div style={{ maxHeight: '50vh', overflow: 'auto' }}>
+                  {detailTab === 'overview' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <InfoItem label="Phone" value={detail.driverInfo.phoneNumber} />
+                      <InfoItem label="Email" value={detail.driverInfo.email} />
+                      <InfoItem label="Vehicle" value={`${detail.driverInfo.vehicleType} • ${detail.driverInfo.vehicleNumber}`} />
+                      <InfoItem label="Rating" value={detail.driverInfo.ratingCount > 0 ? `⭐ ${detail.driverInfo.averageRating.toFixed(1)} (${detail.driverInfo.ratingCount})` : 'No ratings'} />
+                      <InfoItem label="Total Rides" value={String(detail.driverInfo.totalRides)} />
+                      <InfoItem label="Total Earnings" value={`₹${detail.driverInfo.totalEarnings.toLocaleString('en-IN')}`} />
+                      {detail.wallet && <InfoItem label="Wallet Balance" value={`₹${detail.wallet.balance.toLocaleString('en-IN')}`} />}
+                      <InfoItem label="Registered" value={new Date(detail.driverInfo.createdAt).toLocaleDateString('en-IN')} />
                     </div>
                   )}
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: 18 }}>{detailDriver.name}</h3>
-                    <p style={{ margin: '2px 0', fontSize: 13, color: '#616161' }}>{detailDriver.email}</p>
-                    <p style={{ margin: '2px 0', fontSize: 13, color: '#616161' }}>{detailDriver.phoneNumber}</p>
-                  </div>
-                </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
-                  <div style={{ padding: 12, background: '#F5F5F5', borderRadius: 8 }}>
-                    <div style={{ fontSize: 11, color: '#9E9E9E', marginBottom: 4 }}>Vehicle</div>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: getVehicleColor(detailDriver.vehicleType) }}>
-                      {getVehicleIcon(detailDriver.vehicleType)} {detailDriver.vehicleType}
+                  {detailTab === 'documents' && (
+                    !detail.documents ? <p style={{ color: '#999', padding: 20 }}>No documents uploaded.</p> : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        <DocSection title="Driving License" items={[
+                          { label: 'DL Number', value: detail.documents.dlNumber },
+                          { label: 'Expiry', value: detail.documents.dlExpiry },
+                          { label: 'Front', value: detail.documents.dlFrontUrl, isLink: true },
+                          { label: 'Back', value: detail.documents.dlBackUrl, isLink: true },
+                        ]} />
+                        <DocSection title="RC" items={[
+                          { label: 'RC Number', value: detail.documents.rcNumber },
+                          { label: 'Front', value: detail.documents.rcFrontUrl, isLink: true },
+                          { label: 'Back', value: detail.documents.rcBackUrl, isLink: true },
+                        ]} />
+                        <DocSection title="Aadhaar" items={[
+                          { label: 'Number', value: detail.documents.aadhaarNumber },
+                          { label: 'Front', value: detail.documents.aadhaarFrontUrl, isLink: true },
+                          { label: 'Back', value: detail.documents.aadhaarBackUrl, isLink: true },
+                        ]} />
+                        <DocSection title="PAN" items={[
+                          { label: 'Number', value: detail.documents.panNumber },
+                          { label: 'Image', value: detail.documents.panUrl, isLink: true },
+                        ]} />
+                        <DocSection title="Insurance" items={[
+                          { label: 'Provider', value: detail.documents.insuranceProvider },
+                          { label: 'Policy #', value: detail.documents.insurancePolicyNumber },
+                          { label: 'Expiry', value: detail.documents.insuranceExpiry },
+                          { label: 'Image', value: detail.documents.insuranceImageUrl, isLink: true },
+                        ]} />
+                        <DocSection title="Selfie" items={[
+                          { label: 'Photo', value: detail.documents.selfieUrl, isLink: true },
+                        ]} />
+                        <DocSection title="Emergency Contact" items={[
+                          { label: 'Name', value: detail.documents.emergencyContactName },
+                          { label: 'Phone', value: detail.documents.emergencyContactPhone },
+                          { label: 'Relationship', value: detail.documents.emergencyContactRelationship },
+                        ]} />
+                        <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 6 }}>
+                          <p style={{ fontSize: 12, fontWeight: 600, margin: '0 0 4px' }}>Verification: {getStatusBadge(detail.documents.verificationStatus || 'PENDING')}</p>
+                          {detail.documents.remarks && <p style={{ fontSize: 12, color: '#666', margin: 0 }}>Remarks: {detail.documents.remarks}</p>}
+                        </div>
+                      </div>
+                    )
+                  )}
+
+                  {detailTab === 'earnings' && (
+                    <>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+                        <InfoItem label="Total Earnings" value={`₹${detail.earnings.totalNetEarnings.toLocaleString('en-IN')}`} color="#4CAF50" />
+                        <InfoItem label="Platform Commission" value={`₹${detail.earnings.totalPlatformCommission.toLocaleString('en-IN')}`} color="#F44336" />
+                        <InfoItem label="Total Rides" value={String(detail.earnings.totalRides)} />
+                        <InfoItem label="Today" value={`₹${detail.earnings.todayEarnings.toFixed(0)} (${detail.earnings.todayRides} rides)`} />
+                        <InfoItem label="This Week" value={`₹${detail.earnings.weekEarnings.toFixed(0)} (${detail.earnings.weekRides} rides)`} />
+                        <InfoItem label="This Month" value={`₹${detail.earnings.monthEarnings.toFixed(0)} (${detail.earnings.monthRides} rides)`} />
+                      </div>
+                    </>
+                  )}
+
+                  {detailTab === 'rides' && (
+                    detail.recentRides.length === 0 ? <p style={{ color: '#999', padding: 20 }}>No rides yet.</p> :
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                      <thead>
+                        <tr style={{ background: '#f5f5f5' }}>
+                          <th style={thStyle}>ID</th><th style={thStyle}>From</th><th style={thStyle}>To</th><th style={thStyle}>Status</th><th style={thStyle}>Fare</th><th style={thStyle}>Distance</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {detail.recentRides.map(r => (
+                          <tr key={r.id} style={{ borderBottom: '1px solid #E0E0E0' }}>
+                            <td style={tdStyle}>{r.id}</td>
+                            <td style={tdStyle}>{r.pickupAddress || '—'}</td>
+                            <td style={tdStyle}>{r.dropoffAddress || '—'}</td>
+                            <td style={tdStyle}>{getStatusBadge(r.status)}</td>
+                            <td style={tdStyle}>₹{r.actualFare?.toFixed(0) || '—'}</td>
+                            <td style={tdStyle}>{r.actualDistanceKm ? `${r.actualDistanceKm.toFixed(1)} km` : '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+
+                  {detailTab === 'ratings' && (
+                    detail.ratingsReceived.length === 0 ? <p style={{ color: '#999', padding: 20 }}>No ratings received.</p> :
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {detail.ratingsReceived.map(r => (
+                        <div key={r.id} style={{ padding: 12, background: '#f9f9f9', borderRadius: 6, border: '1px solid #E0E0E0' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: 13, fontWeight: 600 }}>{'⭐'.repeat(r.score)} ({r.score}/5)</span>
+                            <span style={{ fontSize: 11, color: '#999' }}>Ride #{r.rideId}</span>
+                          </div>
+                          {r.comment && <p style={{ margin: '4px 0 0', fontSize: 13, color: '#555' }}>{r.comment}</p>}
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                  <div style={{ padding: 12, background: '#F5F5F5', borderRadius: 8 }}>
-                    <div style={{ fontSize: 11, color: '#9E9E9E', marginBottom: 4 }}>Vehicle Number</div>
-                    <div style={{ fontSize: 14, fontWeight: 500 }}>{detailDriver.vehicleNumber || '-'}</div>
-                  </div>
-                  <div style={{ padding: 12, background: '#F5F5F5', borderRadius: 8 }}>
-                    <div style={{ fontSize: 11, color: '#9E9E9E', marginBottom: 4 }}>Rating</div>
-                    {renderStars(detailDriver.rating)}
-                  </div>
-                  <div style={{ padding: 12, background: '#F5F5F5', borderRadius: 8 }}>
-                    <div style={{ fontSize: 11, color: '#9E9E9E', marginBottom: 4 }}>Total Rides</div>
-                    <div style={{ fontSize: 14, fontWeight: 500 }}>{detailDriver.totalRides ?? '-'}</div>
-                  </div>
-                  <div style={{ padding: 12, background: '#F5F5F5', borderRadius: 8 }}>
-                    <div style={{ fontSize: 11, color: '#9E9E9E', marginBottom: 4 }}>Total Earnings</div>
-                    <div style={{ fontSize: 14, fontWeight: 500 }}>{detailDriver.totalEarnings != null ? `₹${detailDriver.totalEarnings.toLocaleString()}` : '-'}</div>
-                  </div>
-                  <div style={{ padding: 12, background: '#F5F5F5', borderRadius: 8 }}>
-                    <div style={{ fontSize: 11, color: '#9E9E9E', marginBottom: 4 }}>Account Status</div>
-                    {getStatusBadge(detailDriver.accountStatus)}
-                  </div>
-                  <div style={{ padding: 12, background: '#F5F5F5', borderRadius: 8 }}>
-                    <div style={{ fontSize: 11, color: '#9E9E9E', marginBottom: 4 }}>Verification Status</div>
-                    {getStatusBadge(detailDriver.documentVerificationStatus)}
-                  </div>
+                  )}
                 </div>
 
-                <div style={{ marginBottom: 20 }}>
-                  <h4 style={{ marginBottom: 8, color: '#1A73E8' }}>Financial Details</h4>
-                  <div style={{ fontSize: 13, lineHeight: 1.8 }}>
-                    <div><strong>PAN:</strong> {detailDriver.panNumber || 'Not provided'}</div>
-                    <div><strong>Bank Account:</strong> {detailDriver.bankAccountNumber || 'Not provided'}</div>
-                    <div><strong>IFSC:</strong> {detailDriver.bankIfsc || 'Not provided'}</div>
-                  </div>
+                {/* Detail Actions */}
+                <div style={{ display: 'flex', gap: 8, marginTop: 16, borderTop: '1px solid #E0E0E0', paddingTop: 16 }}>
+                  <button onClick={() => { setDetail(null); handleEdit(detail.driverInfo); }} style={btnSmall('#FF9800')}>Edit Driver</button>
+                  {detail.driverInfo.accountStatus === 'ACTIVE' ? (
+                    <button onClick={() => { handleSuspend(detail.driverInfo.id); setDetail(null); }} style={btnSmall('#F44336')}>Suspend</button>
+                  ) : (
+                    <button onClick={() => { handleActivate(detail.driverInfo.id); setDetail(null); }} style={btnSmall('#4CAF50')}>Activate</button>
+                  )}
+                  <button onClick={() => setDetail(null)} style={{ marginLeft: 'auto', ...btnSmall('#9E9E9E') }}>Close</button>
                 </div>
-
-                <div style={{ borderTop: '1px solid #eee', paddingTop: 16, textAlign: 'right' }}>
-                  <button
-                    onClick={() => toggleAccountStatus(detailDriver)}
-                    style={{
-                      padding: '8px 20px',
-                      background: detailDriver.accountStatus === 'ACTIVE' ? '#E53935' : '#43A047',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: 6,
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {detailDriver.accountStatus === 'ACTIVE' ? 'Suspend Driver' : 'Activate Driver'}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <p>Driver details not available.</p>
+              </>
             )}
           </div>
         </div>
       )}
 
-      {showDocs && selectedDriver && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#fff', borderRadius: 12, padding: 30, maxWidth: 600, width: '90%', maxHeight: '80vh', overflow: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-              <h2 style={{ fontSize: 20 }}>KYC Documents - {selectedDriver.name}</h2>
-              <button onClick={() => setShowDocs(false)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer' }}>X</button>
+      {/* Edit Modal */}
+      {editDriver && (
+        <div style={modalOverlay} onClick={() => setEditDriver(null)}>
+          <div style={{ ...modalContent, maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 18, margin: 0 }}>Edit Driver</h2>
+              <button onClick={() => setEditDriver(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer' }}>×</button>
             </div>
-
-            {driverDocs ? (
-              <div style={{ fontSize: 14 }}>
-                <Section title="Driving License">
-                  <p><strong>DL Number:</strong> {driverDocs.dlNumber || 'Not uploaded'}</p>
-                  <p><strong>Expiry:</strong> {driverDocs.dlExpiry || 'N/A'}</p>
-                  {driverDocs.dlFrontUrl && <DocLink url={driverDocs.dlFrontUrl} label="DL Front" />}
-                  {driverDocs.dlBackUrl && <DocLink url={driverDocs.dlBackUrl} label="DL Back" />}
-                </Section>
-
-                <Section title="Registration Certificate">
-                  <p><strong>RC Number:</strong> {driverDocs.rcNumber || 'Not uploaded'}</p>
-                  {driverDocs.rcFrontUrl && <DocLink url={driverDocs.rcFrontUrl} label="RC Front" />}
-                  {driverDocs.rcBackUrl && <DocLink url={driverDocs.rcBackUrl} label="RC Back" />}
-                </Section>
-
-                <Section title="Aadhaar / National ID">
-                  <p><strong>Aadhaar Number:</strong> {driverDocs.aadhaarNumber || 'Not uploaded'}</p>
-                  {driverDocs.aadhaarFrontUrl && <DocLink url={driverDocs.aadhaarFrontUrl} label="Aadhaar Front" />}
-                  {driverDocs.aadhaarBackUrl && <DocLink url={driverDocs.aadhaarBackUrl} label="Aadhaar Back" />}
-                </Section>
-
-                <Section title="Selfie">
-                  {driverDocs.selfieUrl ? <DocLink url={driverDocs.selfieUrl} label="View Selfie" /> : <p>Not uploaded</p>}
-                </Section>
-
-                <div style={{ marginTop: 16 }}>
-                  <strong>Verification Status: </strong>
-                  {getStatusBadge(driverDocs.verificationStatus)}
-                </div>
-
-                {driverDocs.remarks && (
-                  <div style={{ marginTop: 8, padding: 10, background: '#FFF3E0', borderRadius: 6 }}>
-                    <strong>Remarks:</strong> {driverDocs.remarks}
-                  </div>
-                )}
-
-                <div style={{ marginTop: 20, borderTop: '1px solid #eee', paddingTop: 16 }}>
-                  <h4>Request Re-upload</h4>
-                  <input
-                    type="text"
-                    placeholder="Reason for re-upload..."
-                    value={reuploadReason}
-                    onChange={(e) => setReuploadReason(e.target.value)}
-                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, marginBottom: 8 }}
-                  />
-                  <button onClick={handleReupload} style={{ padding: '8px 16px', background: '#FF9800', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
-                    Request Re-upload
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <p>No documents found for this driver.</p>
-            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div><label style={labelStyle}>Name</label><input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} style={inputStyleModal} /></div>
+              <div><label style={labelStyle}>Phone</label><input value={editForm.phoneNumber} onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })} style={inputStyleModal} /></div>
+              <div><label style={labelStyle}>Vehicle Brand</label><input value={editForm.vehicleBrand} onChange={(e) => setEditForm({ ...editForm, vehicleBrand: e.target.value })} style={inputStyleModal} /></div>
+              <div><label style={labelStyle}>Vehicle Model</label><input value={editForm.vehicleModel} onChange={(e) => setEditForm({ ...editForm, vehicleModel: e.target.value })} style={inputStyleModal} /></div>
+              <div><label style={labelStyle}>Vehicle Color</label><input value={editForm.vehicleColor} onChange={(e) => setEditForm({ ...editForm, vehicleColor: e.target.value })} style={inputStyleModal} /></div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
+              <button onClick={handleEditSave} disabled={editSaving} style={{ ...btnPrimary, flex: 1 }}>{editSaving ? 'Saving...' : 'Save Changes'}</button>
+              <button onClick={() => setEditDriver(null)} style={{ ...btnSmall('#9E9E9E'), flex: 1 }}>Cancel</button>
+            </div>
           </div>
         </div>
       )}
@@ -383,22 +473,56 @@ export default function DriversPage() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function DocSection({ title, items }: { title: string; items: { label: string; value: string; isLink?: boolean }[] }) {
   return (
-    <div style={{ marginBottom: 16 }}>
-      <h4 style={{ marginBottom: 8, color: '#1A73E8' }}>{title}</h4>
-      {children}
+    <div style={{ padding: 12, background: '#f9f9f9', borderRadius: 6, border: '1px solid #E0E0E0' }}>
+      <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 8px', color: '#1A73E8' }}>{title}</p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+        {items.filter(i => i.value).map(i => (
+          <div key={i.label}>
+            <span style={{ fontSize: 11, color: '#999' }}>{i.label}: </span>
+            {i.isLink ? (
+              <a href={i.value} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: '#1A73E8' }}>View</a>
+            ) : (
+              <span style={{ fontSize: 12 }}>{i.value}</span>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-function DocLink({ url, label }: { url: string; label: string }) {
+function InfoItem({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '4px 10px', background: '#E3F2FD', color: '#1565C0', borderRadius: 4, fontSize: 12, textDecoration: 'none', marginTop: 4 }}>
-      {label}
-    </a>
+    <div style={{ padding: '8px 12px', background: '#fff', borderRadius: 6, border: '1px solid #E0E0E0' }}>
+      <p style={{ fontSize: 11, color: '#757575', margin: 0 }}>{label}</p>
+      <p style={{ fontSize: 14, fontWeight: 600, margin: '4px 0 0', color: color || '#333' }}>{value}</p>
+    </div>
   );
 }
 
-const thStyle: React.CSSProperties = { padding: '12px 16px', fontSize: 13, fontWeight: 600 };
-const tdStyle: React.CSSProperties = { padding: '10px 16px', fontSize: 13 };
+function getStatusBadge(status: string) {
+  const c: Record<string, { bg: string; fg: string }> = {
+    ACTIVE: { bg: '#E8F5E9', fg: '#2E7D32' }, ONLINE: { bg: '#E8F5E9', fg: '#2E7D32' },
+    SUSPENDED: { bg: '#FFEBEE', fg: '#C62828' }, OFFLINE: { bg: '#F5F5F5', fg: '#757575' },
+    PENDING: { bg: '#FFF3E0', fg: '#E65100' }, PENDING_VERIFICATION: { bg: '#E3F2FD', fg: '#1565C0' },
+    DOCUMENTS_UNDER_REVIEW: { bg: '#FFF3E0', fg: '#E65100' }, APPROVED: { bg: '#E8F5E9', fg: '#2E7D32' },
+    REJECTED: { bg: '#FFEBEE', fg: '#C62828' }, LOCKED: { bg: '#FFF3E0', fg: '#E65100' },
+  };
+  const colors = c[status] || { bg: '#F5F5F5', fg: '#333' };
+  return <span style={{ padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: colors.bg, color: colors.fg }}>{status}</span>;
+}
+
+const thStyle: React.CSSProperties = { padding: '10px 12px', fontSize: 12, fontWeight: 600, textAlign: 'left' };
+const tdStyle: React.CSSProperties = { padding: '8px 12px', fontSize: 12 };
+const inputStyle: React.CSSProperties = { padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, minWidth: 160 };
+const inputStyleModal: React.CSSProperties = { padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 14, width: '100%', boxSizing: 'border-box' };
+const labelStyle: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: '#555', marginBottom: 4, display: 'block' };
+const btnPrimary: React.CSSProperties = { padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 500 };
+const btnSmall = (bg: string): React.CSSProperties => ({ padding: '4px 10px', background: bg, color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' });
+const pageBtnStyle = (disabled: boolean): React.CSSProperties => ({ padding: '6px 14px', border: '1px solid #ddd', borderRadius: 6, background: disabled ? '#f5f5f5' : '#fff', color: disabled ? '#bbb' : '#333', cursor: disabled ? 'default' : 'pointer', fontSize: 13 });
+const modalOverlay: React.CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
+const modalContent: React.CSSProperties = { background: '#fff', borderRadius: 12, padding: 24, width: '95%', maxHeight: '90vh', overflow: 'auto' };

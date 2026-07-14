@@ -50,11 +50,30 @@ export default function AnalyticsPage() {
 
         const dateRides: Record<string, { rides: number; cancelled: number }> = {};
         const dateRevenue: Record<string, number> = {};
+        const dateUsers: Record<string, number> = {};
+
         rides.forEach((r: any) => {
           const d = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'Unknown';
           if (!dateRides[d]) dateRides[d] = { rides: 0, cancelled: 0 };
           dateRides[d].rides++;
           if (r.status === 'CANCELLED') dateRides[d].cancelled++;
+          if (r.status === 'COMPLETED' && r.actualFare) {
+            dateRevenue[d] = (dateRevenue[d] || 0) + r.actualFare;
+          }
+        });
+
+        users.forEach((u: any) => {
+          if (u.createdAt) {
+            const d = new Date(u.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+            dateUsers[d] = (dateUsers[d] || 0) + 1;
+          }
+        });
+
+        const cancelReasons: Record<string, number> = {};
+        rides.forEach((r: any) => {
+          if (r.status === 'CANCELLED' && r.cancellationReason) {
+            cancelReasons[r.cancellationReason] = (cancelReasons[r.cancellationReason] || 0) + 1;
+          }
         });
 
         const ratingBuckets: Record<string, number> = { '1-2': 0, '2-3': 0, '3-4': 0, '4-5': 0 };
@@ -65,9 +84,9 @@ export default function AnalyticsPage() {
           peakHours: Object.entries(hourCounts).map(([hour, rides]) => ({ hour, rides })),
           dailyRides: Object.entries(dateRides).slice(-14).map(([date, v]) => ({ date, ...v })),
           dailyRevenue: Object.entries(dateRevenue).slice(-14).map(([date, revenue]) => ({ date, revenue })),
-          newUsers: [],
+          newUsers: Object.entries(dateUsers).slice(-30).map(([date, count]) => ({ date, count })),
           driverRatings: Object.entries(ratingBuckets).map(([range, count]) => ({ range, count })),
-          cancellationReasons: [],
+          cancellationReasons: Object.entries(cancelReasons).map(([reason, count]) => ({ reason, count })),
         });
       } catch { /* ignore */ } finally { setLoading(false); }
     };
