@@ -8,6 +8,7 @@ import PendingDriversPage from './pages/PendingDriversPage';
 import VehiclesPage from './pages/VehiclesPage';
 import PaymentsPage from './pages/PaymentsPage';
 import RideMonitoringPage from './pages/RideMonitoringPage';
+import RideDetailPage from './pages/RideDetailPage';
 import CancellationManagementPage from './pages/CancellationManagementPage';
 import EarningsCommissionPage from './pages/EarningsCommissionPage';
 import SOSManagementPage from './pages/SOSManagementPage';
@@ -17,6 +18,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import SupportTicketsPage from './pages/SupportTicketsPage';
 import WalletPage from './pages/WalletPage';
 import CouponsPage from './pages/CouponsPage';
+import PricingPage from './pages/PricingPage';
 import AuditLogsPage from './pages/AuditLogsPage';
 import RolesPermissionsPage from './pages/RolesPermissionsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
@@ -49,10 +51,12 @@ export default function App() {
           <Route path="drivers/pending" element={<PendingDriversPage />} />
           <Route path="payments" element={<PaymentsPage />} />
           <Route path="rides" element={<RideMonitoringPage />} />
+          <Route path="rides/:id" element={<RideDetailPage />} />
           <Route path="cancellations" element={<CancellationManagementPage />} />
           <Route path="earnings" element={<EarningsCommissionPage />} />
           <Route path="sos" element={<SOSManagementPage />} />
           <Route path="config" element={<RoleProtectedRoute permission="CONFIG_VIEW"><SystemConfigPage /></RoleProtectedRoute>} />
+          <Route path="pricing" element={<RoleProtectedRoute permission="CONFIG_VIEW"><PricingPage /></RoleProtectedRoute>} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />

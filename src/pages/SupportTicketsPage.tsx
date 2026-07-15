@@ -64,6 +64,11 @@ export default function SupportTicketsPage() {
     fetchTickets();
   };
 
+  const handleEscalate = async (id: number) => {
+    await api.put(`/support/${id}/escalate`);
+    fetchTickets();
+  };
+
   return (
     <div>
       <h1 style={{ marginBottom: 24, fontSize: 24 }}>Support Ticket Management</h1>
@@ -120,6 +125,9 @@ export default function SupportTicketsPage() {
                     {!ticket.assignedAdminId && (
                       <button onClick={() => handleAssign(ticket.id)} style={btnSuccess}>Assign</button>
                     )}
+                    {ticket.status !== 'RESOLVED' && ticket.status !== 'CLOSED' && ticket.priority !== 'URGENT' && (
+                      <button onClick={() => handleEscalate(ticket.id)} style={{ padding: '4px 10px', background: '#FF9800', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>Escalate</button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -160,6 +168,9 @@ export default function SupportTicketsPage() {
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={() => handleResolve(selectedTicket.id)} style={btnSuccess}>Mark Resolved</button>
                   <button onClick={() => handleClose(selectedTicket.id)} style={{ padding: '8px 16px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Close Ticket</button>
+                  {selectedTicket.priority !== 'URGENT' && (
+                    <button onClick={() => handleEscalate(selectedTicket.id)} style={{ padding: '8px 16px', background: '#FF9800', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Escalate</button>
+                  )}
                 </div>
               </div>
             )}

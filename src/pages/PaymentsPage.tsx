@@ -24,9 +24,12 @@ export default function PaymentsPage() {
   const [error, setError] = useState('');
   const [searchRideId, setSearchRideId] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [filterMethod, setFilterMethod] = useState('ALL');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [invoicePayment, setInvoicePayment] = useState<Payment | null>(null);
+
+  const METHODS = ['ALL', 'CASH', 'UPI', 'CARD', 'WALLET', 'RAZORPAY'];
 
   const fetchPayments = async () => {
     setLoading(true); setError('');
@@ -37,13 +40,14 @@ export default function PaymentsPage() {
       } else {
         const params: Record<string, string | number> = { page, size: 20 };
         if (filterStatus !== 'ALL') params.status = filterStatus;
+        if (filterMethod !== 'ALL') params.method = filterMethod;
         const res = await api.get('/payments', { params });
         setPayments(res.data.payments || []); setTotal(res.data.total || 0);
       }
     } catch { setError('Failed to load payments'); } finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchPayments(); }, [page, filterStatus]);
+  useEffect(() => { fetchPayments(); }, [page, filterStatus, filterMethod]);
 
   const handleRetry = async (paymentId: number) => {
     if (!confirm('Retry this payment?')) return;
@@ -82,6 +86,15 @@ export default function PaymentsPage() {
   return (
     <div>
       <h1 style={{ fontSize: 24, marginBottom: 20 }}>Payments</h1>
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        {METHODS.map((m) => (
+          <button key={m} onClick={() => { setFilterMethod(m); setPage(1); }}
+            style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid #ddd', background: filterMethod === m ? '#1A73E8' : '#fff', color: filterMethod === m ? '#fff' : '#333', fontSize: 12, cursor: 'pointer', fontWeight: filterMethod === m ? 600 : 400 }}>
+            {m === 'ALL' ? 'All Methods' : m.charAt(0) + m.slice(1).toLowerCase()}
+          </button>
+        ))}
+      </div>
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
         <input type="text" placeholder="Search by Ride ID..." value={searchRideId}
