@@ -22,6 +22,7 @@ interface DriverListResponse {
   vehicleNumber: string;
   vehicleBrand: string;
   vehicleModel: string;
+  vehicleColor: string;
   availabilityStatus: string;
   accountStatus: string;
   documentVerificationStatus: string;
@@ -31,6 +32,12 @@ interface DriverListResponse {
   totalRides: number;
   profilePhotoUrl: string | null;
   createdAt: string;
+  dateOfBirth: string | null;
+  gender: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
 }
 
 interface DriversPageData {
@@ -104,6 +111,8 @@ export default function DriversPage() {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [filterVehicle, setFilterVehicle] = useState('ALL');
+  const [filterOnline, setFilterOnline] = useState('ALL');
   const [sortBy, setSortBy] = useState('newest');
   const [page, setPage] = useState(0);
   const pageSize = 20;
@@ -154,6 +163,27 @@ export default function DriversPage() {
     fetchDrivers();
   };
 
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`Permanently delete driver "${name}"? This action cannot be undone.`)) return;
+    try {
+      await api.delete(`/drivers/${id}`);
+      setDetail(null);
+      fetchDrivers();
+    } catch (err: unknown) {
+      alert((err as any)?.response?.data?.message || 'Delete failed');
+    }
+  };
+
+  const handleResetPassword = async (id: number, name: string) => {
+    if (!confirm(`Reset password for "${name}" to default (HJ@12345)?`)) return;
+    try {
+      await api.post(`/drivers/${id}/reset-password`);
+      alert('Password reset to HJ@12345');
+    } catch (err: unknown) {
+      alert((err as any)?.response?.data?.message || 'Reset failed');
+    }
+  };
+
   const handleEdit = (driver: DriverListResponse) => {
     setEditDriver(driver);
     setEditForm({
@@ -196,7 +226,12 @@ export default function DriversPage() {
     a.click(); URL.revokeObjectURL(url);
   };
 
-  const drivers = data?.drivers || [];
+  const drivers = (data?.drivers || []).filter(d => {
+    if (filterVehicle !== 'ALL' && d.vehicleType !== filterVehicle) return false;
+    if (filterOnline === 'ONLINE' && d.availabilityStatus !== 'AVAILABLE') return false;
+    if (filterOnline === 'OFFLINE' && d.availabilityStatus === 'AVAILABLE') return false;
+    return true;
+  });
   const totalPages = data?.totalPages || 0;
 
   return (
@@ -220,6 +255,22 @@ export default function DriversPage() {
           <option value="DOCUMENTS_UNDER_REVIEW">Documents Under Review</option>
           <option value="REJECTED">Rejected</option>
           <option value="LOCKED">Locked</option>
+        </select>
+        <select value={filterVehicle} onChange={(e) => setFilterVehicle(e.target.value)} style={inputStyle}>
+          <option value="ALL">All Vehicles</option>
+          <option value="BIKE">Bike</option>
+          <option value="SCOOTY">Scooty</option>
+          <option value="AUTO">Auto</option>
+          <option value="CAR">Car</option>
+          <option value="MINI">Mini</option>
+          <option value="SEDAN">Sedan</option>
+          <option value="SUV">SUV</option>
+          <option value="XL">XL</option>
+        </select>
+        <select value={filterOnline} onChange={(e) => setFilterOnline(e.target.value)} style={inputStyle}>
+          <option value="ALL">All Online Status</option>
+          <option value="ONLINE">Online</option>
+          <option value="OFFLINE">Offline</option>
         </select>
         <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(0); }} style={inputStyle}>
           <option value="newest">Newest First</option>
@@ -275,6 +326,8 @@ export default function DriversPage() {
                     ) : (
                       <button onClick={() => handleActivate(d.id)} style={btnSmall('#4CAF50')}>Activate</button>
                     )}
+                    <button onClick={() => handleResetPassword(d.id, d.name)} style={btnSmall('#9C27B0')}>Reset Pwd</button>
+                    <button onClick={() => handleDelete(d.id, d.name)} style={btnSmall('#B71C1C')}>Delete</button>
                   </div>
                 </td>
               </tr>
@@ -333,15 +386,46 @@ export default function DriversPage() {
                 {/* Tab Content */}
                 <div style={{ maxHeight: '50vh', overflow: 'auto' }}>
                   {detailTab === 'overview' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                      <InfoItem label="Phone" value={detail.driverInfo.phoneNumber} />
-                      <InfoItem label="Email" value={detail.driverInfo.email} />
-                      <InfoItem label="Vehicle" value={`${detail.driverInfo.vehicleType} • ${detail.driverInfo.vehicleNumber}`} />
-                      <InfoItem label="Rating" value={detail.driverInfo.ratingCount > 0 ? `⭐ ${detail.driverInfo.averageRating.toFixed(1)} (${detail.driverInfo.ratingCount})` : 'No ratings'} />
-                      <InfoItem label="Total Rides" value={String(detail.driverInfo.totalRides)} />
-                      <InfoItem label="Total Earnings" value={`₹${detail.driverInfo.totalEarnings.toLocaleString('en-IN')}`} />
-                      {detail.wallet && <InfoItem label="Wallet Balance" value={`₹${detail.wallet.balance.toLocaleString('en-IN')}`} />}
-                      <InfoItem label="Registered" value={new Date(detail.driverInfo.createdAt).toLocaleDateString('en-IN')} />
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1A73E8', margin: '0 0 8px' }}>Personal Details</p>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+                        <InfoItem label="Driver ID" value={String(detail.driverInfo.id)} />
+                        <InfoItem label="Phone" value={detail.driverInfo.phoneNumber} />
+                        <InfoItem label="Email" value={detail.driverInfo.email} />
+                        <InfoItem label="DOB" value={detail.driverInfo.dateOfBirth || '—'} />
+                        <InfoItem label="Gender" value={detail.driverInfo.gender || '—'} />
+                        <InfoItem label="Address" value={[detail.driverInfo.address, detail.driverInfo.city, detail.driverInfo.state, detail.driverInfo.pincode].filter(Boolean).join(', ') || '—'} />
+                      </div>
+
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1A73E8', margin: '0 0 8px' }}>Vehicle Details</p>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+                        <InfoItem label="Vehicle Type" value={detail.driverInfo.vehicleType} />
+                        <InfoItem label="Number" value={detail.driverInfo.vehicleNumber || '—'} />
+                        <InfoItem label="Brand" value={detail.driverInfo.vehicleBrand || '—'} />
+                        <InfoItem label="Model" value={detail.driverInfo.vehicleModel || '—'} />
+                        <InfoItem label="Color" value={detail.driverInfo.vehicleColor || '—'} />
+                        <InfoItem label="Registered" value={new Date(detail.driverInfo.createdAt).toLocaleDateString('en-IN')} />
+                      </div>
+
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1A73E8', margin: '0 0 8px' }}>Current Status</p>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+                        <InfoItem label="Approval" value={detail.driverInfo.accountStatus} />
+                        <InfoItem label="Online" value={detail.driverInfo.availabilityStatus === 'AVAILABLE' ? 'Online' : 'Offline'} />
+                        <InfoItem label="Rating" value={detail.driverInfo.ratingCount > 0 ? `${detail.driverInfo.averageRating.toFixed(1)} (${detail.driverInfo.ratingCount})` : 'No ratings'} />
+                        {detail.wallet && <InfoItem label="Wallet Balance" value={`₹${detail.wallet.balance.toLocaleString('en-IN')}`} />}
+                      </div>
+
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1A73E8', margin: '0 0 8px' }}>Statistics</p>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                        <InfoItem label="Total Rides" value={String(detail.driverInfo.totalRides)} />
+                        <InfoItem label="Total Earnings" value={`₹${detail.driverInfo.totalEarnings.toLocaleString('en-IN')}`} />
+                        {detail.earnings && <>
+                          <InfoItem label="Today's Rides" value={String(detail.earnings.todayRides)} />
+                          <InfoItem label="Today's Earnings" value={`₹${detail.earnings.todayEarnings.toFixed(0)}`} />
+                          <InfoItem label="Week Rides" value={String(detail.earnings.weekRides)} />
+                          <InfoItem label="Month Rides" value={String(detail.earnings.monthRides)} />
+                        </>}
+                      </div>
                     </div>
                   )}
 
@@ -444,12 +528,14 @@ export default function DriversPage() {
 
                 {/* Detail Actions */}
                 <div style={{ display: 'flex', gap: 8, marginTop: 16, borderTop: '1px solid #E0E0E0', paddingTop: 16 }}>
-                  <button onClick={() => { setDetail(null); handleEdit(detail.driverInfo); }} style={btnSmall('#FF9800')}>Edit Driver</button>
+                  <button onClick={() => { setDetail(null); handleEdit(detail.driverInfo); }} style={btnSmall('#FF9800')}>Edit</button>
                   {detail.driverInfo.accountStatus === 'ACTIVE' ? (
                     <button onClick={() => { handleSuspend(detail.driverInfo.id); setDetail(null); }} style={btnSmall('#F44336')}>Suspend</button>
                   ) : (
                     <button onClick={() => { handleActivate(detail.driverInfo.id); setDetail(null); }} style={btnSmall('#4CAF50')}>Activate</button>
                   )}
+                  <button onClick={() => { handleResetPassword(detail.driverInfo.id, detail.driverInfo.name); }} style={btnSmall('#9C27B0')}>Reset Password</button>
+                  <button onClick={() => { handleDelete(detail.driverInfo.id, detail.driverInfo.name); }} style={btnSmall('#B71C1C')}>Delete</button>
                   <button onClick={() => setDetail(null)} style={{ marginLeft: 'auto', ...btnSmall('#9E9E9E') }}>Close</button>
                 </div>
               </>
