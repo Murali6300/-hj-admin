@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import api from '../api';
 import { getVehicleIcon, getVehicleColor } from '../utils/vehicleIcons';
 
@@ -145,6 +145,9 @@ export default function DriversPage() {
 
   // Reset password modal
   const [resetPwdTarget, setResetPwdTarget] = useState<DriverListResponse | null>(null);
+
+  // Tracking modal
+  const [trackingTarget, setTrackingTarget] = useState<DriverListResponse | null>(null);
 
   const fetchDrivers = useCallback(async () => {
     setLoading(true);
@@ -301,6 +304,14 @@ export default function DriversPage() {
     a.click(); URL.revokeObjectURL(url);
   };
 
+  const handleTrack = (driver: DriverListResponse) => {
+    setTrackingTarget(driver);
+  };
+
+  const stopTracking = () => {
+    setTrackingTarget(null);
+  };
+
   const drivers = (data?.drivers || []).filter(d => {
     if (filterVehicle !== 'ALL' && d.vehicleType !== filterVehicle) return false;
     if (filterOnline === 'ONLINE' && d.availabilityStatus !== 'AVAILABLE') return false;
@@ -403,6 +414,7 @@ export default function DriversPage() {
                     )}
                     <button onClick={() => handleResetPassword(d)} style={btnSmall('#9C27B0')}>Reset Pwd</button>
                     <button onClick={() => handleDelete(d)} style={btnSmall('#B71C1C')}>Delete</button>
+                    <button onClick={() => handleTrack(d)} style={btnSmall('#00BCD4')}>Track</button>
                   </div>
                 </td>
               </tr>
@@ -769,6 +781,14 @@ export default function DriversPage() {
           </div>
         </div>
       )}
+
+      {/* Tracking Modal */}
+      {trackingTarget && (
+        <TrackingModal
+          driver={trackingTarget}
+          onClose={stopTracking}
+        />
+      )}
     </div>
   );
 }
@@ -826,3 +846,127 @@ const btnSmall = (bg: string): React.CSSProperties => ({ padding: '4px 10px', ba
 const pageBtnStyle = (disabled: boolean): React.CSSProperties => ({ padding: '6px 14px', border: '1px solid #ddd', borderRadius: 6, background: disabled ? '#f5f5f5' : '#fff', color: disabled ? '#bbb' : '#333', cursor: disabled ? 'default' : 'pointer', fontSize: 13 });
 const modalOverlay: React.CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
 const modalContent: React.CSSProperties = { background: '#fff', borderRadius: 12, padding: 24, width: '95%', maxHeight: '90vh', overflow: 'auto' };
+
+// ─── Tracking Modal ──────────────────────────────────────────────────────────
+
+function TrackingModal({ driver, onClose }: { driver: DriverListResponse; onClose: () => void }) {
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [error, setError] = useState('');
+  const [lastUpdate, setLastUpdate] = useState('');
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapObjRef = useRef<unknown>(null);
+  const markerObjRef = useRef<unknown>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const fetchLocation = useCallback(async () => {
+    try {
+      const res = await api.get(`/drivers/${driver.id}/location`);
+      if (res.data.found) {
+        const lat = Number(res.data.latitude);
+        const lng = Number(res.data.longitude);
+        setLocation({ lat, lng });
+        setLastUpdate(new Date().toLocaleTimeString('en-IN'));
+        setError('');
+      } else {
+        setError('Driver location not available. The driver may be offline.');
+      }
+    } catch {
+      setError('Failed to fetch driver location.');
+    }
+  }, [driver.id]);
+
+  useEffect(() => {
+    fetchLocation();
+    pollRef.current = setInterval(fetchLocation, 5000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [fetchLocation]);
+
+  useEffect(() => {
+    if (!location || !mapContainerRef.current) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const L = (window as any).L;
+    if (!L) return;
+
+    if (!mapObjRef.current) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const newMap: any = new L.Map(mapContainerRef.current, {
+        zoomControl: true,
+        attributionControl: true,
+      });
+      newMap.setView([location.lat, location.lng], 16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(newMap);
+      const marker = L.marker([location.lat, location.lng]).addTo(newMap);
+      mapObjRef.current = newMap;
+      markerObjRef.current = marker;
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const map: any = mapObjRef.current;
+      map.setView([location.lat, location.lng], 16);
+      if (markerObjRef.current) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (markerObjRef.current as any).setLatLng([location.lat, location.lng]);
+      }
+    }
+  }, [location]);
+
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+    `;
+    document.head.appendChild(style);
+    if (!(window as unknown as Record<string, unknown>).L) {
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload = () => {};
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  return (
+    <div style={modalOverlay} onClick={onClose}>
+      <div style={{ ...modalContent, maxWidth: 700 }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <h2 style={{ fontSize: 18, margin: 0 }}>Track: {driver.name}</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer' }}>×</button>
+        </div>
+
+        <div style={{ display: 'flex', gap: 12, marginBottom: 12, fontSize: 13, color: '#555', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span>{getVehicleIcon(driver.vehicleType)} {driver.vehicleNumber}</span>
+          <span>•</span>
+          <span>{driver.vehicleBrand} {driver.vehicleModel}</span>
+          {lastUpdate && <span style={{ marginLeft: 'auto', color: '#999' }}>Last updated: {lastUpdate}</span>}
+        </div>
+
+        {error && (
+          <div style={{ padding: 16, background: '#FFF3E0', border: '1px solid #FFE0B2', borderRadius: 8, marginBottom: 12 }}>
+            <p style={{ fontSize: 13, color: '#E65100', margin: 0 }}>{error}</p>
+          </div>
+        )}
+
+        <div
+          ref={mapContainerRef}
+          style={{
+            width: '100%',
+            height: 400,
+            borderRadius: 8,
+            border: '1px solid #E0E0E0',
+            background: error ? '#f5f5f5' : '#e0e0e0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        />
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+          <button onClick={fetchLocation} style={{ ...btnPrimary, background: '#00BCD4' }}>Refresh</button>
+          <button onClick={onClose} style={{ ...btnSmall('#9E9E9E'), padding: '8px 16px' }}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
