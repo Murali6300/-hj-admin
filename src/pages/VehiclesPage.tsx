@@ -153,6 +153,7 @@ export default function VehiclesPage() {
     if (!form.baseFare || Number(form.baseFare) < 0) { setFormError('Base fare must be >= 0'); return; }
     if (!form.perKmRate || Number(form.perKmRate) < 0) { setFormError('Per km rate must be >= 0'); return; }
     if (!form.perMinRate || Number(form.perMinRate) < 0) { setFormError('Per min rate must be >= 0'); return; }
+    if (!confirm(editingVehicle ? `Update vehicle type "${form.displayName}"?` : `Create new vehicle type "${form.displayName}"?`)) return;
 
     setActionLoading(editingVehicle?.id ?? -1);
     try {

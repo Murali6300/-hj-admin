@@ -65,6 +65,7 @@ export default function CouponsPage() {
   };
 
   const handleSubmit = async () => {
+    if (!confirm(editCoupon ? `Update coupon "${form.code.toUpperCase()}"?` : `Create new coupon "${form.code.toUpperCase()}"?`)) return;
     const payload = {
       ...form,
       code: form.code.toUpperCase(),

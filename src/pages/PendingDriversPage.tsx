@@ -120,6 +120,7 @@ export default function PendingDriversPage() {
 
   const handleReject = async () => {
     if (!rejectDriver) return;
+    if (!confirm(`Reject "${rejectDriver.name}"? They will be notified.`)) return;
     setActionLoading(rejectDriver.id);
     try {
       await api.put(`/drivers/${rejectDriver.id}/reject`, { remarks: rejectReason || 'Documents do not meet requirements' });
@@ -131,6 +132,7 @@ export default function PendingDriversPage() {
 
   const handleRequestReupload = async () => {
     if (!reuploadDriver) return;
+    if (!confirm(`Request document re-upload from "${reuploadDriver.name}"?`)) return;
     setActionLoading(reuploadDriver.id);
     try {
       await api.put(`/drivers/${reuploadDriver.id}/request-reupload`, { remarks: reuploadReason || 'Please re-upload your documents' });
@@ -142,6 +144,7 @@ export default function PendingDriversPage() {
 
   const handleUpdateDocStatus = async () => {
     if (!docStatusModal) return;
+    if (!confirm(`${docStatusAction} document "${docStatusModal.docType}"?`)) return;
     const { driverId, docType } = docStatusModal;
     setActionLoading(driverId);
     try {

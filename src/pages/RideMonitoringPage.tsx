@@ -113,6 +113,7 @@ export default function RideMonitoringPage() {
 
   const handleCancelRide = async () => {
     if (!cancelModalRide) return;
+    if (!confirm('Cancel this ride? The rider will be notified.')) return;
     try {
       await api.post(`/rides/${cancelModalRide.id}/cancel`, {
         reason: cancelReason || 'Cancelled by admin',

@@ -56,6 +56,7 @@ export default function RolesPermissionsPage() {
   };
 
   const handleSubmit = async () => {
+    if (!confirm(editAdmin ? `Update admin "${form.fullName}"?` : `Create new admin "${form.fullName}"?`)) return;
     try {
       if (editAdmin) {
         const payload: any = { email: form.email, fullName: form.fullName, role: form.role };

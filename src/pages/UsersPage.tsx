@@ -174,6 +174,7 @@ export default function UsersPage() {
 
   const handleEditSave = async () => {
     if (!editUser) return;
+    if (!confirm(`Save changes to "${editUser.name}"?`)) return;
     setEditSaving(true);
     try {
       await api.put(`/users/${editUser.id}`, editForm);

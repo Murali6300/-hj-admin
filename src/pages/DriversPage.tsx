@@ -167,6 +167,7 @@ export default function DriversPage() {
 
   const handleEditSave = async () => {
     if (!editDriver) return;
+    if (!confirm(`Save changes to "${editDriver.name}"?`)) return;
     setEditSaving(true);
     try {
       await api.put(`/drivers/${editDriver.id}`, editForm);
