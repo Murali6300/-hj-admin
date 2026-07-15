@@ -127,6 +127,25 @@ export default function DriversPage() {
   const [editForm, setEditForm] = useState({ name: '', phoneNumber: '', vehicleBrand: '', vehicleModel: '', vehicleColor: '' });
   const [editSaving, setEditSaving] = useState(false);
 
+  // Approve modal
+  const [approveTarget, setApproveTarget] = useState<DriverListResponse | null>(null);
+
+  // Reject modal
+  const [rejectTarget, setRejectTarget] = useState<DriverListResponse | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectComment, setRejectComment] = useState('');
+
+  // Suspend modal
+  const [suspendTarget, setSuspendTarget] = useState<DriverListResponse | null>(null);
+  const [suspendReason, setSuspendReason] = useState('');
+  const [suspendComment, setSuspendComment] = useState('');
+
+  // Delete modal
+  const [deleteTarget, setDeleteTarget] = useState<DriverListResponse | null>(null);
+
+  // Reset password modal
+  const [resetPwdTarget, setResetPwdTarget] = useState<DriverListResponse | null>(null);
+
   const fetchDrivers = useCallback(async () => {
     setLoading(true);
     try {
@@ -151,10 +170,22 @@ export default function DriversPage() {
     } catch { /* ignore */ } finally { setDetailLoading(false); }
   };
 
-  const handleSuspend = async (id: number) => {
-    if (!confirm('Suspend this driver?')) return;
-    await api.put(`/drivers/${id}/account-status`, { status: 'SUSPENDED' });
-    fetchDrivers();
+  const handleSuspend = (driver: DriverListResponse) => {
+    setSuspendTarget(driver);
+    setSuspendReason('');
+    setSuspendComment('');
+  };
+
+  const handleSuspendConfirm = async () => {
+    if (!suspendTarget || !suspendReason) return;
+    try {
+      await api.put(`/drivers/${suspendTarget.id}/account-status`, { status: 'SUSPENDED', reason: suspendReason + (suspendComment ? ': ' + suspendComment : '') });
+      setSuspendTarget(null);
+      setDetail(null);
+      fetchDrivers();
+    } catch (err: unknown) {
+      alert((err as any)?.response?.data?.message || 'Suspend failed');
+    }
   };
 
   const handleActivate = async (id: number) => {
@@ -163,10 +194,49 @@ export default function DriversPage() {
     fetchDrivers();
   };
 
-  const handleDelete = async (id: number, name: string) => {
-    if (!confirm(`Permanently delete driver "${name}"? This action cannot be undone.`)) return;
+  const handleApprove = (driver: DriverListResponse) => {
+    setApproveTarget(driver);
+  };
+
+  const handleApproveConfirm = async () => {
+    if (!approveTarget) return;
     try {
-      await api.delete(`/drivers/${id}`);
+      await api.put(`/drivers/${approveTarget.id}/approve`, { remarks: 'Approved by admin' });
+      setApproveTarget(null);
+      setDetail(null);
+      fetchDrivers();
+    } catch (err: unknown) {
+      alert((err as any)?.response?.data?.message || 'Approve failed');
+    }
+  };
+
+  const handleReject = (driver: DriverListResponse) => {
+    setRejectTarget(driver);
+    setRejectReason('');
+    setRejectComment('');
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!rejectTarget || !rejectReason) return;
+    try {
+      await api.put(`/drivers/${rejectTarget.id}/reject`, { remarks: rejectReason + (rejectComment ? ': ' + rejectComment : '') });
+      setRejectTarget(null);
+      setDetail(null);
+      fetchDrivers();
+    } catch (err: unknown) {
+      alert((err as any)?.response?.data?.message || 'Reject failed');
+    }
+  };
+
+  const handleDelete = (driver: DriverListResponse) => {
+    setDeleteTarget(driver);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    try {
+      await api.delete(`/drivers/${deleteTarget.id}`);
+      setDeleteTarget(null);
       setDetail(null);
       fetchDrivers();
     } catch (err: unknown) {
@@ -174,10 +244,15 @@ export default function DriversPage() {
     }
   };
 
-  const handleResetPassword = async (id: number, name: string) => {
-    if (!confirm(`Reset password for "${name}" to default (HJ@12345)?`)) return;
+  const handleResetPassword = (driver: DriverListResponse) => {
+    setResetPwdTarget(driver);
+  };
+
+  const handleResetPasswordConfirm = async () => {
+    if (!resetPwdTarget) return;
     try {
-      await api.post(`/drivers/${id}/reset-password`);
+      await api.post(`/drivers/${resetPwdTarget.id}/reset-password`);
+      setResetPwdTarget(null);
       alert('Password reset to HJ@12345');
     } catch (err: unknown) {
       alert((err as any)?.response?.data?.message || 'Reset failed');
@@ -322,12 +397,12 @@ export default function DriversPage() {
                     <button onClick={() => handleViewDetail(d.id)} style={btnSmall('#1A73E8')} disabled={detailLoading}>View</button>
                     <button onClick={() => handleEdit(d)} style={btnSmall('#FF9800')}>Edit</button>
                     {d.accountStatus === 'ACTIVE' ? (
-                      <button onClick={() => handleSuspend(d.id)} style={btnSmall('#F44336')}>Suspend</button>
+                      <button onClick={() => handleSuspend(d)} style={btnSmall('#F44336')}>Suspend</button>
                     ) : (
                       <button onClick={() => handleActivate(d.id)} style={btnSmall('#4CAF50')}>Activate</button>
                     )}
-                    <button onClick={() => handleResetPassword(d.id, d.name)} style={btnSmall('#9C27B0')}>Reset Pwd</button>
-                    <button onClick={() => handleDelete(d.id, d.name)} style={btnSmall('#B71C1C')}>Delete</button>
+                    <button onClick={() => handleResetPassword(d)} style={btnSmall('#9C27B0')}>Reset Pwd</button>
+                    <button onClick={() => handleDelete(d)} style={btnSmall('#B71C1C')}>Delete</button>
                   </div>
                 </td>
               </tr>
@@ -530,12 +605,14 @@ export default function DriversPage() {
                 <div style={{ display: 'flex', gap: 8, marginTop: 16, borderTop: '1px solid #E0E0E0', paddingTop: 16 }}>
                   <button onClick={() => { setDetail(null); handleEdit(detail.driverInfo); }} style={btnSmall('#FF9800')}>Edit</button>
                   {detail.driverInfo.accountStatus === 'ACTIVE' ? (
-                    <button onClick={() => { handleSuspend(detail.driverInfo.id); setDetail(null); }} style={btnSmall('#F44336')}>Suspend</button>
+                    <button onClick={() => { handleSuspend(detail.driverInfo); }} style={btnSmall('#F44336')}>Suspend</button>
                   ) : (
                     <button onClick={() => { handleActivate(detail.driverInfo.id); setDetail(null); }} style={btnSmall('#4CAF50')}>Activate</button>
                   )}
-                  <button onClick={() => { handleResetPassword(detail.driverInfo.id, detail.driverInfo.name); }} style={btnSmall('#9C27B0')}>Reset Password</button>
-                  <button onClick={() => { handleDelete(detail.driverInfo.id, detail.driverInfo.name); }} style={btnSmall('#B71C1C')}>Delete</button>
+                  <button onClick={() => handleApprove(detail.driverInfo)} style={btnSmall('#4CAF50')}>Approve</button>
+                  <button onClick={() => handleReject(detail.driverInfo)} style={btnSmall('#F44336')}>Reject</button>
+                  <button onClick={() => handleResetPassword(detail.driverInfo)} style={btnSmall('#9C27B0')}>Reset Password</button>
+                  <button onClick={() => handleDelete(detail.driverInfo)} style={btnSmall('#B71C1C')}>Delete</button>
                   <button onClick={() => setDetail(null)} style={{ marginLeft: 'auto', ...btnSmall('#9E9E9E') }}>Close</button>
                 </div>
               </>
@@ -562,6 +639,132 @@ export default function DriversPage() {
             <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
               <button onClick={handleEditSave} disabled={editSaving} style={{ ...btnPrimary, flex: 1 }}>{editSaving ? 'Saving...' : 'Save Changes'}</button>
               <button onClick={() => setEditDriver(null)} style={{ ...btnSmall('#9E9E9E'), flex: 1 }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Approve Modal */}
+      {approveTarget && (
+        <div style={modalOverlay} onClick={() => setApproveTarget(null)}>
+          <div style={{ ...modalContent, maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: 18, margin: '0 0 12px' }}>Approve Driver?</h2>
+            <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 8, marginBottom: 16 }}>
+              <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{approveTarget.name}</p>
+              <p style={{ fontSize: 13, color: '#555', margin: '4px 0 0' }}>{approveTarget.vehicleType} • {approveTarget.vehicleNumber}</p>
+            </div>
+            <p style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>The driver will be set to <strong>ACTIVE</strong> status and can start accepting rides.</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={handleApproveConfirm} style={{ flex: 1, padding: '10px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Approve</button>
+              <button onClick={() => setApproveTarget(null)} style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Modal */}
+      {rejectTarget && (
+        <div style={modalOverlay} onClick={() => setRejectTarget(null)}>
+          <div style={{ ...modalContent, maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: 18, margin: '0 0 12px' }}>Reject Driver?</h2>
+            <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 8, marginBottom: 16 }}>
+              <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{rejectTarget.name}</p>
+              <p style={{ fontSize: 13, color: '#555', margin: '4px 0 0' }}>{rejectTarget.vehicleType} • {rejectTarget.vehicleNumber}</p>
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={labelStyle}>Reason *</label>
+              <select value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} style={inputStyleModal}>
+                <option value="">Select a reason...</option>
+                <option value="License Expired">License Expired</option>
+                <option value="RC Invalid">RC Invalid</option>
+                <option value="Insurance Missing">Insurance Missing</option>
+                <option value="Photo Not Clear">Photo Not Clear</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>Comment (optional)</label>
+              <textarea value={rejectComment} onChange={(e) => setRejectComment(e.target.value)}
+                placeholder="Additional details..."
+                style={{ width: '100%', minHeight: 60, padding: 10, border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box', resize: 'vertical' }} />
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={handleRejectConfirm} disabled={!rejectReason} style={{ flex: 1, padding: '10px', background: rejectReason ? '#F44336' : '#ccc', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: rejectReason ? 'pointer' : 'not-allowed' }}>Reject</button>
+              <button onClick={() => setRejectTarget(null)} style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Suspend Modal */}
+      {suspendTarget && (
+        <div style={modalOverlay} onClick={() => setSuspendTarget(null)}>
+          <div style={{ ...modalContent, maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: 18, margin: '0 0 12px' }}>Suspend Driver?</h2>
+            <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 8, marginBottom: 16 }}>
+              <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{suspendTarget.name}</p>
+              <p style={{ fontSize: 13, color: '#555', margin: '4px 0 0' }}>{suspendTarget.vehicleType} • {suspendTarget.vehicleNumber}</p>
+            </div>
+            <p style={{ fontSize: 12, color: '#F44336', marginBottom: 12 }}>The driver will not be able to log in, go online, or accept rides.</p>
+            <div style={{ marginBottom: 12 }}>
+              <label style={labelStyle}>Reason *</label>
+              <select value={suspendReason} onChange={(e) => setSuspendReason(e.target.value)} style={inputStyleModal}>
+                <option value="">Select a reason...</option>
+                <option value="Fraud">Fraud</option>
+                <option value="Abuse">Abuse</option>
+                <option value="Poor Rating">Poor Rating</option>
+                <option value="Multiple Complaints">Multiple Complaints</option>
+                <option value="Fake Documents">Fake Documents</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>Comment (optional)</label>
+              <textarea value={suspendComment} onChange={(e) => setSuspendComment(e.target.value)}
+                placeholder="Additional details..."
+                style={{ width: '100%', minHeight: 60, padding: 10, border: '1px solid #ddd', borderRadius: 6, fontSize: 13, boxSizing: 'border-box', resize: 'vertical' }} />
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={handleSuspendConfirm} disabled={!suspendReason} style={{ flex: 1, padding: '10px', background: suspendReason ? '#F44336' : '#ccc', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: suspendReason ? 'pointer' : 'not-allowed' }}>Suspend</button>
+              <button onClick={() => setSuspendTarget(null)} style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Modal */}
+      {deleteTarget && (
+        <div style={modalOverlay} onClick={() => setDeleteTarget(null)}>
+          <div style={{ ...modalContent, maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: 18, margin: '0 0 12px', color: '#F44336' }}>Delete Driver?</h2>
+            <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 8, marginBottom: 12 }}>
+              <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{deleteTarget.name}</p>
+              <p style={{ fontSize: 13, color: '#555', margin: '4px 0 0' }}>{deleteTarget.vehicleType} • {deleteTarget.vehicleNumber}</p>
+            </div>
+            <div style={{ padding: 12, background: '#FFEBEE', borderRadius: 8, border: '1px solid #FFCDD2', marginBottom: 16 }}>
+              <p style={{ fontSize: 13, color: '#C62828', fontWeight: 600, margin: 0 }}>⚠ Warning! This action cannot be undone.</p>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={handleDeleteConfirm} style={{ flex: 1, padding: '10px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Delete</button>
+              <button onClick={() => setDeleteTarget(null)} style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {resetPwdTarget && (
+        <div style={modalOverlay} onClick={() => setResetPwdTarget(null)}>
+          <div style={{ ...modalContent, maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: 18, margin: '0 0 12px' }}>Reset Driver Password?</h2>
+            <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 8, marginBottom: 16 }}>
+              <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{resetPwdTarget.name}</p>
+              <p style={{ fontSize: 13, color: '#555', margin: '4px 0 0' }}>{resetPwdTarget.vehicleType} • {resetPwdTarget.vehicleNumber}</p>
+            </div>
+            <p style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>Password will be reset to <code>HJ@12345</code>. The driver should change it on next login.</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={handleResetPasswordConfirm} style={{ flex: 1, padding: '10px', background: '#9C27B0', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Reset</button>
+              <button onClick={() => setResetPwdTarget(null)} style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
         </div>
