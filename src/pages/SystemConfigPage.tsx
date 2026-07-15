@@ -61,6 +61,7 @@ export default function SystemConfigPage() {
   };
 
   const handleSaveSection = async () => {
+    if (!confirm('Save configuration changes?')) return;
     setSaving(true);
     setSaveSuccess(null);
     try {

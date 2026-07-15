@@ -184,6 +184,7 @@ export default function VehiclesPage() {
   // ─── Toggle Active ───────────────────────────────────────────────────────
 
   const handleToggleActive = async (v: VehicleTypeConfig) => {
+    if (!confirm(`${v.isActive ? 'Deactivate' : 'Activate'} "${v.displayName}"? ${v.isActive ? 'Users will no longer see this vehicle type.' : 'This vehicle type will become visible to users.'}`)) return;
     setActionLoading(v.id);
     try {
       await api.put(`/vehicle-types/${v.id}`, {

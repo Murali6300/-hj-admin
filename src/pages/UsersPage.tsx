@@ -150,6 +150,7 @@ export default function UsersPage() {
   };
 
   const handleActivate = async (id: number) => {
+    if (!confirm('Activate this user? They will regain full access to the app.')) return;
     await api.put(`/users/${id}/activate`);
     fetchUsers();
   };

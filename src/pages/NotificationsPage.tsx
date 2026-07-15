@@ -34,8 +34,8 @@ export default function NotificationsPage() {
   useEffect(() => { fetchNotifications(); }, [page]);
 
   const handleSend = async () => {
-    if (!title.trim() || !body.trim()) { alert('Title and body are required'); return; }
-    setSending(true);
+    if (!title.trim() || !body.trim()) { alert('Title and message are required'); return; }
+    if (!confirm(`Send ${targetType} notification to ${targetRole === 'ALL' ? 'all users' : targetRole}?`)) return;
     try {
       await api.post('/notifications?adminId=1', { title, body, targetRole, targetType });
       alert('Notification sent successfully!');

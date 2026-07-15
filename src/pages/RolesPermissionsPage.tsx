@@ -72,6 +72,7 @@ export default function RolesPermissionsPage() {
   };
 
   const handleToggleActive = async (id: number) => {
+    if (!confirm('Deactivate this admin user? They will not be able to log in until reactivated.')) return;
     try { await api.put(`/admin-users/${id}/toggle-active`); fetchAdmins(); } catch { alert('Failed to toggle'); }
   };
 

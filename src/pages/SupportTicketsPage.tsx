@@ -47,12 +47,14 @@ export default function SupportTicketsPage() {
   useEffect(() => { fetchTickets(); }, [page, filterStatus]);
 
   const handleAssign = async (id: number) => {
+    if (!confirm('Assign this ticket to yourself?')) return;
     await api.put(`/support/${id}/assign?adminId=1`);
     fetchTickets();
   };
 
   const handleResolve = async (id: number) => {
     if (!resolution.trim()) { alert('Please enter resolution'); return; }
+    if (!confirm('Mark this ticket as resolved?')) return;
     await api.put(`/support/${id}/resolve?resolution=${encodeURIComponent(resolution)}`);
     setSelectedTicket(null);
     setResolution('');
@@ -60,11 +62,13 @@ export default function SupportTicketsPage() {
   };
 
   const handleClose = async (id: number) => {
+    if (!confirm('Close this ticket? It cannot be reopened.')) return;
     await api.put(`/support/${id}/close`);
     fetchTickets();
   };
 
   const handleEscalate = async (id: number) => {
+    if (!confirm('Escalate this ticket? Priority will be increased.')) return;
     await api.put(`/support/${id}/escalate`);
     fetchTickets();
   };

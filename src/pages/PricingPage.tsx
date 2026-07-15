@@ -69,6 +69,7 @@ export default function PricingPage() {
   };
 
   const handleSaveAll = async () => {
+    if (!confirm('Save all pricing changes? These take effect immediately.')) return;
     setSaving(true);
     try {
       const payload = PRICING_FIELDS

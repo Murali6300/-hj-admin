@@ -49,12 +49,14 @@ export default function SOSManagementPage() {
   useEffect(() => { fetchAlerts(); fetchActiveCount(); }, [page, filterStatus]);
 
   const handleAcknowledge = async (id: number) => {
+    if (!confirm('Acknowledge this emergency alert? This marks it as reviewed.')) return;
     await api.put(`/sos/${id}/acknowledge?adminId=1`);
     fetchAlerts();
     fetchActiveCount();
   };
 
   const handleResolve = async (id: number) => {
+    if (!confirm('Mark this emergency as resolved?')) return;
     await api.put(`/sos/${id}/resolve?adminId=1&notes=${encodeURIComponent(resolveNotes[id] || 'Resolved by admin')}`);
     fetchAlerts();
     fetchActiveCount();

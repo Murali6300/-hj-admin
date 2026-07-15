@@ -46,6 +46,7 @@ export default function CancellationManagementPage() {
   useEffect(() => { fetchCancelled(); }, [page]);
 
   const handleRefund = async (rideId: number) => {
+    if (!confirm('Process a refund for this cancelled ride? The full fare will be returned to the user.')) return;
     try {
       const payRes = await api.get(`/payments/ride/${rideId}`);
       const payment = payRes.data;

@@ -149,6 +149,7 @@ export default function DriversPage() {
   };
 
   const handleActivate = async (id: number) => {
+    if (!confirm('Activate this driver? They will be able to accept rides again.')) return;
     await api.put(`/drivers/${id}/account-status`, { status: 'ACTIVE' });
     fetchDrivers();
   };

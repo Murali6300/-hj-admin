@@ -62,6 +62,7 @@ export default function Layout() {
   });
 
   const handleLogout = () => {
+    if (!confirm('Log out of the admin portal?')) return;
     localStorage.removeItem('admin_token');
     localStorage.removeItem('admin_refresh_token');
     localStorage.removeItem('admin_name');

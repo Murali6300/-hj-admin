@@ -73,6 +73,7 @@ export default function WalletPage() {
   };
 
   const handleAdjust = async () => {
+    if (!confirm(`${Number(adjustForm.amount) >= 0 ? 'Credit' : 'Deduct'} ₹${Math.abs(Number(adjustForm.amount)).toLocaleString()} ${Number(adjustForm.amount) >= 0 ? 'to' : 'from'} this wallet?`)) return;
     try {
       await api.post('/wallets/adjust', {
         userId: Number(adjustForm.userId),
