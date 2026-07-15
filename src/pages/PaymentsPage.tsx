@@ -38,13 +38,16 @@ export default function PaymentsPage() {
         const res = await api.get(`/payments/ride/${searchRideId.trim()}`);
         setPayments([res.data]); setTotal(1);
       } else {
-        const params: Record<string, string | number> = { page, size: 20 };
+        const params: Record<string, string | number> = { page: page - 1, size: 20 };
         if (filterStatus !== 'ALL') params.status = filterStatus;
         if (filterMethod !== 'ALL') params.method = filterMethod;
         const res = await api.get('/payments', { params });
-        setPayments(res.data.payments || []); setTotal(res.data.total || 0);
+        setPayments(res.data.content || []); setTotal(res.data.totalElements || 0);
       }
-    } catch { setError('Failed to load payments'); } finally { setLoading(false); }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || 'Failed to load payments';
+      setError(msg);
+    } finally { setLoading(false); }
   };
 
   useEffect(() => { fetchPayments(); }, [page, filterStatus, filterMethod]);
@@ -108,6 +111,7 @@ export default function PaymentsPage() {
           <option value="PENDING">Pending</option>
           <option value="FAILED">Failed</option>
           <option value="REFUNDED">Refunded</option>
+          <option value="CANCELLED">Cancelled</option>
         </select>
         <button onClick={() => { setPage(1); fetchPayments(); }} style={{ padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Search</button>
         <button onClick={handleExport} style={{ padding: '8px 16px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Export CSV</button>
