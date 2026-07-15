@@ -48,6 +48,7 @@ export default function DashboardPage() {
       setError(null);
       setLastUpdated(new Date());
     } catch (err: any) {
+      console.error('Dashboard fetch failed:', err);
       const msg = err?.response?.data?.message || err?.message || 'Failed to load dashboard data.';
       setError(msg);
     } finally {
@@ -87,6 +88,14 @@ export default function DashboardPage() {
   }
 
   if (!stats) return null;
+
+  // Defensive: ensure chart arrays always exist
+  const dailyRevenue = stats.dailyRevenue || [];
+  const monthlyRevenue = stats.monthlyRevenue || [];
+  const dailyRides = stats.dailyRides || [];
+  const driverActivity = stats.driverActivity || [];
+  const userGrowth = stats.userGrowth || [];
+  const driverGrowth = stats.driverGrowth || [];
 
   const cards = [
     { label: 'Total Users', value: stats.totalUsers.toLocaleString(), color: '#9C27B0', icon: '\u{1F465}' },
@@ -194,9 +203,9 @@ export default function DashboardPage() {
       {/* Charts */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))', gap: 20 }}>
         <ChartCard title="Daily Revenue (Last 14 Days)">
-          {stats.dailyRevenue.length > 0 ? (
+          {dailyRevenue.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
-              <AreaChart data={stats.dailyRevenue}>
+              <AreaChart data={dailyRevenue}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" fontSize={11} />
                 <YAxis fontSize={11} />
@@ -208,9 +217,9 @@ export default function DashboardPage() {
         </ChartCard>
 
         <ChartCard title="Monthly Revenue (Last 12 Months)">
-          {stats.monthlyRevenue.length > 0 ? (
+          {monthlyRevenue.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={stats.monthlyRevenue}>
+              <BarChart data={monthlyRevenue}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" fontSize={11} />
                 <YAxis fontSize={11} />
@@ -222,9 +231,9 @@ export default function DashboardPage() {
         </ChartCard>
 
         <ChartCard title="Ride Trend (Last 14 Days)">
-          {stats.dailyRides.length > 0 ? (
+          {dailyRides.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={stats.dailyRides}>
+              <LineChart data={dailyRides}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" fontSize={11} />
                 <YAxis fontSize={11} />
@@ -238,9 +247,9 @@ export default function DashboardPage() {
         </ChartCard>
 
         <ChartCard title="Driver Activity (Last 14 Days)">
-          {stats.driverActivity.length > 0 ? (
+          {driverActivity.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={stats.driverActivity}>
+              <BarChart data={driverActivity}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" fontSize={11} />
                 <YAxis fontSize={11} />
@@ -254,9 +263,9 @@ export default function DashboardPage() {
         </ChartCard>
 
         <ChartCard title="User Growth (Last 30 Days)">
-          {stats.userGrowth.length > 0 ? (
+          {userGrowth.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
-              <AreaChart data={stats.userGrowth}>
+              <AreaChart data={userGrowth}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" fontSize={11} />
                 <YAxis fontSize={11} />
@@ -268,9 +277,9 @@ export default function DashboardPage() {
         </ChartCard>
 
         <ChartCard title="Driver Growth (Last 30 Days)">
-          {stats.driverGrowth.length > 0 ? (
+          {driverGrowth.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
-              <AreaChart data={stats.driverGrowth}>
+              <AreaChart data={driverGrowth}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" fontSize={11} />
                 <YAxis fontSize={11} />
