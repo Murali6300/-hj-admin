@@ -38,52 +38,62 @@ export default function AnalyticsPage() {
       if (usersRes.status === 'rejected') newErrors.users = 'Failed to load users data';
       setErrors(newErrors);
 
-      const rides = ridesRes.status === 'fulfilled' ? (ridesRes.value.data.content || []) : [];
+      const rides = ridesRes.status === 'fulfilled' ? (Array.isArray(ridesRes.value.data?.content) ? ridesRes.value.data.content : Array.isArray(ridesRes.value.data?.rides) ? ridesRes.value.data.rides : []) : [];
       const earnings = earningsRes.status === 'fulfilled' ? earningsRes.value.data : null;
-      const users = usersRes.status === 'fulfilled' ? (usersRes.value.data?.content || usersRes.value.data || []) : [];
+      const users = usersRes.status === 'fulfilled' ? (Array.isArray(usersRes.value.data?.users) ? usersRes.value.data.users : Array.isArray(usersRes.value.data?.content) ? usersRes.value.data.content : []) : [];
 
       const vehicleCounts: Record<string, number> = {};
-      rides.forEach((r: any) => {
-        const t = r.rideType || 'CAR';
-        vehicleCounts[t] = (vehicleCounts[t] || 0) + 1;
-      });
+      if (Array.isArray(rides)) {
+        rides.forEach((r: any) => {
+          const t = r.rideType || r.vehicleType || 'CAR';
+          vehicleCounts[t] = (vehicleCounts[t] || 0) + 1;
+        });
+      }
 
       const hourCounts: Record<string, number> = {};
       for (let h = 0; h < 24; h++) hourCounts[`${h}:00`] = 0;
-      rides.forEach((r: any) => {
-        if (r.createdAt) {
-          const h = new Date(r.createdAt).getHours();
-          hourCounts[`${h}:00`] = (hourCounts[`${h}:00`] || 0) + 1;
-        }
-      });
+      if (Array.isArray(rides)) {
+        rides.forEach((r: any) => {
+          if (r.createdAt) {
+            const h = new Date(r.createdAt).getHours();
+            hourCounts[`${h}:00`] = (hourCounts[`${h}:00`] || 0) + 1;
+          }
+        });
+      }
 
       const dateRides: Record<string, { rides: number; cancelled: number }> = {};
       const dateRevenue: Record<string, number> = {};
       const dateUsers: Record<string, number> = {};
 
-      rides.forEach((r: any) => {
-        const d = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'Unknown';
-        if (!dateRides[d]) dateRides[d] = { rides: 0, cancelled: 0 };
-        dateRides[d].rides++;
-        if (r.status === 'CANCELLED') dateRides[d].cancelled++;
-        if (r.status === 'COMPLETED' && r.actualFare) {
-          dateRevenue[d] = (dateRevenue[d] || 0) + r.actualFare;
-        }
-      });
+      if (Array.isArray(rides)) {
+        rides.forEach((r: any) => {
+          const d = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'Unknown';
+          if (!dateRides[d]) dateRides[d] = { rides: 0, cancelled: 0 };
+          dateRides[d].rides++;
+          if (r.status === 'CANCELLED') dateRides[d].cancelled++;
+          if (r.status === 'COMPLETED' && r.actualFare) {
+            dateRevenue[d] = (dateRevenue[d] || 0) + r.actualFare;
+          }
+        });
+      }
 
-      users.forEach((u: any) => {
-        if (u.createdAt) {
-          const d = new Date(u.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
-          dateUsers[d] = (dateUsers[d] || 0) + 1;
-        }
-      });
+      if (Array.isArray(users)) {
+        users.forEach((u: any) => {
+          if (u.createdAt) {
+            const d = new Date(u.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+            dateUsers[d] = (dateUsers[d] || 0) + 1;
+          }
+        });
+      }
 
       const cancelReasons: Record<string, number> = {};
-      rides.forEach((r: any) => {
-        if (r.status === 'CANCELLED' && r.cancellationReason) {
-          cancelReasons[r.cancellationReason] = (cancelReasons[r.cancellationReason] || 0) + 1;
-        }
-      });
+      if (Array.isArray(rides)) {
+        rides.forEach((r: any) => {
+          if (r.status === 'CANCELLED' && r.cancellationReason) {
+            cancelReasons[r.cancellationReason] = (cancelReasons[r.cancellationReason] || 0) + 1;
+          }
+        });
+      }
 
       const ratingBuckets: Record<string, number> = { '1-2': 0, '2-3': 0, '3-4': 0, '4-5': 0 };
 
