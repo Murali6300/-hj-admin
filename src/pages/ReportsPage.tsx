@@ -19,18 +19,23 @@ type ReportType = 'daily' | 'weekly' | 'monthly';
 export default function ReportsPage() {
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ReportType>('daily');
   const [dateParam, setDateParam] = useState('');
 
   const fetchReport = async (type: ReportType) => {
     setLoading(true);
     setActiveTab(type);
+    setError(null);
     try {
       let url = `/reports/${type}`;
       if (dateParam) url += `?${type === 'daily' ? 'date' : type === 'monthly' ? 'month' : 'startDate'}=${dateParam}`;
       const res = await api.get(url);
       setReport(res.data);
-    } catch { setReport(null); } finally { setLoading(false); }
+    } catch (err: any) {
+      setReport(null);
+      setError(err?.response?.data?.message || 'Failed to load report data.');
+    } finally { setLoading(false); }
   };
 
   useEffect(() => { fetchReport('daily'); }, []);
@@ -44,8 +49,8 @@ export default function ReportsPage() {
       `Total Rides,${report.totalRides}`,
       `Completed Rides,${report.completedRides}`,
       `Cancelled Rides,${report.cancelledRides}`,
-      `Total Revenue,₹${report.totalRevenue}`,
-      `Average Fare,₹${report.averageFare}`,
+      `Total Revenue,\u20B9${report.totalRevenue}`,
+      `Average Fare,\u20B9${report.averageFare}`,
       `Average Rating,${report.averageRating}`,
     ].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -61,7 +66,7 @@ export default function ReportsPage() {
     <div>
       <h1 style={{ marginBottom: 24, fontSize: 24 }}>Reports & Analytics</h1>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         {(['daily', 'weekly', 'monthly'] as ReportType[]).map(t => (
           <button key={t} onClick={() => fetchReport(t)}
             style={{ padding: '8px 20px', borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: 'pointer', border: 'none',
@@ -73,11 +78,18 @@ export default function ReportsPage() {
           value={dateParam} onChange={(e) => setDateParam(e.target.value)}
           style={{ padding: '6px 12px', border: '1px solid #ddd', borderRadius: 6, marginLeft: 8 }} />
         <button onClick={() => fetchReport(activeTab)} style={{ padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Generate</button>
-        <button onClick={handleExport} style={{ padding: '8px 16px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Export CSV</button>
+        <button onClick={handleExport} disabled={!report} style={{ padding: '8px 16px', background: report ? '#4CAF50' : '#E0E0E0', color: '#fff', border: 'none', borderRadius: 6, cursor: report ? 'pointer' : 'default' }}>Export CSV</button>
       </div>
 
       {loading ? (
-        <p>Generating report...</p>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+          <p style={{ color: '#757575', fontSize: 14 }}>Generating report...</p>
+        </div>
+      ) : error ? (
+        <div style={{ textAlign: 'center', padding: 40 }}>
+          <p style={{ color: '#F44336', fontSize: 14, marginBottom: 12 }}>{error}</p>
+          <button onClick={() => fetchReport(activeTab)} style={{ padding: '8px 20px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>Retry</button>
+        </div>
       ) : report ? (
         <>
           <p style={{ color: '#757575', marginBottom: 16 }}>Period: {report.period}</p>
@@ -85,8 +97,8 @@ export default function ReportsPage() {
             <ReportCard label="Total Rides" value={String(report.totalRides)} icon="&#x1F697;" />
             <ReportCard label="Completed" value={String(report.completedRides)} icon="&#x2705;" />
             <ReportCard label="Cancelled" value={String(report.cancelledRides)} icon="&#x274C;" />
-            <ReportCard label="Revenue" value={`₹${report.totalRevenue.toLocaleString()}`} icon="&#x1F4B0;" />
-            <ReportCard label="Average Fare" value={`₹${report.averageFare.toFixed(0)}`} icon="&#x1F4CA;" />
+            <ReportCard label="Revenue" value={`\u20B9${report.totalRevenue.toLocaleString()}`} icon="&#x1F4B0;" />
+            <ReportCard label="Average Fare" value={`\u20B9${report.averageFare.toFixed(0)}`} icon="&#x1F4CA;" />
             <ReportCard label="Avg Rating" value={report.averageRating.toFixed(1)} icon="&#x2B50;" />
             <ReportCard label="Cancellation Rate" value={report.totalRides > 0 ? `${((report.cancelledRides / report.totalRides) * 100).toFixed(1)}%` : '0%'} icon="&#x1F4C9;" />
           </div>

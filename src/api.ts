@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-const api = axios.create({ baseURL: '/api/v1/admin' });
+// In development, Vite proxy routes /api/* to the backend — use relative URL.
+// In production, there is no proxy — use the full backend URL from the env var.
+const baseURL = import.meta.env.PROD
+  ? `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin`
+  : '/api/v1/admin';
+
+const api = axios.create({ baseURL });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('admin_token');
@@ -21,7 +27,10 @@ api.interceptors.response.use(
       if (refreshToken && !err.config._retry) {
         err.config._retry = true;
         try {
-          const res = await axios.post('/api/v1/auth/refresh', { refreshToken });
+          const refreshBaseURL = import.meta.env.PROD
+            ? import.meta.env.VITE_API_BASE_URL
+            : '';
+          const res = await axios.post(`${refreshBaseURL}/api/v1/auth/refresh`, { refreshToken });
           const newToken = res.data?.accessToken;
           if (newToken) {
             localStorage.setItem('admin_token', newToken);
@@ -35,6 +44,7 @@ api.interceptors.response.use(
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_refresh_token');
       localStorage.removeItem('admin_name');
+      localStorage.removeItem('admin_role');
       window.location.href = '/login';
     }
     return Promise.reject(err);

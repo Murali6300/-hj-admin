@@ -13,23 +13,62 @@ interface EarningsSummary {
 export default function EarningsCommissionPage() {
   const [summary, setSummary] = useState<EarningsSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    api.get('/earnings').then(res => { setSummary(res.data); setLoading(false); }).catch(() => setLoading(false));
-  }, []);
+  const fetchEarnings = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.get('/earnings');
+      setSummary(res.data);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Failed to load earnings data.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (loading) return <p>Loading earnings data...</p>;
-  if (!summary) return <p>Failed to load earnings data.</p>;
+  useEffect(() => { fetchEarnings(); }, []);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
+        <p style={{ color: '#757575', fontSize: 14 }}>Loading earnings data...</p>
+      </div>
+    );
+  }
+
+  if (error || !summary) {
+    return (
+      <div style={{ textAlign: 'center', padding: 60 }}>
+        <p style={{ color: '#F44336', fontSize: 16, marginBottom: 12 }}>{error || 'Failed to load earnings data'}</p>
+        <button
+          onClick={fetchEarnings}
+          style={{ padding: '10px 24px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h1 style={{ marginBottom: 24, fontSize: 24 }}>Earnings & Commission</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+        <h1 style={{ fontSize: 24 }}>Earnings & Commission</h1>
+        <button
+          onClick={fetchEarnings}
+          style={{ padding: '6px 16px', background: '#E3F2FD', color: '#1A73E8', border: '1px solid #BBDEFB', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+        >
+          Refresh
+        </button>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16, marginBottom: 32 }}>
-        <MetricCard label="Total Revenue" value={`₹${summary.totalRevenue.toLocaleString()}`} color="#388E3C" />
-        <MetricCard label="Platform Commission (20%)" value={`₹${summary.totalPlatformCommission.toLocaleString()}`} color="#1A73E8" />
-        <MetricCard label="Driver Earnings" value={`₹${summary.totalDriverEarnings.toLocaleString()}`} color="#9C27B0" />
-        <MetricCard label="GST (18% on Commission)" value={`₹${summary.totalGst.toLocaleString()}`} color="#FF6D00" />
+        <MetricCard label="Total Revenue" value={`\u20B9${summary.totalRevenue.toLocaleString()}`} color="#388E3C" />
+        <MetricCard label="Platform Commission (20%)" value={`\u20B9${summary.totalPlatformCommission.toLocaleString()}`} color="#1A73E8" />
+        <MetricCard label="Driver Earnings" value={`\u20B9${summary.totalDriverEarnings.toLocaleString()}`} color="#9C27B0" />
+        <MetricCard label="GST (18% on Commission)" value={`\u20B9${summary.totalGst.toLocaleString()}`} color="#FF6D00" />
         <MetricCard label="Total Rides" value={String(summary.totalRides)} color="#00BCD4" />
       </div>
 
@@ -52,7 +91,7 @@ export default function EarningsCommissionPage() {
                 <td style={tdStyle}>{d.driverId}</td>
                 <td style={tdStyle}>{d.driverName}</td>
                 <td style={tdStyle}>{d.totalRides}</td>
-                <td style={tdStyle}>₹{d.netEarnings.toLocaleString()}</td>
+                <td style={tdStyle}>\u20B9{d.netEarnings.toLocaleString()}</td>
               </tr>
             ))}
           </tbody>

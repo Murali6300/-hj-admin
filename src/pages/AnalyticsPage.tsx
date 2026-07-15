@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
 import api from '../api';
 import { getVehicleIcon } from '../utils/vehicleIcons';
@@ -15,90 +15,145 @@ interface AnalyticsData {
 }
 
 const COLORS = ['#1A73E8', '#4CAF50', '#FF6D00', '#F44336', '#9C27B0', '#00BCD4', '#FFC107'];
+const REFRESH_INTERVAL_MS = 120000;
 
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState<{ rides?: string; earnings?: string; users?: string }>({});
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const [ridesRes, earningsRes, usersRes] = await Promise.allSettled([
-          api.get('/rides', { params: { page: 0, size: 500 } }),
-          api.get('/earnings'),
-          api.get('/users', { params: { page: 0, size: 500 } }),
-        ]);
+  const fetchAnalytics = useCallback(async () => {
+    try {
+      const [ridesRes, earningsRes, usersRes] = await Promise.allSettled([
+        api.get('/rides', { params: { page: 0, size: 500 } }),
+        api.get('/earnings'),
+        api.get('/users', { params: { page: 0, size: 500 } }),
+      ]);
 
-        const rides = ridesRes.status === 'fulfilled' ? (ridesRes.value.data.content || []) : [];
-        const earnings = earningsRes.status === 'fulfilled' ? earningsRes.value.data : null;
-        const users = usersRes.status === 'fulfilled' ? (usersRes.value.data?.content || usersRes.value.data || []) : [];
+      const newErrors: { rides?: string; earnings?: string; users?: string } = {};
+      if (ridesRes.status === 'rejected') newErrors.rides = 'Failed to load rides data';
+      if (earningsRes.status === 'rejected') newErrors.earnings = 'Failed to load earnings data';
+      if (usersRes.status === 'rejected') newErrors.users = 'Failed to load users data';
+      setErrors(newErrors);
 
-        const vehicleCounts: Record<string, number> = {};
-        rides.forEach((r: any) => {
-          const t = r.rideType || 'CAR';
-          vehicleCounts[t] = (vehicleCounts[t] || 0) + 1;
-        });
+      const rides = ridesRes.status === 'fulfilled' ? (ridesRes.value.data.content || []) : [];
+      const earnings = earningsRes.status === 'fulfilled' ? earningsRes.value.data : null;
+      const users = usersRes.status === 'fulfilled' ? (usersRes.value.data?.content || usersRes.value.data || []) : [];
 
-        const hourCounts: Record<string, number> = {};
-        for (let h = 0; h < 24; h++) hourCounts[`${h}:00`] = 0;
-        rides.forEach((r: any) => {
-          if (r.createdAt) {
-            const h = new Date(r.createdAt).getHours();
-            hourCounts[`${h}:00`] = (hourCounts[`${h}:00`] || 0) + 1;
-          }
-        });
+      const vehicleCounts: Record<string, number> = {};
+      rides.forEach((r: any) => {
+        const t = r.rideType || 'CAR';
+        vehicleCounts[t] = (vehicleCounts[t] || 0) + 1;
+      });
 
-        const dateRides: Record<string, { rides: number; cancelled: number }> = {};
-        const dateRevenue: Record<string, number> = {};
-        const dateUsers: Record<string, number> = {};
+      const hourCounts: Record<string, number> = {};
+      for (let h = 0; h < 24; h++) hourCounts[`${h}:00`] = 0;
+      rides.forEach((r: any) => {
+        if (r.createdAt) {
+          const h = new Date(r.createdAt).getHours();
+          hourCounts[`${h}:00`] = (hourCounts[`${h}:00`] || 0) + 1;
+        }
+      });
 
-        rides.forEach((r: any) => {
-          const d = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'Unknown';
-          if (!dateRides[d]) dateRides[d] = { rides: 0, cancelled: 0 };
-          dateRides[d].rides++;
-          if (r.status === 'CANCELLED') dateRides[d].cancelled++;
-          if (r.status === 'COMPLETED' && r.actualFare) {
-            dateRevenue[d] = (dateRevenue[d] || 0) + r.actualFare;
-          }
-        });
+      const dateRides: Record<string, { rides: number; cancelled: number }> = {};
+      const dateRevenue: Record<string, number> = {};
+      const dateUsers: Record<string, number> = {};
 
-        users.forEach((u: any) => {
-          if (u.createdAt) {
-            const d = new Date(u.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
-            dateUsers[d] = (dateUsers[d] || 0) + 1;
-          }
-        });
+      rides.forEach((r: any) => {
+        const d = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'Unknown';
+        if (!dateRides[d]) dateRides[d] = { rides: 0, cancelled: 0 };
+        dateRides[d].rides++;
+        if (r.status === 'CANCELLED') dateRides[d].cancelled++;
+        if (r.status === 'COMPLETED' && r.actualFare) {
+          dateRevenue[d] = (dateRevenue[d] || 0) + r.actualFare;
+        }
+      });
 
-        const cancelReasons: Record<string, number> = {};
-        rides.forEach((r: any) => {
-          if (r.status === 'CANCELLED' && r.cancellationReason) {
-            cancelReasons[r.cancellationReason] = (cancelReasons[r.cancellationReason] || 0) + 1;
-          }
-        });
+      users.forEach((u: any) => {
+        if (u.createdAt) {
+          const d = new Date(u.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+          dateUsers[d] = (dateUsers[d] || 0) + 1;
+        }
+      });
 
-        const ratingBuckets: Record<string, number> = { '1-2': 0, '2-3': 0, '3-4': 0, '4-5': 0 };
+      const cancelReasons: Record<string, number> = {};
+      rides.forEach((r: any) => {
+        if (r.status === 'CANCELLED' && r.cancellationReason) {
+          cancelReasons[r.cancellationReason] = (cancelReasons[r.cancellationReason] || 0) + 1;
+        }
+      });
 
-        setData({
-          topDrivers: earnings?.topDrivers?.slice(0, 10) || [],
-          ridesByVehicle: Object.entries(vehicleCounts).map(([type, count]) => ({ type, count })),
-          peakHours: Object.entries(hourCounts).map(([hour, rides]) => ({ hour, rides })),
-          dailyRides: Object.entries(dateRides).slice(-14).map(([date, v]) => ({ date, ...v })),
-          dailyRevenue: Object.entries(dateRevenue).slice(-14).map(([date, revenue]) => ({ date, revenue })),
-          newUsers: Object.entries(dateUsers).slice(-30).map(([date, count]) => ({ date, count })),
-          driverRatings: Object.entries(ratingBuckets).map(([range, count]) => ({ range, count })),
-          cancellationReasons: Object.entries(cancelReasons).map(([reason, count]) => ({ reason, count })),
-        });
-      } catch { /* ignore */ } finally { setLoading(false); }
-    };
-    fetchAnalytics();
+      const ratingBuckets: Record<string, number> = { '1-2': 0, '2-3': 0, '3-4': 0, '4-5': 0 };
+
+      setData({
+        topDrivers: earnings?.topDrivers?.slice(0, 10) || [],
+        ridesByVehicle: Object.entries(vehicleCounts).map(([type, count]) => ({ type, count })),
+        peakHours: Object.entries(hourCounts).map(([hour, rides]) => ({ hour, rides })),
+        dailyRides: Object.entries(dateRides).slice(-14).map(([date, v]) => ({ date, ...v })),
+        dailyRevenue: Object.entries(dateRevenue).slice(-14).map(([date, revenue]) => ({ date, revenue })),
+        newUsers: Object.entries(dateUsers).slice(-30).map(([date, count]) => ({ date, count })),
+        driverRatings: Object.entries(ratingBuckets).map(([range, count]) => ({ range, count })),
+        cancellationReasons: Object.entries(cancelReasons).map(([reason, count]) => ({ reason, count })),
+      });
+      setLastUpdated(new Date());
+    } catch (e) { console.error('Analytics fetch error:', e); } finally { setLoading(false); }
   }, []);
 
-  if (loading) return <p>Loading analytics...</p>;
-  if (!data) return <p>Failed to load analytics data.</p>;
+  useEffect(() => {
+    fetchAnalytics();
+    intervalRef.current = setInterval(fetchAnalytics, REFRESH_INTERVAL_MS);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [fetchAnalytics]);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
+        <p style={{ color: '#757575', fontSize: 14 }}>Loading analytics...</p>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div style={{ textAlign: 'center', padding: 60 }}>
+        <p style={{ color: '#F44336', fontSize: 16, marginBottom: 12 }}>Failed to load analytics data</p>
+        <button
+          onClick={() => { setLoading(true); fetchAnalytics(); }}
+          style={{ padding: '10px 24px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h1 style={{ fontSize: 24, marginBottom: 24 }}>Analytics</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+        <h1 style={{ fontSize: 24 }}>Analytics</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {Object.keys(errors).length > 0 && (
+            <span style={{ color: '#FF9800', fontSize: 12 }}>
+              Some data sources failed to load
+            </span>
+          )}
+          {lastUpdated && (
+            <span style={{ color: '#9E9E9E', fontSize: 12 }}>
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+          <button
+            onClick={() => { setLoading(true); fetchAnalytics(); }}
+            style={{ padding: '6px 16px', background: '#E3F2FD', color: '#1A73E8', border: '1px solid #BBDEFB', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))', gap: 20 }}>
 
@@ -112,7 +167,7 @@ export default function AnalyticsPage() {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
-          ) : <Empty />}
+          ) : <Empty message={errors.rides || 'No rides data available'} />}
         </ChartCard>
 
         <ChartCard title="Peak Hours">
@@ -126,7 +181,7 @@ export default function AnalyticsPage() {
                 <Bar dataKey="rides" fill="#1A73E8" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          ) : <Empty />}
+          ) : <Empty message={errors.rides || 'No rides data available'} />}
         </ChartCard>
 
         <ChartCard title="Daily Rides (Last 14 Days)">
@@ -142,7 +197,7 @@ export default function AnalyticsPage() {
                 <Line type="monotone" dataKey="cancelled" stroke="#F44336" strokeWidth={2} name="Cancelled" />
               </LineChart>
             </ResponsiveContainer>
-          ) : <Empty />}
+          ) : <Empty message={errors.rides || 'No rides data available'} />}
         </ChartCard>
 
         <ChartCard title="Top Earning Drivers">
@@ -152,11 +207,11 @@ export default function AnalyticsPage() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" fontSize={11} />
                 <YAxis type="category" dataKey="name" fontSize={11} width={100} />
-                <Tooltip formatter={(v: any) => `₹${Number(v).toLocaleString()}`} />
+                <Tooltip formatter={(v: any) => `\u20B9${Number(v).toLocaleString()}`} />
                 <Bar dataKey="earnings" fill="#4CAF50" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          ) : <Empty />}
+          ) : <Empty message={errors.earnings || 'No earnings data available'} />}
         </ChartCard>
 
         <ChartCard title="Driver Ratings Distribution">
@@ -170,7 +225,7 @@ export default function AnalyticsPage() {
                 <Bar dataKey="count" fill="#FFC107" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          ) : <Empty />}
+          ) : <Empty message="No ratings data available" />}
         </ChartCard>
 
         <ChartCard title="Cancellation Reasons">
@@ -184,7 +239,7 @@ export default function AnalyticsPage() {
                 <Bar dataKey="count" fill="#F44336" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          ) : <Empty />}
+          ) : <Empty message="No cancellation data available" />}
         </ChartCard>
 
       </div>
@@ -201,6 +256,6 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-function Empty() {
-  return <p style={{ color: '#9E9E9E', textAlign: 'center', padding: 40, fontSize: 13 }}>No data available</p>;
+function Empty({ message = 'No data available' }: { message?: string }) {
+  return <p style={{ color: '#9E9E9E', textAlign: 'center', padding: 40, fontSize: 13 }}>{message}</p>;
 }

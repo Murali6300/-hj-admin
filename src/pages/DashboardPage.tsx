@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, Legend, AreaChart, Area
@@ -11,14 +11,17 @@ interface DashboardStats {
   onlineDrivers: number;
   offlineDrivers: number;
   pendingDriverApprovals: number;
+  approvedDrivers: number;
   activeRides: number;
   completedToday: number;
   cancelledToday: number;
   completedAllTime: number;
   cancelledAllTime: number;
+  totalBookings: number;
   totalRevenueToday: number;
   totalRevenueAllTime: number;
   newUsersToday: number;
+  newDriversToday: number;
   totalVehicles: number;
   walletBalanceAggregate: number;
   dailyRevenue: { date: string; revenue: number }[];
@@ -26,41 +29,103 @@ interface DashboardStats {
   dailyRides: { date: string; completed: number; cancelled: number }[];
   driverActivity: { date: string; online: number; offline: number }[];
   userGrowth: { date: string; count: number }[];
+  driverGrowth: { date: string; count: number }[];
 }
+
+const REFRESH_INTERVAL_MS = 60000;
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
-    api.get('/dashboard')
-      .then((res) => { setStats(res.data); setLoading(false); })
-      .catch(() => setLoading(false));
+  const fetchDashboard = useCallback(async () => {
+    try {
+      const res = await api.get('/dashboard');
+      setStats(res.data);
+      setError(null);
+      setLastUpdated(new Date());
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to load dashboard data.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) return <p>Loading dashboard...</p>;
-  if (!stats) return <p>Failed to load dashboard data.</p>;
+  useEffect(() => {
+    fetchDashboard();
+    intervalRef.current = setInterval(fetchDashboard, REFRESH_INTERVAL_MS);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [fetchDashboard]);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
+        <p style={{ color: '#757575', fontSize: 14 }}>Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  if (error && !stats) {
+    return (
+      <div style={{ textAlign: 'center', padding: 60 }}>
+        <p style={{ color: '#F44336', fontSize: 16, marginBottom: 12 }}>Failed to load dashboard data</p>
+        <p style={{ color: '#757575', fontSize: 13, marginBottom: 20 }}>{error}</p>
+        <button
+          onClick={() => { setLoading(true); setError(null); fetchDashboard(); }}
+          style={{ padding: '10px 24px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!stats) return null;
 
   const cards = [
     { label: 'Total Users', value: stats.totalUsers.toLocaleString(), color: '#9C27B0', icon: '\u{1F465}' },
     { label: 'Total Drivers', value: stats.totalDrivers.toLocaleString(), color: '#FF6D00', icon: '\u{1F697}' },
     { label: 'Online Drivers', value: String(stats.onlineDrivers), color: '#4CAF50', icon: '\u{1F7E2}' },
     { label: 'Offline Drivers', value: String(stats.offlineDrivers), color: '#9E9E9E', icon: '\u{1F534}' },
+    { label: 'Pending Verifications', value: String(stats.pendingDriverApprovals), color: '#FF9800', icon: '\u23F3' },
+    { label: 'Approved Drivers', value: String(stats.approvedDrivers), color: '#4CAF50', icon: '\u2705' },
     { label: 'Active Rides', value: String(stats.activeRides), color: '#1A73E8', icon: '\u{1F5FA}' },
     { label: 'Completed Rides', value: stats.completedAllTime.toLocaleString(), color: '#00BCD4', icon: '\u2705' },
     { label: 'Cancelled Rides', value: stats.cancelledAllTime.toLocaleString(), color: '#F44336', icon: '\u274C' },
+    { label: 'Total Bookings', value: stats.totalBookings.toLocaleString(), color: '#3F51B5', icon: '\u{1F4CB}' },
     { label: 'Total Revenue', value: `\u20B9${stats.totalRevenueAllTime.toLocaleString()}`, color: '#1A73E8', icon: '\u{1F4B0}' },
     { label: 'Wallet Balance', value: `\u20B9${Number(stats.walletBalanceAggregate).toLocaleString()}`, color: '#673AB7', icon: '\u{1F3E6}' },
-    { label: 'Pending Approvals', value: String(stats.pendingDriverApprovals), color: '#FF9800', icon: '\u23F3' },
     { label: 'New Users Today', value: String(stats.newUsersToday), color: '#E91E63', icon: '\u{1F195}' },
+    { label: 'New Drivers Today', value: String(stats.newDriversToday), color: '#FF5722', icon: '\u{1F195}' },
     { label: 'Total Vehicles', value: String(stats.totalVehicles), color: '#795548', icon: '\u{1F6FB}' },
   ];
 
   return (
     <div>
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 24, marginBottom: 4 }}>Admin Dashboard</h1>
-        <p style={{ color: '#757575', fontSize: 14 }}>Overview of platform operations</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
+        <div>
+          <h1 style={{ fontSize: 24, marginBottom: 4 }}>Admin Dashboard</h1>
+          <p style={{ color: '#757575', fontSize: 14 }}>Overview of platform operations</p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {lastUpdated && (
+            <span style={{ color: '#9E9E9E', fontSize: 12 }}>
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+          <button
+            onClick={() => { setLoading(true); setError(null); fetchDashboard(); }}
+            style={{ padding: '6px 16px', background: '#E3F2FD', color: '#1A73E8', border: '1px solid #BBDEFB', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Stat Cards */}
@@ -113,6 +178,10 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#757575' }}>New Users</span>
               <strong>{stats.newUsersToday}</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#757575' }}>New Drivers</span>
+              <strong>{stats.newDriversToday}</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#757575' }}>Avg Fare per Ride</span>
@@ -193,6 +262,20 @@ export default function DashboardPage() {
                 <YAxis fontSize={11} />
                 <Tooltip />
                 <Area type="monotone" dataKey="count" stroke="#E91E63" fill="#FCE4EC" name="New Users" />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : <Empty />}
+        </ChartCard>
+
+        <ChartCard title="Driver Growth (Last 30 Days)">
+          {stats.driverGrowth.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <AreaChart data={stats.driverGrowth}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" fontSize={11} />
+                <YAxis fontSize={11} />
+                <Tooltip />
+                <Area type="monotone" dataKey="count" stroke="#FF6D00" fill="#FFF3E0" name="New Drivers" />
               </AreaChart>
             </ResponsiveContainer>
           ) : <Empty />}

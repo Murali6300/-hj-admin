@@ -21,10 +21,18 @@ import AuditLogsPage from './pages/AuditLogsPage';
 import RolesPermissionsPage from './pages/RolesPermissionsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import Layout from './components/Layout';
+import { hasPermission, type Permission } from './utils/adminPermissions';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('admin_token');
   return token ? <>{children}</> : <Navigate to="/login" />;
+}
+
+function RoleProtectedRoute({ permission, children }: { permission: Permission; children: React.ReactNode }) {
+  if (!hasPermission(permission)) {
+    return <Navigate to="/" />;
+  }
+  return <>{children}</>;
 }
 
 export default function App() {
@@ -44,15 +52,15 @@ export default function App() {
           <Route path="cancellations" element={<CancellationManagementPage />} />
           <Route path="earnings" element={<EarningsCommissionPage />} />
           <Route path="sos" element={<SOSManagementPage />} />
-          <Route path="config" element={<SystemConfigPage />} />
+          <Route path="config" element={<RoleProtectedRoute permission="CONFIG_VIEW"><SystemConfigPage /></RoleProtectedRoute>} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="support" element={<SupportTicketsPage />} />
           <Route path="wallets" element={<WalletPage />} />
           <Route path="coupons" element={<CouponsPage />} />
-          <Route path="audit-logs" element={<AuditLogsPage />} />
-          <Route path="roles" element={<RolesPermissionsPage />} />
+          <Route path="audit-logs" element={<RoleProtectedRoute permission="AUDIT_VIEW"><AuditLogsPage /></RoleProtectedRoute>} />
+          <Route path="roles" element={<RoleProtectedRoute permission="ADMIN_USERS_VIEW"><RolesPermissionsPage /></RoleProtectedRoute>} />
         </Route>
       </Routes>
     </BrowserRouter>

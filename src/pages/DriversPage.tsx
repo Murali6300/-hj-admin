@@ -2,6 +2,15 @@ import { useEffect, useState, useCallback } from 'react';
 import api from '../api';
 import { getVehicleIcon, getVehicleColor } from '../utils/vehicleIcons';
 
+function getDocumentUrl(url: string): string {
+  if (!url) return url;
+  if (url.startsWith('/uploads/')) {
+    const base = import.meta.env.VITE_API_BASE_URL || '';
+    return `${base}${url}`;
+  }
+  return url;
+}
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface DriverListResponse {
@@ -484,7 +493,7 @@ function DocSection({ title, items }: { title: string; items: { label: string; v
           <div key={i.label}>
             <span style={{ fontSize: 11, color: '#999' }}>{i.label}: </span>
             {i.isLink ? (
-              <a href={i.value} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: '#1A73E8' }}>View</a>
+              <a href={getDocumentUrl(i.value)} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: '#1A73E8' }}>View</a>
             ) : (
               <span style={{ fontSize: 12 }}>{i.value}</span>
             )}

@@ -14,6 +14,9 @@ interface VehicleTypeConfig {
   baseFare: number;
   perKmRate: number;
   perMinRate: number;
+  capacity: number;
+  acAvailable: boolean;
+  acSurcharge: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -27,6 +30,9 @@ interface FormData {
   baseFare: string;
   perKmRate: string;
   perMinRate: string;
+  capacity: string;
+  acAvailable: boolean;
+  acSurcharge: string;
   isActive: boolean;
 }
 
@@ -38,6 +44,9 @@ const EMPTY_FORM: FormData = {
   baseFare: '',
   perKmRate: '',
   perMinRate: '',
+  capacity: '4',
+  acAvailable: false,
+  acSurcharge: '0',
   isActive: true,
 };
 
@@ -100,9 +109,9 @@ export default function VehiclesPage() {
   // ─── CSV Export ──────────────────────────────────────────────────────────
 
   const exportCSV = () => {
-    const header = 'Name,Display Name,Base Fare,Per Km,Per Min,Active,Description\n';
+    const header = 'Name,Display Name,Base Fare,Per Km,Per Min,Capacity,AC Available,Active,Description\n';
     const rows = filtered.map(v =>
-      `${v.name},${v.displayName},${v.baseFare},${v.perKmRate},${v.perMinRate},${v.isActive ? 'Yes' : 'No'},"${(v.description || '').replace(/"/g, '""')}"`
+      `${v.name},${v.displayName},${v.baseFare},${v.perKmRate},${v.perMinRate},${v.capacity ?? 4},${v.acAvailable ? 'Yes' : 'No'},${v.isActive ? 'Yes' : 'No'},"${(v.description || '').replace(/"/g, '""')}"`
     ).join('\n');
     const blob = new Blob([header + rows], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -130,6 +139,9 @@ export default function VehiclesPage() {
       baseFare: v.baseFare.toString(),
       perKmRate: v.perKmRate.toString(),
       perMinRate: v.perMinRate.toString(),
+      capacity: (v.capacity ?? 4).toString(),
+      acAvailable: v.acAvailable ?? false,
+      acSurcharge: (v.acSurcharge ?? 0).toString(),
       isActive: v.isActive,
     });
     setFormError('');
@@ -152,6 +164,9 @@ export default function VehiclesPage() {
         baseFare: Number(form.baseFare),
         perKmRate: Number(form.perKmRate),
         perMinRate: Number(form.perMinRate),
+        capacity: Number(form.capacity) || 4,
+        acAvailable: form.acAvailable,
+        acSurcharge: Number(form.acSurcharge) || 0,
         isActive: form.isActive,
       };
       if (editingVehicle) {
@@ -179,6 +194,9 @@ export default function VehiclesPage() {
         baseFare: v.baseFare,
         perKmRate: v.perKmRate,
         perMinRate: v.perMinRate,
+        capacity: v.capacity,
+        acAvailable: v.acAvailable,
+        acSurcharge: v.acSurcharge,
         isActive: !v.isActive,
       });
       fetchVehicles();
@@ -248,6 +266,8 @@ export default function VehiclesPage() {
                 </th>
                 <th style={thStyle}>Per Km</th>
                 <th style={thStyle}>Per Min</th>
+                <th style={thStyle}>Capacity</th>
+                <th style={thStyle}>AC</th>
                 <th style={thStyle} onClick={() => handleSort('isActive')} className="sortable">
                   Status{sortIndicator('isActive')}
                 </th>
@@ -256,7 +276,7 @@ export default function VehiclesPage() {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#999' }}>No vehicle types found</td></tr>
+                <tr><td colSpan={10} style={{ padding: 40, textAlign: 'center', color: '#999' }}>No vehicle types found</td></tr>
               ) : filtered.map((v) => (
                 <tr key={v.id} style={{ borderTop: '1px solid #f0f0f0' }}>
                   <td style={tdStyle}>
@@ -278,6 +298,18 @@ export default function VehiclesPage() {
                   </td>
                   <td style={tdStyle}>₹{v.perKmRate.toFixed(1)}</td>
                   <td style={tdStyle}>₹{v.perMinRate.toFixed(1)}</td>
+                  <td style={tdStyle}>
+                    <span style={{ fontWeight: 600 }}>👥 {v.capacity ?? 4}</span>
+                  </td>
+                  <td style={tdStyle}>
+                    {v.acAvailable ? (
+                      <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: '#dbeafe', color: '#1e40af' }}>
+                        ❄ AC
+                      </span>
+                    ) : (
+                      <span style={{ color: '#999', fontSize: 11 }}>-</span>
+                    )}
+                  </td>
                   <td style={tdStyle}>
                     <span style={{
                       display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 600,
@@ -356,11 +388,33 @@ export default function VehiclesPage() {
                     onChange={(e) => setForm({ ...form, perMinRate: e.target.value })} style={inputStyle} />
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input type="checkbox" checked={form.isActive}
-                  onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-                  id="active-checkbox" />
-                <label htmlFor="active-checkbox" style={{ fontSize: 13 }}>Active (visible to users)</label>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={labelStyle}>Passenger Capacity</label>
+                  <input type="number" min="1" max="10" value={form.capacity}
+                    onChange={(e) => setForm({ ...form, capacity: e.target.value })} style={inputStyle} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={labelStyle}>AC Surcharge (₹)</label>
+                  <input type="number" min="0" step="0.5" value={form.acSurcharge}
+                    onChange={(e) => setForm({ ...form, acSurcharge: e.target.value })}
+                    disabled={!form.acAvailable}
+                    style={{ ...inputStyle, opacity: form.acAvailable ? 1 : 0.5 }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input type="checkbox" checked={form.acAvailable}
+                    onChange={(e) => setForm({ ...form, acAvailable: e.target.checked })}
+                    id="ac-checkbox" />
+                  <label htmlFor="ac-checkbox" style={{ fontSize: 13 }}>AC Available (4-wheelers)</label>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input type="checkbox" checked={form.isActive}
+                    onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                    id="active-checkbox" />
+                  <label htmlFor="active-checkbox" style={{ fontSize: 13 }}>Active (visible to users)</label>
+                </div>
               </div>
             </div>
 

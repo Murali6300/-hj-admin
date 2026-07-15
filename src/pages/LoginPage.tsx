@@ -36,7 +36,7 @@ export default function LoginPage() {
 
     try {
       const res = await api.post('/login', { email, password });
-      const { accessToken, refreshToken, name } = res.data || {};
+      const { accessToken, refreshToken, name, role } = res.data || {};
       if (!accessToken) {
         setError('Invalid server response - no token received');
         setLoading(false);
@@ -45,6 +45,7 @@ export default function LoginPage() {
       localStorage.setItem('admin_token', accessToken);
       if (refreshToken) localStorage.setItem('admin_refresh_token', refreshToken);
       if (name) localStorage.setItem('admin_name', name);
+      if (role) localStorage.setItem('admin_role', role);
       if (rememberMe) localStorage.setItem('admin_remember', 'true');
       navigate('/', { replace: true });
     } catch (err: any) {

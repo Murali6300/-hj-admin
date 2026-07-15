@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
+import { isFullAccess } from '../utils/adminPermissions';
 
 interface AdminUser {
   id: number;
@@ -22,6 +23,7 @@ const ROLE_COLORS: Record<string, string> = {
 const ROLES = ['SUPER_ADMIN', 'ADMIN', 'SUPPORT', 'FINANCE', 'OPERATIONS'];
 
 export default function RolesPermissionsPage() {
+  const fullAccess = isFullAccess();
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterRole, setFilterRole] = useState('');
@@ -82,11 +84,19 @@ export default function RolesPermissionsPage() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ fontSize: 24 }}>Roles & Permissions</h1>
-        <button onClick={openCreate}
-          style={{ padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
-          + Add Admin User
-        </button>
+        {fullAccess && (
+          <button onClick={openCreate}
+            style={{ padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+            + Add Admin User
+          </button>
+        )}
       </div>
+
+      {!fullAccess && (
+        <div style={{ background: '#FFF3E0', color: '#E65100', padding: 12, borderRadius: 6, marginBottom: 20, fontSize: 13 }}>
+          You have view-only access. Contact a Super Admin or Admin to manage admin users.
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
         <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)}
@@ -118,7 +128,7 @@ export default function RolesPermissionsPage() {
               <th style={thStyle}>Status</th>
               <th style={thStyle}>Last Login</th>
               <th style={thStyle}>Created</th>
-              <th style={thStyle}>Actions</th>
+              {fullAccess && <th style={thStyle}>Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -139,17 +149,19 @@ export default function RolesPermissionsPage() {
                 </td>
                 <td style={{ ...tdStyle, color: '#757575' }}>{a.lastLoginAt ? new Date(a.lastLoginAt).toLocaleString('en-IN') : 'Never'}</td>
                 <td style={{ ...tdStyle, color: '#757575' }}>{new Date(a.createdAt).toLocaleDateString('en-IN')}</td>
-                <td style={tdStyle}>
-                  <button onClick={() => openEdit(a)} style={{ marginRight: 6, padding: '4px 10px', background: '#FFC107', color: '#333', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>Edit</button>
-                  <button onClick={() => handleToggleActive(a.id)}
-                    style={{ marginRight: 6, padding: '4px 10px', background: a.isActive ? '#FF6D00' : '#4CAF50', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>
-                    {a.isActive ? 'Deactivate' : 'Activate'}
-                  </button>
-                  <button onClick={() => handleDelete(a.id)}
-                    style={{ padding: '4px 10px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>
-                    Delete
-                  </button>
-                </td>
+                {fullAccess && (
+                  <td style={tdStyle}>
+                    <button onClick={() => openEdit(a)} style={{ marginRight: 6, padding: '4px 10px', background: '#FFC107', color: '#333', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>Edit</button>
+                    <button onClick={() => handleToggleActive(a.id)}
+                      style={{ marginRight: 6, padding: '4px 10px', background: a.isActive ? '#FF6D00' : '#4CAF50', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>
+                      {a.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <button onClick={() => handleDelete(a.id)}
+                      style={{ padding: '4px 10px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>
+                      Delete
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
