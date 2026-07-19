@@ -22,6 +22,7 @@ import PricingPage from './pages/PricingPage';
 import AuditLogsPage from './pages/AuditLogsPage';
 import RolesPermissionsPage from './pages/RolesPermissionsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import CompanyPaymentPage from './pages/CompanyPaymentPage';
 import Layout from './components/Layout';
 import { hasPermission, type Permission } from './utils/adminPermissions';
 
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="vehicles" element={<VehiclesPage />} />
           <Route path="drivers/pending" element={<PendingDriversPage />} />
           <Route path="payments" element={<PaymentsPage />} />
+          <Route path="company-payment" element={<RoleProtectedRoute permission="PAYMENTS_MANAGE"><CompanyPaymentPage /></RoleProtectedRoute>} />
           <Route path="rides" element={<RideMonitoringPage />} />
           <Route path="rides/:id" element={<RideDetailPage />} />
           <Route path="cancellations" element={<CancellationManagementPage />} />

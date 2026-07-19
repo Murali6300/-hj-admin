@@ -24,6 +24,7 @@ const navItems: NavItem[] = [
   { path: '/drivers/pending', label: 'Pending Approvals', icon: '⏳', permission: 'DRIVERS_APPROVE' },
   { divider: true, label: 'Finance' },
   { path: '/payments', label: 'Payments', icon: '💳', permission: 'PAYMENTS_VIEW' },
+  { path: '/company-payment', label: 'Company Payment Settings', icon: '🏦', permission: 'PAYMENTS_MANAGE' },
   { path: '/earnings', label: 'Earnings & Commission', icon: '💰', permission: 'REPORTS_VIEW' },
   { path: '/wallets', label: 'Wallet Management', icon: '👛', permission: 'WALLETS_VIEW' },
   { path: '/coupons', label: 'Coupons', icon: '🎟️', permission: 'COUPONS_VIEW' },
@@ -81,8 +82,8 @@ export default function Layout() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <aside style={{ width: 260, background: '#1A237E', color: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-        <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+      <aside style={{ width: 260, background: '#1A237E', color: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh' }}>
+        <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>HJ Admin</h2>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', margin: '4px 0 0' }}>{adminName}</p>
           <span style={{
@@ -99,7 +100,7 @@ export default function Layout() {
           </span>
         </div>
 
-        <nav style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
+        <nav className="admin-sidebar-nav" style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
           {filteredNavItems.map((item, i) => {
             if ('divider' in item && item.divider) {
               return (
@@ -132,7 +133,7 @@ export default function Layout() {
 
         <button
           onClick={handleLogout}
-          style={{ margin: '12px 16px', padding: '10px', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}
+          style={{ margin: '12px 16px', padding: '10px', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', borderRadius: 6, fontSize: 13, cursor: 'pointer', flexShrink: 0 }}
         >
           Logout
         </button>
