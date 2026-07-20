@@ -79,7 +79,7 @@ export default function DashboardPage() {
         <p style={{ color: '#757575', fontSize: 13, marginBottom: 20 }}>{error}</p>
         <button
           onClick={() => { setLoading(true); setError(null); fetchDashboard(); }}
-          style={{ padding: '10px 24px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
+          style={{ padding: '10px 24px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
         >
           Retry
         </button>
@@ -104,11 +104,11 @@ export default function DashboardPage() {
     { label: 'Offline Drivers', value: String(stats.offlineDrivers), color: '#9E9E9E', icon: '\u{1F534}' },
     { label: 'Pending Verifications', value: String(stats.pendingDriverApprovals), color: '#FF9800', icon: '\u23F3' },
     { label: 'Approved Drivers', value: String(stats.approvedDrivers), color: '#4CAF50', icon: '\u2705' },
-    { label: 'Active Rides', value: String(stats.activeRides), color: '#1A73E8', icon: '\u{1F5FA}' },
+    { label: 'Active Rides', value: String(stats.activeRides), color: '#1E88E5', icon: '\u{1F5FA}' },
     { label: 'Completed Rides', value: stats.completedAllTime.toLocaleString(), color: '#00BCD4', icon: '\u2705' },
     { label: 'Cancelled Rides', value: stats.cancelledAllTime.toLocaleString(), color: '#F44336', icon: '\u274C' },
     { label: 'Total Bookings', value: stats.totalBookings.toLocaleString(), color: '#3F51B5', icon: '\u{1F4CB}' },
-    { label: 'Total Revenue', value: `\u20B9${stats.totalRevenueAllTime.toLocaleString()}`, color: '#1A73E8', icon: '\u{1F4B0}' },
+    { label: 'Total Revenue', value: `\u20B9${stats.totalRevenueAllTime.toLocaleString()}`, color: '#1E88E5', icon: '\u{1F4B0}' },
     { label: 'Wallet Balance', value: `\u20B9${Number(stats.walletBalanceAggregate).toLocaleString()}`, color: '#673AB7', icon: '\u{1F3E6}' },
     { label: 'New Users Today', value: String(stats.newUsersToday), color: '#E91E63', icon: '\u{1F195}' },
     { label: 'New Drivers Today', value: String(stats.newDriversToday), color: '#FF5722', icon: '\u{1F195}' },
@@ -130,7 +130,7 @@ export default function DashboardPage() {
           )}
           <button
             onClick={() => { setLoading(true); setError(null); fetchDashboard(); }}
-            style={{ padding: '6px 16px', background: '#E3F2FD', color: '#1A73E8', border: '1px solid #BBDEFB', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+            style={{ padding: '6px 16px', background: '#E3F2FD', color: '#1E88E5', border: '1px solid #BBDEFB', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
           >
             Refresh
           </button>
@@ -210,7 +210,7 @@ export default function DashboardPage() {
                 <XAxis dataKey="date" fontSize={11} />
                 <YAxis fontSize={11} />
                 <Tooltip formatter={(v: any) => `\u20B9${Number(v).toLocaleString()}`} />
-                <Area type="monotone" dataKey="revenue" stroke="#1A73E8" fill="#E3F2FD" name="Revenue" />
+                <Area type="monotone" dataKey="revenue" stroke="#1E88E5" fill="#E3F2FD" name="Revenue" />
               </AreaChart>
             </ResponsiveContainer>
           ) : <Empty />}

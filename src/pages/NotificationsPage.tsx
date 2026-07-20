@@ -83,7 +83,7 @@ export default function NotificationsPage() {
           </div>
 
           <button onClick={handleSend} disabled={sending}
-            style={{ padding: '10px 20px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: sending ? 0.7 : 1, alignSelf: 'flex-start' }}>
+            style={{ padding: '10px 20px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: sending ? 0.7 : 1, alignSelf: 'flex-start' }}>
             {sending ? 'Sending...' : 'Send Notification'}
           </button>
         </div>

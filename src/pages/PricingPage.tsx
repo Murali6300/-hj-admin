@@ -132,7 +132,7 @@ export default function PricingPage() {
       <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
         {FIELD_CATEGORIES.map((cat) => (
           <button key={cat.key} onClick={() => setFilterCat(cat.key)}
-            style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid #ddd', background: filterCat === cat.key ? '#1A73E8' : '#fff', color: filterCat === cat.key ? '#fff' : '#333', fontSize: 13, cursor: 'pointer', fontWeight: filterCat === cat.key ? 600 : 400 }}>
+            style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid #ddd', background: filterCat === cat.key ? '#1E88E5' : '#fff', color: filterCat === cat.key ? '#fff' : '#333', fontSize: 13, cursor: 'pointer', fontWeight: filterCat === cat.key ? 600 : 400 }}>
             {cat.label}
           </button>
         ))}
@@ -192,7 +192,7 @@ export default function PricingPage() {
         </div>
       )}
 
-      <div style={{ marginTop: 24, padding: 20, background: '#E3F2FD', borderRadius: 8, borderLeft: '4px solid #1A73E8' }}>
+      <div style={{ marginTop: 24, padding: 20, background: '#E3F2FD', borderRadius: 8, borderLeft: '4px solid #1E88E5' }}>
         <p style={{ fontSize: 13, fontWeight: 600, color: '#1565C0', margin: '0 0 8px' }}>How Pricing Works</p>
         <ul style={{ fontSize: 12, color: '#333', margin: 0, paddingLeft: 20 }}>
           <li><strong>Base Fare</strong> — charged at ride start, independent of distance/time</li>

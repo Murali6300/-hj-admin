@@ -15,6 +15,7 @@ const navItems: NavItem[] = [
   { path: '/', label: 'Dashboard', icon: '📊', permission: 'DASHBOARD_VIEW' },
   { divider: true, label: 'Operations' },
   { path: '/rides', label: 'Live Rides', icon: '🗺️', permission: 'RIDES_VIEW' },
+  { path: '/rides/history', label: 'Ride History', icon: '📜', permission: 'RIDES_VIEW' },
   { path: '/cancellations', label: 'Cancellations', icon: '❌', permission: 'RIDES_CANCEL' },
   { path: '/sos', label: 'SOS Alerts', icon: '🚨', permission: 'SOS_VIEW' },
   { divider: true, label: 'Management' },
@@ -73,16 +74,16 @@ export default function Layout() {
   };
 
   const ROLE_BADGE_COLORS: Record<string, string> = {
-    SUPER_ADMIN: '#F44336',
-    ADMIN: '#1A73E8',
-    SUPPORT: '#4CAF50',
-    FINANCE: '#FF6D00',
-    OPERATIONS: '#9C27B0',
+    SUPER_ADMIN: '#FF5722',
+    ADMIN: '#1E88E5',
+    SUPPORT: '#39D353',
+    FINANCE: '#FF8C00',
+    OPERATIONS: '#E91E63',
   };
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <aside style={{ width: 260, background: '#1A237E', color: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh' }}>
+      <aside style={{ width: 260, background: 'linear-gradient(180deg, #123D8A 0%, #1E88E5 100%)', color: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh' }}>
         <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>HJ Admin</h2>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', margin: '4px 0 0' }}>{adminName}</p>
@@ -118,7 +119,7 @@ export default function Layout() {
                   style={({ isActive }) => ({
                     display: 'flex', alignItems: 'center', gap: 10, padding: '10px 20px', color: '#fff', fontSize: 13,
                     background: isActive ? 'rgba(255,255,255,0.12)' : 'transparent',
-                    borderLeft: isActive ? '3px solid #64B5F6' : '3px solid transparent',
+                    borderLeft: isActive ? '3px solid #FF8C00' : '3px solid transparent',
                     textDecoration: 'none',
                   })}
                 >
@@ -139,7 +140,7 @@ export default function Layout() {
         </button>
       </aside>
 
-      <main style={{ flex: 1, padding: 24, overflow: 'auto', background: '#F5F5F5' }}>
+      <main style={{ flex: 1, padding: 24, overflow: 'auto', background: '#F7F9FC' }}>
         <Outlet />
       </main>
     </div>

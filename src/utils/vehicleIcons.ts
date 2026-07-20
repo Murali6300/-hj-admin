@@ -12,7 +12,7 @@ export const VEHICLE_COLORS: Record<string, string> = {
   BIKE: '#FF6D00',
   SCOOTY: '#FF5722',
   AUTO: '#9C27B0',
-  CAR: '#1A73E8',
+  CAR: '#1E88E5',
   MINI: '#00BCD4',
   SEDAN: '#3F51B5',
   SUV: '#795548',

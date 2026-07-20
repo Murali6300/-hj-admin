@@ -43,7 +43,7 @@ const STATUS_COLORS: Record<string, string> = {
   ACCEPTED: '#2196F3',
   DRIVER_EN_ROUTE: '#9C27B0',
   DRIVER_ARRIVED: '#00BCD4',
-  IN_PROGRESS: '#1A73E8',
+  IN_PROGRESS: '#1E88E5',
   COMPLETED: '#4CAF50',
   CANCELLED: '#F44336',
 };
@@ -160,7 +160,7 @@ export default function RideDetailPage() {
 
       const polyline = (L as { polyline: (coords: number[][], opts: unknown) => { addTo: (m: unknown) => unknown } }).polyline(
         [pickupLatLng, destLatLng],
-        { color: '#1A73E8', weight: 3, opacity: 0.7, dashArray: '8, 8' },
+        { color: '#1E88E5', weight: 3, opacity: 0.7, dashArray: '8, 8' },
       );
       polyline.addTo(map);
 
@@ -256,7 +256,7 @@ export default function RideDetailPage() {
                       width: 12,
                       height: 12,
                       borderRadius: '50%',
-                      background: step.completed ? (step.current ? '#1A73E8' : '#4CAF50') : '#E0E0E0',
+                      background: step.completed ? (step.current ? '#1E88E5' : '#4CAF50') : '#E0E0E0',
                       border: step.current ? '3px solid #BBDEFB' : 'none',
                       flexShrink: 0,
                     }} />

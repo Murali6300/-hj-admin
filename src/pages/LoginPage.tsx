@@ -69,9 +69,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#1A73E8' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#1E88E5' }}>
       <form onSubmit={handleSubmit} style={{ background: '#fff', padding: 40, borderRadius: 12, width: 380, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
-        <h1 style={{ textAlign: 'center', marginBottom: 8, color: '#1A73E8' }}>HJ Admin</h1>
+        <h1 style={{ textAlign: 'center', marginBottom: 8, color: '#1E88E5' }}>HJ Admin</h1>
         <p style={{ textAlign: 'center', color: '#757575', marginBottom: 24 }}>Sign in to your admin account</p>
 
         {error && (
@@ -121,16 +121,16 @@ export default function LoginPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, marginTop: 8 }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#555', cursor: 'pointer' }}>
             <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)}
-              style={{ width: 16, height: 16, accentColor: '#1A73E8' }} />
+              style={{ width: 16, height: 16, accentColor: '#1E88E5' }} />
             Remember me
           </label>
-          <Link to="/forgot-password" style={{ fontSize: 13, color: '#1A73E8', textDecoration: 'none' }}>
+          <Link to="/forgot-password" style={{ fontSize: 13, color: '#1E88E5', textDecoration: 'none' }}>
             Forgot Password?
           </Link>
         </div>
 
         <button type="submit" disabled={loading}
-          style={{ width: '100%', padding: 12, background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, fontSize: 15, fontWeight: 600, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>
+          style={{ width: '100%', padding: 12, background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, fontSize: 15, fontWeight: 600, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>

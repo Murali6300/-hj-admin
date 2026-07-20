@@ -405,7 +405,7 @@ export default function DriversPage() {
                 <td style={tdStyle}>₹{d.totalEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
                 <td style={tdStyle}>
                   <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    <button onClick={() => handleViewDetail(d.id)} style={btnSmall('#1A73E8')} disabled={detailLoading}>View</button>
+                    <button onClick={() => handleViewDetail(d.id)} style={btnSmall('#1E88E5')} disabled={detailLoading}>View</button>
                     <button onClick={() => handleEdit(d)} style={btnSmall('#FF9800')}>Edit</button>
                     {d.accountStatus === 'ACTIVE' ? (
                       <button onClick={() => handleSuspend(d)} style={btnSmall('#F44336')}>Suspend</button>
@@ -464,7 +464,7 @@ export default function DriversPage() {
                 <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #E0E0E0', marginBottom: 16 }}>
                   {(['overview', 'documents', 'earnings', 'rides', 'ratings'] as DetailTab[]).map(tab => (
                     <button key={tab} onClick={() => setDetailTab(tab)}
-                      style={{ padding: '8px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: detailTab === tab ? 600 : 400, color: detailTab === tab ? '#1A73E8' : '#757575', borderBottom: detailTab === tab ? '2px solid #1A73E8' : '2px solid transparent', marginBottom: -2 }}>
+                      style={{ padding: '8px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: detailTab === tab ? 600 : 400, color: detailTab === tab ? '#1E88E5' : '#757575', borderBottom: detailTab === tab ? '2px solid #1E88E5' : '2px solid transparent', marginBottom: -2 }}>
                       {tab.charAt(0).toUpperCase() + tab.slice(1)}
                     </button>
                   ))}
@@ -474,7 +474,7 @@ export default function DriversPage() {
                 <div style={{ maxHeight: '50vh', overflow: 'auto' }}>
                   {detailTab === 'overview' && (
                     <div>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1A73E8', margin: '0 0 8px' }}>Personal Details</p>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1E88E5', margin: '0 0 8px' }}>Personal Details</p>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
                         <InfoItem label="Driver ID" value={String(detail.driverInfo.id)} />
                         <InfoItem label="Phone" value={detail.driverInfo.phoneNumber} />
@@ -484,7 +484,7 @@ export default function DriversPage() {
                         <InfoItem label="Address" value={[detail.driverInfo.address, detail.driverInfo.city, detail.driverInfo.state, detail.driverInfo.pincode].filter(Boolean).join(', ') || '—'} />
                       </div>
 
-                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1A73E8', margin: '0 0 8px' }}>Vehicle Details</p>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1E88E5', margin: '0 0 8px' }}>Vehicle Details</p>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
                         <InfoItem label="Vehicle Type" value={detail.driverInfo.vehicleType} />
                         <InfoItem label="Number" value={detail.driverInfo.vehicleNumber || '—'} />
@@ -494,7 +494,7 @@ export default function DriversPage() {
                         <InfoItem label="Registered" value={new Date(detail.driverInfo.createdAt).toLocaleDateString('en-IN')} />
                       </div>
 
-                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1A73E8', margin: '0 0 8px' }}>Current Status</p>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1E88E5', margin: '0 0 8px' }}>Current Status</p>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
                         <InfoItem label="Approval" value={detail.driverInfo.accountStatus} />
                         <InfoItem label="Online" value={detail.driverInfo.availabilityStatus === 'AVAILABLE' ? 'Online' : 'Offline'} />
@@ -502,7 +502,7 @@ export default function DriversPage() {
                         {detail.wallet && <InfoItem label="Wallet Balance" value={`₹${detail.wallet.balance.toLocaleString('en-IN')}`} />}
                       </div>
 
-                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1A73E8', margin: '0 0 8px' }}>Statistics</p>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1E88E5', margin: '0 0 8px' }}>Statistics</p>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                         <InfoItem label="Total Rides" value={String(detail.driverInfo.totalRides)} />
                         <InfoItem label="Total Earnings" value={`₹${detail.driverInfo.totalEarnings.toLocaleString('en-IN')}`} />
@@ -798,13 +798,13 @@ export default function DriversPage() {
 function DocSection({ title, items }: { title: string; items: { label: string; value: string; isLink?: boolean }[] }) {
   return (
     <div style={{ padding: 12, background: '#f9f9f9', borderRadius: 6, border: '1px solid #E0E0E0' }}>
-      <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 8px', color: '#1A73E8' }}>{title}</p>
+      <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 8px', color: '#1E88E5' }}>{title}</p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
         {items.filter(i => i.value).map(i => (
           <div key={i.label}>
             <span style={{ fontSize: 11, color: '#999' }}>{i.label}: </span>
             {i.isLink ? (
-              <a href={getDocumentUrl(i.value)} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: '#1A73E8' }}>View</a>
+              <a href={getDocumentUrl(i.value)} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: '#1E88E5' }}>View</a>
             ) : (
               <span style={{ fontSize: 12 }}>{i.value}</span>
             )}
@@ -841,7 +841,7 @@ const tdStyle: React.CSSProperties = { padding: '8px 12px', fontSize: 12 };
 const inputStyle: React.CSSProperties = { padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, minWidth: 160 };
 const inputStyleModal: React.CSSProperties = { padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 14, width: '100%', boxSizing: 'border-box' };
 const labelStyle: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: '#555', marginBottom: 4, display: 'block' };
-const btnPrimary: React.CSSProperties = { padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 500 };
+const btnPrimary: React.CSSProperties = { padding: '8px 16px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 500 };
 const btnSmall = (bg: string): React.CSSProperties => ({ padding: '4px 10px', background: bg, color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' });
 const pageBtnStyle = (disabled: boolean): React.CSSProperties => ({ padding: '6px 14px', border: '1px solid #ddd', borderRadius: 6, background: disabled ? '#f5f5f5' : '#fff', color: disabled ? '#bbb' : '#333', cursor: disabled ? 'default' : 'pointer', fontSize: 13 });
 const modalOverlay: React.CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };

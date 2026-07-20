@@ -32,7 +32,7 @@ interface WalletStats {
 
 const TXN_COLORS: Record<string, string> = {
   TOP_UP: '#4CAF50',
-  PAYMENT: '#1A73E8',
+  PAYMENT: '#1E88E5',
   REFUND: '#FF6D00',
   WITHDRAWAL: '#F44336',
   BONUS: '#9C27B0',
@@ -102,14 +102,14 @@ export default function WalletPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ fontSize: 24 }}>Wallet Management</h1>
         <button onClick={() => setShowAdjust(true)}
-          style={{ padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+          style={{ padding: '8px 16px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
           Adjust Balance
         </button>
       </div>
 
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
-          <MetricCard label="Total Balance" value={`₹${stats.totalBalance.toLocaleString()}`} color="#1A73E8" />
+          <MetricCard label="Total Balance" value={`₹${stats.totalBalance.toLocaleString()}`} color="#1E88E5" />
           <MetricCard label="Total Top-ups" value={`₹${stats.totalTopUps.toLocaleString()}`} color="#4CAF50" />
           <MetricCard label="Total Payments" value={`₹${stats.totalPayments.toLocaleString()}`} color="#F44336" />
           <MetricCard label="Total Wallets" value={String(stats.totalWallets)} color="#9C27B0" />
@@ -125,7 +125,7 @@ export default function WalletPage() {
           style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 14 }}
         />
         <button onClick={handleSearch}
-          style={{ padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+          style={{ padding: '8px 16px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
           Search
         </button>
       </div>
@@ -158,7 +158,7 @@ export default function WalletPage() {
                 <td style={{ ...tdStyle, color: '#757575' }}>{new Date(w.createdAt).toLocaleDateString('en-IN')}</td>
                 <td style={tdStyle}>
                   <button onClick={() => openTransactions(w.id, w.userId)}
-                    style={{ padding: '4px 10px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>
+                    style={{ padding: '4px 10px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>
                     View Transactions
                   </button>
                 </td>

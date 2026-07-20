@@ -261,7 +261,7 @@ export default function UsersPage() {
                 <td style={tdStyle}>{user.id}</td>
                 <td style={tdStyle}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#1A73E8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#1E88E5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
                       {user.name?.charAt(0)?.toUpperCase() || '?'}
                     </div>
                     <span style={{ fontWeight: 500 }}>{user.name}</span>
@@ -280,7 +280,7 @@ export default function UsersPage() {
                 <td style={tdStyle}>{new Date(user.createdAt).toLocaleDateString('en-IN')}</td>
                 <td style={tdStyle}>
                   <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    <button onClick={() => handleViewDetail(user.id)} style={btnSmall('#1A73E8')} disabled={detailLoading}>
+                    <button onClick={() => handleViewDetail(user.id)} style={btnSmall('#1E88E5')} disabled={detailLoading}>
                       View
                     </button>
                     <button onClick={() => handleEdit(user)} style={btnSmall('#FF9800')}>Edit</button>
@@ -328,7 +328,7 @@ export default function UsersPage() {
               <>
                 {/* User Header */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, padding: 16, background: '#f5f5f5', borderRadius: 8 }}>
-                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#1A73E8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 22, fontWeight: 700 }}>
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#1E88E5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 22, fontWeight: 700 }}>
                     {detailUser.userInfo.name?.charAt(0)?.toUpperCase() || '?'}
                   </div>
                   <div style={{ flex: 1 }}>
@@ -342,7 +342,7 @@ export default function UsersPage() {
                 <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #E0E0E0', marginBottom: 16 }}>
                   {(['overview', 'rides', 'wallet', 'addresses', 'payments', 'ratings'] as DetailTab[]).map(tab => (
                     <button key={tab} onClick={() => setDetailTab(tab)}
-                      style={{ padding: '8px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: detailTab === tab ? 600 : 400, color: detailTab === tab ? '#1A73E8' : '#757575', borderBottom: detailTab === tab ? '2px solid #1A73E8' : '2px solid transparent', marginBottom: -2 }}>
+                      style={{ padding: '8px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: detailTab === tab ? 600 : 400, color: detailTab === tab ? '#1E88E5' : '#757575', borderBottom: detailTab === tab ? '2px solid #1E88E5' : '2px solid transparent', marginBottom: -2 }}>
                       {tab.charAt(0).toUpperCase() + tab.slice(1)}
                     </button>
                   ))}
@@ -434,7 +434,7 @@ export default function UsersPage() {
                       {detailUser.savedAddresses.map(a => (
                         <div key={a.id} style={{ padding: 12, background: '#f9f9f9', borderRadius: 6, border: '1px solid #E0E0E0' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ fontWeight: 600, fontSize: 13, textTransform: 'uppercase', color: '#1A73E8' }}>{a.label}</span>
+                            <span style={{ fontWeight: 600, fontSize: 13, textTransform: 'uppercase', color: '#1E88E5' }}>{a.label}</span>
                           </div>
                           <p style={{ margin: '4px 0 0', fontSize: 13 }}>{a.name} — {a.address}</p>
                           <p style={{ margin: '2px 0 0', fontSize: 11, color: '#999' }}>{a.latitude.toFixed(5)}, {a.longitude.toFixed(5)}</p>
@@ -573,7 +573,7 @@ const tdStyle: React.CSSProperties = { padding: '8px 12px', fontSize: 12 };
 const inputStyle: React.CSSProperties = { padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, minWidth: 160 };
 const inputStyleModal: React.CSSProperties = { padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 14, width: '100%', boxSizing: 'border-box' };
 const labelStyle: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: '#555', marginBottom: 4, display: 'block' };
-const btnPrimary: React.CSSProperties = { padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 500 };
+const btnPrimary: React.CSSProperties = { padding: '8px 16px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 500 };
 const btnSmall = (bg: string): React.CSSProperties => ({ padding: '4px 10px', background: bg, color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' });
 const pageBtnStyle = (disabled: boolean): React.CSSProperties => ({ padding: '6px 14px', border: '1px solid #ddd', borderRadius: 6, background: disabled ? '#f5f5f5' : '#fff', color: disabled ? '#bbb' : '#333', cursor: disabled ? 'default' : 'pointer', fontSize: 13 });
 const modalOverlay: React.CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };

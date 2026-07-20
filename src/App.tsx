@@ -8,6 +8,7 @@ import PendingDriversPage from './pages/PendingDriversPage';
 import VehiclesPage from './pages/VehiclesPage';
 import PaymentsPage from './pages/PaymentsPage';
 import RideMonitoringPage from './pages/RideMonitoringPage';
+import RideHistoryPage from './pages/RideHistoryPage';
 import RideDetailPage from './pages/RideDetailPage';
 import CancellationManagementPage from './pages/CancellationManagementPage';
 import EarningsCommissionPage from './pages/EarningsCommissionPage';
@@ -53,6 +54,7 @@ export default function App() {
           <Route path="payments" element={<PaymentsPage />} />
           <Route path="company-payment" element={<RoleProtectedRoute permission="PAYMENTS_MANAGE"><CompanyPaymentPage /></RoleProtectedRoute>} />
           <Route path="rides" element={<RideMonitoringPage />} />
+          <Route path="rides/history" element={<RoleProtectedRoute permission="RIDES_VIEW"><RideHistoryPage /></RoleProtectedRoute>} />
           <Route path="rides/:id" element={<RideDetailPage />} />
           <Route path="cancellations" element={<CancellationManagementPage />} />
           <Route path="earnings" element={<EarningsCommissionPage />} />

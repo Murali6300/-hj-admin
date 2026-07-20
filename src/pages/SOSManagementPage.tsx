@@ -79,7 +79,7 @@ export default function SOSManagementPage() {
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {['ALL', 'ACTIVE', 'ACKNOWLEDGED', 'RESOLVED'].map(s => (
           <button key={s} onClick={() => { setFilterStatus(s); setPage(0); }}
-            style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none', background: filterStatus === s ? (s === 'ACTIVE' ? '#F44336' : s === 'ACKNOWLEDGED' ? '#FF9800' : s === 'RESOLVED' ? '#4CAF50' : '#1A73E8') : '#E0E0E0', color: filterStatus === s ? '#fff' : '#616161' }}>
+            style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none', background: filterStatus === s ? (s === 'ACTIVE' ? '#F44336' : s === 'ACKNOWLEDGED' ? '#FF9800' : s === 'RESOLVED' ? '#4CAF50' : '#1E88E5') : '#E0E0E0', color: filterStatus === s ? '#fff' : '#616161' }}>
             {s}
           </button>
         ))}
@@ -107,7 +107,7 @@ export default function SOSManagementPage() {
                 <p><strong>User:</strong> {alert.userName} (ID: {alert.userId})</p>
                 <p><strong>Driver:</strong> {alert.driverName} (ID: {alert.driverId})</p>
                 <p><strong>Location:</strong> {alert.latitude.toFixed(4)}, {alert.longitude.toFixed(4)}</p>
-                <p><strong>Map:</strong> <a href={`https://www.google.com/maps?q=${alert.latitude},${alert.longitude}`} target="_blank" rel="noopener noreferrer" style={{ color: '#1A73E8' }}>Open in Maps</a></p>
+                <p><strong>Map:</strong> <a href={`https://www.google.com/maps?q=${alert.latitude},${alert.longitude}`} target="_blank" rel="noopener noreferrer" style={{ color: '#1E88E5' }}>Open in Maps</a></p>
               </div>
 
               {alert.adminNotes && (
@@ -115,7 +115,7 @@ export default function SOSManagementPage() {
               )}
 
               <div style={{ display: 'flex', gap: 8 }}>
-                <a href={`tel:${alert.userId}`} style={{ padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, textDecoration: 'none', fontWeight: 600 }}>
+                <a href={`tel:${alert.userId}`} style={{ padding: '8px 16px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, textDecoration: 'none', fontWeight: 600 }}>
                   Call User
                 </a>
                 {alert.driverId && (

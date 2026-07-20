@@ -40,7 +40,7 @@ const EMPTY_FORM: FormData = {
   displayName: '',
   description: '',
   icon: '🚗',
-  color: '#1A73E8',
+  color: '#1E88E5',
   baseFare: '',
   perKmRate: '',
   perMinRate: '',
@@ -135,7 +135,7 @@ export default function VehiclesPage() {
       displayName: v.displayName,
       description: v.description || '',
       icon: v.icon || '🚗',
-      color: v.color || '#1A73E8',
+      color: v.color || '#1E88E5',
       baseFare: v.baseFare.toString(),
       perKmRate: v.perKmRate.toString(),
       perMinRate: v.perMinRate.toString(),
@@ -230,7 +230,7 @@ export default function VehiclesPage() {
             Export CSV
           </button>
           <button onClick={openCreate}
-            style={{ padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            style={{ padding: '8px 16px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             + Add Vehicle Type
           </button>
         </div>
@@ -323,7 +323,7 @@ export default function VehiclesPage() {
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                      <button onClick={() => openEdit(v)} style={{ padding: '4px 10px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>Edit</button>
+                      <button onClick={() => openEdit(v)} style={{ padding: '4px 10px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>Edit</button>
                       <button onClick={() => handleToggleActive(v)} disabled={actionLoading === v.id}
                         style={{ padding: '4px 10px', background: v.isActive ? '#FF9800' : '#4CAF50', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>
                         {actionLoading === v.id ? '...' : v.isActive ? 'Deactivate' : 'Activate'}
@@ -369,7 +369,7 @@ export default function VehiclesPage() {
                     <input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })}
                       style={{ width: 40, height: 36, border: 'none', cursor: 'pointer', padding: 0 }} />
                     <input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })}
-                      placeholder="#1A73E8" style={{ ...inputStyle, flex: 1 }} />
+                      placeholder="#1E88E5" style={{ ...inputStyle, flex: 1 }} />
                   </div>
                 </div>
               </div>
@@ -424,7 +424,7 @@ export default function VehiclesPage() {
 
             <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
               <button onClick={handleSave} disabled={actionLoading !== null}
-                style={{ flex: 1, padding: '10px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                style={{ flex: 1, padding: '10px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 {actionLoading !== null ? 'Saving...' : editingVehicle ? 'Update' : 'Create'}
               </button>
               <button onClick={() => setModalOpen(false)}

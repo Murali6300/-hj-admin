@@ -14,7 +14,7 @@ interface AnalyticsData {
   cancellationReasons: { reason: string; count: number }[];
 }
 
-const COLORS = ['#1A73E8', '#4CAF50', '#FF6D00', '#F44336', '#9C27B0', '#00BCD4', '#FFC107'];
+const COLORS = ['#1E88E5', '#4CAF50', '#FF6D00', '#F44336', '#9C27B0', '#00BCD4', '#FFC107'];
 const REFRESH_INTERVAL_MS = 120000;
 
 export default function AnalyticsPage() {
@@ -133,7 +133,7 @@ export default function AnalyticsPage() {
         <p style={{ color: '#F44336', fontSize: 16, marginBottom: 12 }}>Failed to load analytics data</p>
         <button
           onClick={() => { setLoading(true); fetchAnalytics(); }}
-          style={{ padding: '10px 24px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
+          style={{ padding: '10px 24px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
         >
           Retry
         </button>
@@ -158,7 +158,7 @@ export default function AnalyticsPage() {
           )}
           <button
             onClick={() => { setLoading(true); fetchAnalytics(); }}
-            style={{ padding: '6px 16px', background: '#E3F2FD', color: '#1A73E8', border: '1px solid #BBDEFB', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+            style={{ padding: '6px 16px', background: '#E3F2FD', color: '#1E88E5', border: '1px solid #BBDEFB', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
           >
             Refresh
           </button>
@@ -188,7 +188,7 @@ export default function AnalyticsPage() {
                 <XAxis dataKey="hour" fontSize={11} />
                 <YAxis fontSize={11} />
                 <Tooltip />
-                <Bar dataKey="rides" fill="#1A73E8" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="rides" fill="#1E88E5" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : <Empty message={errors.rides || 'No rides data available'} />}
@@ -203,7 +203,7 @@ export default function AnalyticsPage() {
                 <YAxis fontSize={11} />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="rides" stroke="#1A73E8" strokeWidth={2} name="Completed" />
+                <Line type="monotone" dataKey="rides" stroke="#1E88E5" strokeWidth={2} name="Completed" />
                 <Line type="monotone" dataKey="cancelled" stroke="#F44336" strokeWidth={2} name="Cancelled" />
               </LineChart>
             </ResponsiveContainer>

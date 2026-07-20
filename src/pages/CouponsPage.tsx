@@ -101,7 +101,7 @@ export default function CouponsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ fontSize: 24 }}>Coupon Management</h1>
         <button onClick={openCreate}
-          style={{ padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+          style={{ padding: '8px 16px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
           + Create Coupon
         </button>
       </div>
@@ -135,7 +135,7 @@ export default function CouponsPage() {
           <tbody>
             {coupons.map((c) => (
               <tr key={c.id} style={{ borderTop: '1px solid #eee' }}>
-                <td style={{ ...tdStyle, fontWeight: 700, color: '#1A73E8' }}>{c.code}</td>
+                <td style={{ ...tdStyle, fontWeight: 700, color: '#1E88E5' }}>{c.code}</td>
                 <td style={tdStyle}>{c.description}</td>
                 <td style={tdStyle}>{c.discountType === 'PERCENTAGE' ? `${c.discountValue}%` : `₹${c.discountValue}`}</td>
                 <td style={tdStyle}>₹{c.minFare}</td>

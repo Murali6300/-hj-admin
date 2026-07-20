@@ -11,6 +11,13 @@ interface Payment {
   pickupAddress?: string;
   dropoffAddress?: string;
   createdAt: string;
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+  userName?: string;
+  driverName?: string;
+  refundId?: string;
+  refundAmount?: number;
+  refundReason?: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -29,7 +36,7 @@ export default function PaymentsPage() {
   const [total, setTotal] = useState(0);
   const [invoicePayment, setInvoicePayment] = useState<Payment | null>(null);
 
-  const METHODS = ['ALL', 'CASH', 'UPI', 'CARD', 'WALLET', 'RAZORPAY'];
+  const METHODS = ['ALL', 'CASH', 'UPI', 'CREDIT_CARD', 'DEBIT_CARD', 'CARD', 'WALLET', 'RAZORPAY'];
 
   const fetchPayments = async () => {
     setLoading(true); setError('');
@@ -58,15 +65,19 @@ export default function PaymentsPage() {
   };
 
   const handleDownloadReceipt = (p: Payment) => {
-    const html = `<!DOCTYPE html><html><head><style>body{font-family:Arial,sans-serif;padding:40px}h1{color:#1A73E8}table{width:100%;border-collapse:collapse;margin-top:20px}td,th{padding:10px;border:1px solid #ddd;text-align:left}.label{font-weight:600;width:40%}.amount{font-size:24px;font-weight:700;color:#1A73E8}</style></head><body>
+    const html = `<!DOCTYPE html><html><head><style>body{font-family:Arial,sans-serif;padding:40px}h1{color:#1E88E5}table{width:100%;border-collapse:collapse;margin-top:20px}td,th{padding:10px;border:1px solid #ddd;text-align:left}.label{font-weight:600;width:40%}.amount{font-size:24px;font-weight:700;color:#1E88E5}</style></head><body>
       <h1>HJ Ride - Payment Receipt</h1>
       <p style="color:#757575">Invoice #INV${p.paymentId}</p>
       <table><tr><td class="label">Payment ID</td><td>PAY${p.paymentId}</td></tr>
       <tr><td class="label">Ride ID</td><td>#${p.rideId}</td></tr>
+      ${p.userName ? `<tr><td class="label">User</td><td>${p.userName}</td></tr>` : ''}
+      ${p.driverName ? `<tr><td class="label">Driver</td><td>${p.driverName}</td></tr>` : ''}
       <tr><td class="label">Pickup</td><td>${p.pickupAddress || 'N/A'}</td></tr>
       <tr><td class="label">Destination</td><td>${p.dropoffAddress || 'N/A'}</td></tr>
       <tr><td class="label">Payment Method</td><td>${p.paymentMethod}</td></tr>
       <tr><td class="label">Transaction ID</td><td>${p.transactionId || 'N/A'}</td></tr>
+      ${p.razorpayOrderId ? `<tr><td class="label">Razorpay Order ID</td><td>${p.razorpayOrderId}</td></tr>` : ''}
+      ${p.razorpayPaymentId ? `<tr><td class="label">Razorpay Payment ID</td><td>${p.razorpayPaymentId}</td></tr>` : ''}
       <tr><td class="label">Status</td><td>${p.paymentStatus}</td></tr>
       <tr><td class="label">Date</td><td>${new Date(p.createdAt).toLocaleString('en-IN')}</td></tr>
       <tr><td class="label">Amount Paid</td><td class="amount">₹${p.totalFare.toFixed(2)}</td></tr></table>
@@ -78,8 +89,8 @@ export default function PaymentsPage() {
   };
 
   const handleExport = () => {
-    const csv = ['Payment ID,Ride ID,Amount,Method,Status,Transaction ID,Created At',
-      ...payments.map(p => `${p.paymentId},${p.rideId},${p.totalFare},${p.paymentMethod},${p.paymentStatus},${p.transactionId || ''},${p.createdAt}`)].join('\n');
+    const csv = ['Payment ID,Ride ID,User,Driver,Amount,Method,Status,Razorpay Order ID,Razorpay Payment ID,Transaction ID,Created At',
+      ...payments.map(p => `${p.paymentId},${p.rideId},"${(p.userName || '').replace(/"/g, '""')}","${(p.driverName || '').replace(/"/g, '""')}",${p.totalFare},${p.paymentMethod},${p.paymentStatus},${p.razorpayOrderId || ''},${p.razorpayPaymentId || ''},${p.transactionId || ''},${p.createdAt}`)].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'payments-export.csv'; a.click();
@@ -93,7 +104,7 @@ export default function PaymentsPage() {
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
         {METHODS.map((m) => (
           <button key={m} onClick={() => { setFilterMethod(m); setPage(1); }}
-            style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid #ddd', background: filterMethod === m ? '#1A73E8' : '#fff', color: filterMethod === m ? '#fff' : '#333', fontSize: 12, cursor: 'pointer', fontWeight: filterMethod === m ? 600 : 400 }}>
+            style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid #ddd', background: filterMethod === m ? '#1E88E5' : '#fff', color: filterMethod === m ? '#fff' : '#333', fontSize: 12, cursor: 'pointer', fontWeight: filterMethod === m ? 600 : 400 }}>
             {m === 'ALL' ? 'All Methods' : m.charAt(0) + m.slice(1).toLowerCase()}
           </button>
         ))}
@@ -113,7 +124,7 @@ export default function PaymentsPage() {
           <option value="REFUNDED">Refunded</option>
           <option value="CANCELLED">Cancelled</option>
         </select>
-        <button onClick={() => { setPage(1); fetchPayments(); }} style={{ padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Search</button>
+        <button onClick={() => { setPage(1); fetchPayments(); }} style={{ padding: '8px 16px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Search</button>
         <button onClick={handleExport} style={{ padding: '8px 16px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Export CSV</button>
       </div>
 
@@ -128,10 +139,14 @@ export default function PaymentsPage() {
               <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
                 <th style={thStyle}>Payment ID</th>
                 <th style={thStyle}>Ride ID</th>
+                <th style={thStyle}>User</th>
+                <th style={thStyle}>Driver</th>
                 <th style={thStyle}>Amount</th>
                 <th style={thStyle}>Method</th>
                 <th style={thStyle}>Status</th>
+                <th style={thStyle}>Razorpay Order</th>
                 <th style={thStyle}>Transaction ID</th>
+                <th style={thStyle}>Refund</th>
                 <th style={thStyle}>Date</th>
                 <th style={thStyle}>Actions</th>
               </tr>
@@ -141,6 +156,8 @@ export default function PaymentsPage() {
                 <tr key={p.paymentId} style={{ borderTop: '1px solid #eee' }}>
                   <td style={tdStyle}>PAY{p.paymentId}</td>
                   <td style={tdStyle}>#{p.rideId}</td>
+                  <td style={tdStyle}>{p.userName || '-'}</td>
+                  <td style={tdStyle}>{p.driverName || '-'}</td>
                   <td style={{ ...tdStyle, fontWeight: 600 }}>₹{p.totalFare.toFixed(2)}</td>
                   <td style={tdStyle}>{p.paymentMethod}</td>
                   <td style={tdStyle}>
@@ -148,7 +165,17 @@ export default function PaymentsPage() {
                       {p.paymentStatus}
                     </span>
                   </td>
+                  <td style={{ ...tdStyle, color: '#757575', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.razorpayOrderId || ''}>
+                    {p.razorpayOrderId ? p.razorpayOrderId.substring(0, 16) + '...' : '-'}
+                  </td>
                   <td style={{ ...tdStyle, color: '#757575' }}>{p.transactionId || '-'}</td>
+                  <td style={tdStyle}>
+                    {p.paymentStatus === 'REFUNDED' ? (
+                      <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, color: '#fff', background: '#FF6D00' }}>
+                        ₹{(p.refundAmount ?? p.totalFare).toFixed(2)}
+                      </span>
+                    ) : '-'}
+                  </td>
                   <td style={{ ...tdStyle, color: '#757575' }}>{new Date(p.createdAt).toLocaleDateString('en-IN')}</td>
                   <td style={tdStyle}>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
@@ -184,20 +211,31 @@ export default function PaymentsPage() {
             </div>
             <div style={{ background: '#f5f5f5', borderRadius: 8, padding: 20, fontSize: 13 }}>
               <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                <p style={{ fontSize: 20, fontWeight: 700, color: '#1A73E8', margin: 0 }}>HJ Ride</p>
+                <p style={{ fontSize: 20, fontWeight: 700, color: '#1E88E5', margin: 0 }}>HJ Ride</p>
                 <p style={{ fontSize: 12, color: '#757575', margin: '4px 0 0' }}>Payment Receipt</p>
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <tbody>
                   <tr><td style={invLabel}>Payment ID</td><td style={invVal}>PAY{invoicePayment.paymentId}</td></tr>
                   <tr><td style={invLabel}>Ride ID</td><td style={invVal}>#{invoicePayment.rideId}</td></tr>
+                  <tr><td style={invLabel}>User</td><td style={invVal}>{invoicePayment.userName || 'N/A'}</td></tr>
+                  <tr><td style={invLabel}>Driver</td><td style={invVal}>{invoicePayment.driverName || 'N/A'}</td></tr>
                   <tr><td style={invLabel}>Pickup</td><td style={invVal}>{invoicePayment.pickupAddress || 'N/A'}</td></tr>
                   <tr><td style={invLabel}>Destination</td><td style={invVal}>{invoicePayment.dropoffAddress || 'N/A'}</td></tr>
                   <tr><td style={invLabel}>Method</td><td style={invVal}>{invoicePayment.paymentMethod}</td></tr>
                   <tr><td style={invLabel}>Transaction ID</td><td style={invVal}>{invoicePayment.transactionId || 'N/A'}</td></tr>
+                  {invoicePayment.razorpayOrderId && (
+                    <tr><td style={invLabel}>Razorpay Order ID</td><td style={invVal}>{invoicePayment.razorpayOrderId}</td></tr>
+                  )}
+                  {invoicePayment.razorpayPaymentId && (
+                    <tr><td style={invLabel}>Razorpay Payment ID</td><td style={invVal}>{invoicePayment.razorpayPaymentId}</td></tr>
+                  )}
                   <tr><td style={invLabel}>Status</td><td style={invVal}><span style={{ color: STATUS_COLORS[invoicePayment.paymentStatus], fontWeight: 600 }}>{invoicePayment.paymentStatus}</span></td></tr>
+                  {invoicePayment.paymentStatus === 'REFUNDED' && invoicePayment.refundId && (
+                    <tr><td style={invLabel}>Refund ID</td><td style={invVal}>{invoicePayment.refundId}</td></tr>
+                  )}
                   <tr><td style={invLabel}>Date</td><td style={invVal}>{new Date(invoicePayment.createdAt).toLocaleString('en-IN')}</td></tr>
-                  <tr><td style={{ ...invLabel, fontWeight: 700, fontSize: 14 }}>Amount</td><td style={{ ...invVal, fontSize: 20, fontWeight: 700, color: '#1A73E8' }}>₹{invoicePayment.totalFare.toFixed(2)}</td></tr>
+                  <tr><td style={{ ...invLabel, fontWeight: 700, fontSize: 14 }}>Amount</td><td style={{ ...invVal, fontSize: 20, fontWeight: 700, color: '#1E88E5' }}>₹{invoicePayment.totalFare.toFixed(2)}</td></tr>
                 </tbody>
               </table>
             </div>

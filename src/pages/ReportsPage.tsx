@@ -70,14 +70,14 @@ export default function ReportsPage() {
         {(['daily', 'weekly', 'monthly'] as ReportType[]).map(t => (
           <button key={t} onClick={() => fetchReport(t)}
             style={{ padding: '8px 20px', borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: 'pointer', border: 'none',
-              background: activeTab === t ? '#1A73E8' : '#E0E0E0', color: activeTab === t ? '#fff' : '#616161' }}>
+              background: activeTab === t ? '#1E88E5' : '#E0E0E0', color: activeTab === t ? '#fff' : '#616161' }}>
             {t.charAt(0).toUpperCase() + t.slice(1)} Report
           </button>
         ))}
         <input type={activeTab === 'daily' ? 'date' : activeTab === 'monthly' ? 'month' : 'date'}
           value={dateParam} onChange={(e) => setDateParam(e.target.value)}
           style={{ padding: '6px 12px', border: '1px solid #ddd', borderRadius: 6, marginLeft: 8 }} />
-        <button onClick={() => fetchReport(activeTab)} style={{ padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Generate</button>
+        <button onClick={() => fetchReport(activeTab)} style={{ padding: '8px 16px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Generate</button>
         <button onClick={handleExport} disabled={!report} style={{ padding: '8px 16px', background: report ? '#4CAF50' : '#E0E0E0', color: '#fff', border: 'none', borderRadius: 6, cursor: report ? 'pointer' : 'default' }}>Export CSV</button>
       </div>
 
@@ -88,7 +88,7 @@ export default function ReportsPage() {
       ) : error ? (
         <div style={{ textAlign: 'center', padding: 40 }}>
           <p style={{ color: '#F44336', fontSize: 14, marginBottom: 12 }}>{error}</p>
-          <button onClick={() => fetchReport(activeTab)} style={{ padding: '8px 20px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>Retry</button>
+          <button onClick={() => fetchReport(activeTab)} style={{ padding: '8px 20px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>Retry</button>
         </div>
       ) : report ? (
         <>

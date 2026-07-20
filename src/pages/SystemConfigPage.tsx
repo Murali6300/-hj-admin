@@ -123,7 +123,7 @@ export default function SystemConfigPage() {
           )}
           <button
             onClick={fetchConfigs}
-            style={{ padding: '6px 16px', background: '#E3F2FD', color: '#1A73E8', border: '1px solid #BBDEFB', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+            style={{ padding: '6px 16px', background: '#E3F2FD', color: '#1E88E5', border: '1px solid #BBDEFB', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
           >
             Reload
           </button>
@@ -143,8 +143,8 @@ export default function SystemConfigPage() {
               border: 'none',
               cursor: 'pointer',
               background: 'transparent',
-              color: activeTab === tab.key ? '#1A73E8' : '#757575',
-              borderBottom: activeTab === tab.key ? '2px solid #1A73E8' : '2px solid transparent',
+              color: activeTab === tab.key ? '#1E88E5' : '#757575',
+              borderBottom: activeTab === tab.key ? '2px solid #1E88E5' : '2px solid transparent',
               marginBottom: -2,
               display: 'flex',
               alignItems: 'center',
@@ -195,7 +195,7 @@ export default function SystemConfigPage() {
                 disabled={saving || !hasChanges}
                 style={{
                   padding: '10px 28px',
-                  background: hasChanges ? '#1A73E8' : '#E0E0E0',
+                  background: hasChanges ? '#1E88E5' : '#E0E0E0',
                   color: hasChanges ? '#fff' : '#9E9E9E',
                   border: 'none',
                   borderRadius: 8,
@@ -267,7 +267,7 @@ function SettingField({ config, value, onChange, isSensitive, isDirty }: {
           style={{
             width: '100%',
             padding: isSensitive ? '10px 40px 10px 12px' : '10px 12px',
-            border: `1px solid ${isDirty ? '#1A73E8' : '#E0E0E0'}`,
+            border: `1px solid ${isDirty ? '#1E88E5' : '#E0E0E0'}`,
             borderRadius: 6,
             fontSize: 14,
             boxSizing: 'border-box',
@@ -307,7 +307,7 @@ function ToggleSwitch({ checked, onChange, isDirty }: { checked: boolean; onChan
         width: 48,
         height: 26,
         borderRadius: 13,
-        border: `2px solid ${isDirty ? '#1A73E8' : checked ? '#4CAF50' : '#BDBDBD'}`,
+        border: `2px solid ${isDirty ? '#1E88E5' : checked ? '#4CAF50' : '#BDBDBD'}`,
         background: checked ? '#4CAF50' : '#E0E0E0',
         cursor: 'pointer',
         position: 'relative',

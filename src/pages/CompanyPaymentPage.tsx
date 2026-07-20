@@ -244,7 +244,7 @@ export default function CompanyPaymentPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ fontSize: 24, marginBottom: 0 }}>Company Payment Settings</h1>
         <button onClick={openCreateForm}
-          style={{ padding: '10px 20px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
+          style={{ padding: '10px 20px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
           + New Profile
         </button>
       </div>
@@ -276,7 +276,7 @@ export default function CompanyPaymentPage() {
         <div style={{ background: '#fff', borderRadius: 8, padding: 48, textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
           <p style={{ fontSize: 16, color: '#666', marginBottom: 16 }}>No payment profiles found.</p>
           <button onClick={openCreateForm}
-            style={{ padding: '10px 24px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
+            style={{ padding: '10px 24px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
             Create First Profile
           </button>
         </div>
@@ -329,7 +329,7 @@ export default function CompanyPaymentPage() {
                   <td style={tdStyle}>{formatDate(p.updatedAt)}</td>
                   <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                     <button onClick={() => setViewProfile(p)} style={actionBtnStyle('#666')} title="View">👁</button>
-                    <button onClick={() => openEditForm(p)} style={actionBtnStyle('#1A73E8')} title="Edit">✏️</button>
+                    <button onClick={() => openEditForm(p)} style={actionBtnStyle('#1E88E5')} title="Edit">✏️</button>
                     {p.status === 'ACTIVE' ? (
                       <button onClick={() => handleDeactivate(p.id)} style={actionBtnStyle('#F44336')} title="Deactivate">🔴</button>
                     ) : (
@@ -420,7 +420,7 @@ export default function CompanyPaymentPage() {
                 Cancel
               </button>
               <button onClick={handleSave} disabled={saving}
-                style={{ padding: '10px 24px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600, opacity: saving ? 0.6 : 1 }}>
+                style={{ padding: '10px 24px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600, opacity: saving ? 0.6 : 1 }}>
                 {saving ? 'Saving...' : editingId ? 'Update Profile' : 'Create Profile'}
               </button>
             </div>
@@ -486,7 +486,7 @@ export default function CompanyPaymentPage() {
 
             <div style={{ display: 'flex', gap: 10, marginTop: 24, justifyContent: 'flex-end' }}>
               <button onClick={() => { setViewProfile(null); openEditForm(viewProfile); }}
-                style={{ padding: '10px 20px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
+                style={{ padding: '10px 20px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
                 Edit
               </button>
               <button onClick={() => setViewProfile(null)}

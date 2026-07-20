@@ -197,7 +197,7 @@ export default function PendingDriversPage() {
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button onClick={() => handleViewDetail(driver.id)} disabled={detailLoading}
-                    style={{ padding: '8px 14px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}>
+                    style={{ padding: '8px 14px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}>
                     View Documents
                   </button>
                   <button onClick={() => handleApprove(driver.id)} disabled={actionLoading === driver.id}
@@ -473,7 +473,7 @@ function DocCard({ title, icon, items, images, onImageClick, docType, docStatus,
           )}
           {docType && driverId != null && driverName && onStatusChange && docStatus !== 'APPROVED' && (
             <button onClick={() => onStatusChange(driverId, driverName, docType, title)}
-              style={{ padding: '3px 8px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}>
+              style={{ padding: '3px 8px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}>
               Review
             </button>
           )}

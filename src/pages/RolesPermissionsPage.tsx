@@ -14,7 +14,7 @@ interface AdminUser {
 
 const ROLE_COLORS: Record<string, string> = {
   SUPER_ADMIN: '#F44336',
-  ADMIN: '#1A73E8',
+  ADMIN: '#1E88E5',
   SUPPORT: '#4CAF50',
   FINANCE: '#FF6D00',
   OPERATIONS: '#9C27B0',
@@ -88,7 +88,7 @@ export default function RolesPermissionsPage() {
         <h1 style={{ fontSize: 24 }}>Roles & Permissions</h1>
         {fullAccess && (
           <button onClick={openCreate}
-            style={{ padding: '8px 16px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+            style={{ padding: '8px 16px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
             + Add Admin User
           </button>
         )}

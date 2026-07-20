@@ -81,7 +81,7 @@ export default function SupportTicketsPage() {
         {['ALL', 'OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'].map(s => (
           <button key={s} onClick={() => { setFilterStatus(s); setPage(0); }}
             style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none',
-              background: filterStatus === s ? (STATUS_COLORS[s] || '#1A73E8') : '#E0E0E0', color: filterStatus === s ? '#fff' : '#616161' }}>
+              background: filterStatus === s ? (STATUS_COLORS[s] || '#1E88E5') : '#E0E0E0', color: filterStatus === s ? '#fff' : '#616161' }}>
             {s === 'ALL' ? 'All' : s.replace('_', ' ')}
           </button>
         ))}
@@ -187,6 +187,6 @@ export default function SupportTicketsPage() {
 
 const thStyle: React.CSSProperties = { padding: '12px 16px', fontSize: 13, fontWeight: 600 };
 const tdStyle: React.CSSProperties = { padding: '10px 16px', fontSize: 13 };
-const btnPrimary: React.CSSProperties = { padding: '4px 10px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' };
+const btnPrimary: React.CSSProperties = { padding: '4px 10px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' };
 const btnSuccess: React.CSSProperties = { padding: '4px 10px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' };
 const pageBtnStyle: React.CSSProperties = { padding: '6px 12px', border: '1px solid #ddd', borderRadius: 4, cursor: 'pointer' };

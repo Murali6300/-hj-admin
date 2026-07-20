@@ -44,7 +44,7 @@ export default function EarningsCommissionPage() {
         <p style={{ color: '#F44336', fontSize: 16, marginBottom: 12 }}>{error || 'Failed to load earnings data'}</p>
         <button
           onClick={fetchEarnings}
-          style={{ padding: '10px 24px', background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
+          style={{ padding: '10px 24px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
         >
           Retry
         </button>
@@ -58,7 +58,7 @@ export default function EarningsCommissionPage() {
         <h1 style={{ fontSize: 24 }}>Earnings & Commission</h1>
         <button
           onClick={fetchEarnings}
-          style={{ padding: '6px 16px', background: '#E3F2FD', color: '#1A73E8', border: '1px solid #BBDEFB', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+          style={{ padding: '6px 16px', background: '#E3F2FD', color: '#1E88E5', border: '1px solid #BBDEFB', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
         >
           Refresh
         </button>
@@ -66,7 +66,7 @@ export default function EarningsCommissionPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16, marginBottom: 32 }}>
         <MetricCard label="Total Revenue" value={`\u20B9${summary.totalRevenue.toLocaleString()}`} color="#388E3C" />
-        <MetricCard label="Platform Commission (20%)" value={`\u20B9${summary.totalPlatformCommission.toLocaleString()}`} color="#1A73E8" />
+        <MetricCard label="Platform Commission (20%)" value={`\u20B9${summary.totalPlatformCommission.toLocaleString()}`} color="#1E88E5" />
         <MetricCard label="Driver Earnings" value={`\u20B9${summary.totalDriverEarnings.toLocaleString()}`} color="#9C27B0" />
         <MetricCard label="GST (18% on Commission)" value={`\u20B9${summary.totalGst.toLocaleString()}`} color="#FF6D00" />
         <MetricCard label="Total Rides" value={String(summary.totalRides)} color="#00BCD4" />

@@ -54,16 +54,16 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#1A73E8' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#1E88E5' }}>
       <div style={{ background: '#fff', padding: 40, borderRadius: 12, width: 400, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
-        <h1 style={{ textAlign: 'center', marginBottom: 8, color: '#1A73E8' }}>HJ Admin</h1>
+        <h1 style={{ textAlign: 'center', marginBottom: 8, color: '#1E88E5' }}>HJ Admin</h1>
 
         {success ? (
           <>
             <div style={{ background: '#E8F5E9', color: '#2E7D32', padding: 16, borderRadius: 8, marginBottom: 16, fontSize: 13, lineHeight: 1.6 }}>
               {success}
             </div>
-            <Link to="/login" style={{ display: 'block', textAlign: 'center', color: '#1A73E8', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
+            <Link to="/login" style={{ display: 'block', textAlign: 'center', color: '#1E88E5', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
               Back to Login
             </Link>
           </>
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
                   placeholder="admin@hjapp.com" />
               </label>
               <button type="submit" disabled={loading}
-                style={{ width: '100%', padding: 12, background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, fontSize: 15, fontWeight: 600, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>
+                style={{ width: '100%', padding: 12, background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, fontSize: 15, fontWeight: 600, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>
                 {loading ? 'Sending...' : 'Send Reset Code'}
               </button>
             </form>
@@ -140,7 +140,7 @@ export default function ForgotPasswordPage() {
                   placeholder="Re-enter password" />
               </label>
               <button type="submit" disabled={loading}
-                style={{ width: '100%', padding: 12, background: '#1A73E8', color: '#fff', border: 'none', borderRadius: 6, fontSize: 15, fontWeight: 600, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>
+                style={{ width: '100%', padding: 12, background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, fontSize: 15, fontWeight: 600, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>
                 {loading ? 'Resetting...' : 'Reset Password'}
               </button>
             </form>
@@ -148,7 +148,7 @@ export default function ForgotPasswordPage() {
         )}
 
         <div style={{ textAlign: 'center', marginTop: 20 }}>
-          <Link to="/login" style={{ color: '#1A73E8', textDecoration: 'none', fontSize: 13 }}>
+          <Link to="/login" style={{ color: '#1E88E5', textDecoration: 'none', fontSize: 13 }}>
             Back to Login
           </Link>
         </div>

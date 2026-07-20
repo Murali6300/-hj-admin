@@ -37,7 +37,7 @@ const STATUS_COLORS: Record<string, string> = {
   ACCEPTED: '#2196F3',
   DRIVER_EN_ROUTE: '#9C27B0',
   DRIVER_ARRIVED: '#00BCD4',
-  IN_PROGRESS: '#1A73E8',
+  IN_PROGRESS: '#1E88E5',
   COMPLETED: '#4CAF50',
   CANCELLED: '#F44336',
   NO_DRIVERS_AVAILABLE: '#757575',
@@ -168,7 +168,7 @@ export default function RideMonitoringPage() {
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
-        <StatCard label="Active Rides" value={stats?.activeRides ?? activeRides.length} color="#1A73E8" />
+        <StatCard label="Active Rides" value={stats?.activeRides ?? activeRides.length} color="#1E88E5" />
         <StatCard label="In Progress" value={stats?.activeRides != null ? inProgressCount : activeRides.filter((r) => r.status === 'IN_PROGRESS').length} color="#9C27B0" />
         <StatCard label="Awaiting Driver" value={requestedCount} color="#FF9800" />
         <StatCard label="Completed Today" value={stats?.completedToday ?? 0} color="#4CAF50" />
