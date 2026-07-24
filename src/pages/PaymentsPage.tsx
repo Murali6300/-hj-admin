@@ -212,6 +212,15 @@ export default function PaymentsPage() {
                       {p.paymentStatus === 'FAILED' && (
                         <button onClick={() => handleRetry(p.paymentId)} style={{ padding: '4px 8px', background: '#FF9800', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>Retry</button>
                       )}
+                      {p.paymentStatus === 'DISPUTED' && (
+                        <button onClick={async () => {
+                          const resolution = prompt('Enter resolution notes:');
+                          if (!resolution) return;
+                          const refund = confirm('Refund the user? Click OK for refund, Cancel to resolve in favor of driver.');
+                          await api.post(`/admin/payments/${p.paymentId}/resolve-dispute`, { resolution, refund });
+                          fetchPayments();
+                        }} style={{ padding: '4px 8px', background: '#E91E63', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>Resolve</button>
+                      )}
                     </div>
                   </td>
                 </tr>
