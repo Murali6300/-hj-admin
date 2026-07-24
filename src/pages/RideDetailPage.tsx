@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
+import '../styles/RidePages.css';
 
 interface RideDetail {
   id: number;
@@ -36,23 +37,29 @@ interface RideDetail {
   startedAt: string | null;
   completedAt: string | null;
   cancelledAt: string | null;
+  platformCommission: number | null;
+  driverEarnings: number | null;
+  settlementStatus: string | null;
 }
-
-const STATUS_COLORS: Record<string, string> = {
-  REQUESTED: '#FF9800',
-  ACCEPTED: '#2196F3',
-  DRIVER_EN_ROUTE: '#9C27B0',
-  DRIVER_ARRIVED: '#00BCD4',
-  IN_PROGRESS: '#1E88E5',
-  COMPLETED: '#4CAF50',
-  CANCELLED: '#F44336',
-};
 
 interface TimelineStep {
   label: string;
   time: string | null;
   completed: boolean;
   current: boolean;
+}
+
+function getStatusBadgeClass(status: string): string {
+  switch (status) {
+    case 'REQUESTED': return 'ride-badge--requested';
+    case 'ACCEPTED': return 'ride-badge--accepted';
+    case 'DRIVER_EN_ROUTE': return 'ride-badge--en-route';
+    case 'DRIVER_ARRIVED': return 'ride-badge--arrived';
+    case 'IN_PROGRESS': return 'ride-badge--in-progress';
+    case 'COMPLETED': return 'ride-badge--completed';
+    case 'CANCELLED': return 'ride-badge--cancelled';
+    default: return 'ride-badge--no-drivers';
+  }
 }
 
 function getTimeline(ride: RideDetail): TimelineStep[] {
@@ -66,7 +73,7 @@ function getTimeline(ride: RideDetail): TimelineStep[] {
     ];
   }
 
-  const steps: TimelineStep[] = [
+  return [
     { label: 'Booked', time: ride.createdAt, completed: true, current: currentIdx === 0 },
     { label: 'Driver Assigned', time: ride.acceptedAt, completed: currentIdx >= 1, current: currentIdx === 1 },
     { label: 'Driver Arrived', time: currentIdx >= 3 ? ride.startedAt : null, completed: currentIdx >= 3, current: currentIdx === 3 },
@@ -74,8 +81,6 @@ function getTimeline(ride: RideDetail): TimelineStep[] {
     { label: 'Ride Started', time: ride.startedAt, completed: currentIdx >= 4, current: currentIdx === 4 },
     { label: 'Ride Completed', time: ride.completedAt, completed: currentIdx >= 5, current: currentIdx === 5 },
   ];
-
-  return steps;
 }
 
 export default function RideDetailPage() {
@@ -144,28 +149,28 @@ export default function RideDetailPage() {
       const destLatLng = [ride.dropoffLatitude, ride.dropoffLongitude];
 
       const markerIcon = (L as { divIcon: (opts: unknown) => unknown }).divIcon({
-        html: '<div style="background:#4CAF50;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>',
-        iconSize: [12, 12],
+        html: '<div style="background:#22C55E;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25)"></div>',
+        iconSize: [14, 14],
         className: '',
       });
 
       const destIcon = (L as { divIcon: (opts: unknown) => unknown }).divIcon({
-        html: '<div style="background:#F44336;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>',
-        iconSize: [12, 12],
+        html: '<div style="background:#EF4444;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.25)"></div>',
+        iconSize: [14, 14],
         className: '',
       });
 
       (L as { marker: (latlng: number[], opts: unknown) => { addTo: (m: unknown) => unknown } }).marker(pickupLatLng, { icon: markerIcon }).addTo(map);
-      (L as { marker: (latlng: number[], opts: unknown) => { addTo: (m:unknown) => unknown } }).marker(destLatLng, { icon: destIcon }).addTo(map);
+      (L as { marker: (latlng: number[], opts: unknown) => { addTo: (m: unknown) => unknown } }).marker(destLatLng, { icon: destIcon }).addTo(map);
 
       const polyline = (L as { polyline: (coords: number[][], opts: unknown) => { addTo: (m: unknown) => unknown } }).polyline(
         [pickupLatLng, destLatLng],
-        { color: '#1E88E5', weight: 3, opacity: 0.7, dashArray: '8, 8' },
+        { color: '#1E88E5', weight: 4, opacity: 0.8, dashArray: '10, 8' },
       );
       polyline.addTo(map);
 
-      const bounds = (L as { latLngBounds: (coords: number[][]) => { fitBounds: (m: unknown, b: unknown, opts: unknown) => unknown } }).latLngBounds([pickupLatLng, destLatLng]);
-      (map as { fitBounds: (b: unknown, opts: unknown) => unknown }).fitBounds(bounds, { padding: [40, 40] });
+      const bounds = (L as { latLngBounds: (coords: number[][]) => unknown }).latLngBounds([pickupLatLng, destLatLng]);
+      (map as { fitBounds: (b: unknown, opts: unknown) => unknown }).fitBounds(bounds, { padding: [50, 50] });
     };
 
     loadMap();
@@ -200,77 +205,108 @@ export default function RideDetailPage() {
     }
   };
 
-  if (loading) return <p style={{ fontSize: 14, color: '#757575' }}>Loading ride details...</p>;
-  if (error || !ride) return <p style={{ fontSize: 14, color: '#F44336' }}>{error || 'Ride not found'}</p>;
+  if (loading) {
+    return (
+      <div className="ride-loading">
+        <div className="ride-loading__spinner" />
+        <p className="ride-loading__text">Loading ride details…</p>
+      </div>
+    );
+  }
+
+  if (error || !ride) {
+    return (
+      <div className="ride-empty">
+        <div className="ride-empty__icon">⚠️</div>
+        <p className="ride-empty__title">{error || 'Ride not found'}</p>
+        <button className="ride-btn ride-btn--primary" onClick={() => navigate('/rides')} style={{ marginTop: 12 }}>
+          ← Back to Rides
+        </button>
+      </div>
+    );
+  }
 
   const timeline = getTimeline(ride);
   const isActive = !['COMPLETED', 'CANCELLED'].includes(ride.status);
 
   return (
     <div>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => navigate('/rides')} style={{ padding: '6px 12px', background: '#E0E0E0', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>← Back</button>
+      {/* ── Page Header ──────────────────────────────────── */}
+      <div className="ride-page-header">
+        <div className="ride-page-header__left" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <button className="ride-btn ride-btn--outline" onClick={() => navigate('/rides')}>
+            ← Back
+          </button>
           <div>
-            <h1 style={{ margin: 0, fontSize: 22 }}>Ride #{ride.id}</h1>
-            <span style={{ fontSize: 12, color: '#757575' }}>Created {new Date(ride.createdAt).toLocaleString('en-IN')}</span>
+            <h1>Ride #{ride.id}</h1>
+            <p>Created {new Date(ride.createdAt).toLocaleString('en-IN')}</p>
           </div>
-          <span style={{
-            padding: '4px 12px',
-            borderRadius: 12,
-            fontSize: 12,
-            fontWeight: 600,
-            background: `${STATUS_COLORS[ride.status] || '#9E9E9E'}22`,
-            color: STATUS_COLORS[ride.status] || '#9E9E9E',
-          }}>
+          <span className={`ride-badge ${getStatusBadgeClass(ride.status)}`}>
+            <span className="ride-badge__dot" />
             {ride.status.replace(/_/g, ' ')}
           </span>
         </div>
+        <div className="ride-page-header__actions">
+          {isActive && (
+            <button className="ride-btn ride-btn--outline" onClick={fetchRide}>
+              ↻ Refresh
+            </button>
+          )}
+        </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20 }}>
-        {/* Left column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Map */}
-          <div style={{ background: '#fff', borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid #E0E0E0' }}>
-              <h3 style={{ margin: 0, fontSize: 14 }}>Route Map</h3>
+      {/* ── Two Column Grid ──────────────────────────────── */}
+      <div className="ride-detail-grid">
+        {/* Left Column */}
+        <div className="ride-detail-col">
+          {/* Map Card */}
+          <div className="ride-map-card">
+            <div className="ride-map-card__header">
+              <span className="ride-map-card__title">Route Map</span>
+              {ride.distanceKm && (
+                <span style={{ fontSize: 'var(--hj-text-sm)', color: 'var(--hj-text-secondary)' }}>
+                  {ride.distanceKm.toFixed(1)} km
+                </span>
+              )}
             </div>
-            <div ref={mapRef} style={{ height: 300, width: '100%' }} />
-            <div style={{ padding: '8px 16px', display: 'flex', gap: 16, fontSize: 11, color: '#757575', borderTop: '1px solid #E0E0E0' }}>
-              <span><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#4CAF50', marginRight: 4 }} /> Pickup</span>
-              <span><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#F44336', marginRight: 4 }} /> Destination</span>
+            <div ref={mapRef} className="ride-map-card__map" />
+            <div className="ride-map-card__legend">
+              <span className="ride-map-card__legend-item">
+                <span className="ride-map-card__legend-dot" style={{ background: 'var(--hj-success)' }} />
+                Pickup
+              </span>
+              <span className="ride-map-card__legend-item">
+                <span className="ride-map-card__legend-dot" style={{ background: 'var(--hj-danger)' }} />
+                Destination
+              </span>
             </div>
           </div>
 
-          {/* Timeline */}
-          <div style={{ background: '#fff', borderRadius: 10, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: 14 }}>Ride Timeline</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          {/* Timeline Card */}
+          <div className="ride-timeline-card">
+            <h3 className="ride-timeline-card__title">Ride Timeline</h3>
+            <div className="ride-timeline">
               {timeline.map((step, i) => (
-                <div key={step.label} style={{ display: 'flex', gap: 12, position: 'relative' }}>
-                  {/* Line + Dot */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 20 }}>
-                    <div style={{
-                      width: 12,
-                      height: 12,
-                      borderRadius: '50%',
-                      background: step.completed ? (step.current ? '#1E88E5' : '#4CAF50') : '#E0E0E0',
-                      border: step.current ? '3px solid #BBDEFB' : 'none',
-                      flexShrink: 0,
-                    }} />
+                <div className="ride-timeline__step" key={step.label}>
+                  <div className="ride-timeline__track">
+                    <div className={`ride-timeline__dot ${
+                      step.current ? 'ride-timeline__dot--current' :
+                      step.completed ? 'ride-timeline__dot--completed' :
+                      'ride-timeline__dot--pending'
+                    }`} />
                     {i < timeline.length - 1 && (
-                      <div style={{ width: 2, flex: 1, background: step.completed ? '#4CAF50' : '#E0E0E0', minHeight: 24 }} />
+                      <div className={`ride-timeline__line ${step.completed ? 'ride-timeline__line--completed' : 'ride-timeline__line--pending'}`} />
                     )}
                   </div>
-                  {/* Content */}
-                  <div style={{ paddingBottom: 16 }}>
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: step.current ? 700 : 500, color: step.completed ? '#333' : '#9E9E9E' }}>
+                  <div className="ride-timeline__content">
+                    <p className={`ride-timeline__label ${
+                      step.current ? 'ride-timeline__label--current' :
+                      !step.completed ? 'ride-timeline__label--pending' : ''
+                    }`}>
                       {step.label}
                     </p>
                     {step.time && (
-                      <p style={{ margin: '2px 0 0', fontSize: 11, color: '#757575' }}>
+                      <p className="ride-timeline__time">
                         {new Date(step.time).toLocaleString('en-IN')}
                       </p>
                     )}
@@ -281,88 +317,234 @@ export default function RideDetailPage() {
           </div>
 
           {/* Addresses */}
-          <div style={{ background: '#fff', borderRadius: 10, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="ride-address-card">
+            <div className="ride-address-card__grid">
               <div>
-                <p style={{ margin: '0 0 4px', fontSize: 11, color: '#757575', fontWeight: 600, textTransform: 'uppercase' }}>Pickup</p>
-                <p style={{ margin: 0, fontSize: 13 }}>{ride.pickupAddress}</p>
-                <p style={{ margin: '4px 0 0', fontSize: 11, color: '#9E9E9E' }}>{ride.pickupLatitude.toFixed(5)}, {ride.pickupLongitude.toFixed(5)}</p>
+                <p className="ride-address-card__item-label">Pickup</p>
+                <p className="ride-address-card__item-value">{ride.pickupAddress}</p>
+                <p className="ride-address-card__item-coords">
+                  {ride.pickupLatitude.toFixed(5)}, {ride.pickupLongitude.toFixed(5)}
+                </p>
               </div>
               <div>
-                <p style={{ margin: '0 0 4px', fontSize: 11, color: '#757575', fontWeight: 600, textTransform: 'uppercase' }}>Destination</p>
-                <p style={{ margin: 0, fontSize: 13 }}>{ride.dropoffAddress}</p>
-                <p style={{ margin: '4px 0 0', fontSize: 11, color: '#9E9E9E' }}>{ride.dropoffLatitude.toFixed(5)}, {ride.dropoffLongitude.toFixed(5)}</p>
+                <p className="ride-address-card__item-label">Destination</p>
+                <p className="ride-address-card__item-value">{ride.dropoffAddress}</p>
+                <p className="ride-address-card__item-coords">
+                  {ride.dropoffLatitude.toFixed(5)}, {ride.dropoffLongitude.toFixed(5)}
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* User Card */}
-          <InfoCard title="Passenger">
-            <InfoRow label="Name" value={ride.userName} />
-            <InfoRow label="Phone" value={ride.userPhone || 'N/A'} link={ride.userPhone ? `tel:${ride.userPhone}` : undefined} />
-            <InfoRow label="User ID" value={`#${ride.userId}`} />
-          </InfoCard>
+        {/* Right Column */}
+        <div className="ride-detail-col">
+          {/* Passenger Card */}
+          <div className="ride-info-card">
+            <h3 className="ride-info-card__title">👤 Passenger</h3>
+            <div className="ride-info-row">
+              <span className="ride-info-row__label">Name</span>
+              <span className="ride-info-row__value">{ride.userName}</span>
+            </div>
+            <div className="ride-info-row">
+              <span className="ride-info-row__label">Phone</span>
+              {ride.userPhone ? (
+                <a href={`tel:${ride.userPhone}`} className="ride-info-row__value ride-info-row__value--link">
+                  {ride.userPhone}
+                </a>
+              ) : (
+                <span className="ride-info-row__value">N/A</span>
+              )}
+            </div>
+            <div className="ride-info-row">
+              <span className="ride-info-row__label">User ID</span>
+              <span className="ride-info-row__value">#{ride.userId}</span>
+            </div>
+          </div>
 
           {/* Driver Card */}
-          <InfoCard title="Driver">
+          <div className="ride-info-card">
+            <h3 className="ride-info-card__title">🚗 Driver</h3>
             {ride.driverName !== 'Unassigned' ? (
               <>
-                <InfoRow label="Name" value={ride.driverName} />
-                <InfoRow label="Phone" value={ride.driverPhone || 'N/A'} link={ride.driverPhone ? `tel:${ride.driverPhone}` : undefined} />
-                <InfoRow label="Vehicle" value={`${ride.driverVehicleType || ''} ${ride.driverVehicleMake || ''}`} />
-                <InfoRow label="Plate" value={ride.driverVehiclePlate || 'N/A'} />
+                <div className="ride-info-row">
+                  <span className="ride-info-row__label">Name</span>
+                  <span className="ride-info-row__value">{ride.driverName}</span>
+                </div>
+                <div className="ride-info-row">
+                  <span className="ride-info-row__label">Phone</span>
+                  {ride.driverPhone ? (
+                    <a href={`tel:${ride.driverPhone}`} className="ride-info-row__value ride-info-row__value--link">
+                      {ride.driverPhone}
+                    </a>
+                  ) : (
+                    <span className="ride-info-row__value">N/A</span>
+                  )}
+                </div>
+                <div className="ride-info-row">
+                  <span className="ride-info-row__label">Vehicle</span>
+                  <span className="ride-info-row__value">
+                    {ride.driverVehicleType || ''} {ride.driverVehicleMake || ''}
+                  </span>
+                </div>
+                <div className="ride-info-row">
+                  <span className="ride-info-row__label">Plate</span>
+                  <span className="ride-info-row__value">{ride.driverVehiclePlate || 'N/A'}</span>
+                </div>
               </>
             ) : (
-              <p style={{ margin: 0, fontSize: 13, color: '#9E9E9E' }}>No driver assigned</p>
+              <p style={{ margin: 0, fontSize: 'var(--hj-text-base)', color: 'var(--hj-text-tertiary)' }}>
+                No driver assigned yet
+              </p>
             )}
-          </InfoCard>
+          </div>
 
-          {/* Fare & Payment */}
-          <InfoCard title="Fare & Payment">
-            <InfoRow label="Estimated Fare" value={ride.estimatedFare ? `₹${ride.estimatedFare.toFixed(0)}` : 'N/A'} />
-            <InfoRow label="Actual Fare" value={ride.actualFare ? `₹${ride.actualFare.toFixed(0)}` : 'Pending'} bold />
-            <InfoRow label="Distance" value={ride.distanceKm ? `${ride.distanceKm.toFixed(1)} km` : 'N/A'} />
-            <InfoRow label="Duration" value={ride.durationMinutes ? `${ride.durationMinutes} min` : 'N/A'} />
-            <InfoRow label="Surge" value={`${ride.surgeMultiplier}x`} />
-            <div style={{ height: 1, background: '#E0E0E0', margin: '8px 0' }} />
-            <InfoRow label="Payment" value={ride.paymentStatus || 'N/A'} />
-            <InfoRow label="Method" value={ride.paymentMethod || 'N/A'} />
-            {ride.transactionId && <InfoRow label="Transaction" value={ride.transactionId} />}
-          </InfoCard>
+          {/* Fare & Payment Card */}
+          <div className="ride-info-card">
+            <h3 className="ride-info-card__title">💳 Fare & Payment</h3>
+            <div className="ride-info-row">
+              <span className="ride-info-row__label">Estimated Fare</span>
+              <span className="ride-info-row__value">
+                {ride.estimatedFare ? `₹${ride.estimatedFare.toFixed(0)}` : 'N/A'}
+              </span>
+            </div>
+            <div className="ride-info-row">
+              <span className="ride-info-row__label">Actual Fare</span>
+              <span className="ride-info-row__value ride-info-row__value--bold">
+                {ride.actualFare ? `₹${ride.actualFare.toFixed(0)}` : 'Pending'}
+              </span>
+            </div>
+            <div className="ride-info-row">
+              <span className="ride-info-row__label">Distance</span>
+              <span className="ride-info-row__value">
+                {ride.distanceKm ? `${ride.distanceKm.toFixed(1)} km` : 'N/A'}
+              </span>
+            </div>
+            <div className="ride-info-row">
+              <span className="ride-info-row__label">Duration</span>
+              <span className="ride-info-row__value">
+                {ride.durationMinutes ? `${ride.durationMinutes} min` : 'N/A'}
+              </span>
+            </div>
+            <div className="ride-info-row">
+              <span className="ride-info-row__label">Surge</span>
+              <span className="ride-info-row__value">{ride.surgeMultiplier}x</span>
+            </div>
+            <div style={{ height: 1, background: 'var(--hj-border-light)', margin: '10px 0' }} />
+            <div className="ride-info-row">
+              <span className="ride-info-row__label">Payment Status</span>
+              <span className="ride-info-row__value">{ride.paymentStatus || 'N/A'}</span>
+            </div>
+            <div className="ride-info-row">
+              <span className="ride-info-row__label">Method</span>
+              <span className="ride-info-row__value">{ride.paymentMethod || 'N/A'}</span>
+            </div>
+            {ride.transactionId && (
+              <div className="ride-info-row">
+                <span className="ride-info-row__label">Transaction</span>
+                <span className="ride-info-row__value" style={{ fontFamily: 'var(--hj-font-mono)', fontSize: 'var(--hj-text-xs)' }}>
+                  {ride.transactionId}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Cash Payment Details Card */}
+          {ride.status === 'COMPLETED' && ride.paymentMethod && (
+            <div className="ride-info-card">
+              <h3 className="ride-info-card__title">💰 Payment Breakdown</h3>
+              <div className="ride-info-row">
+                <span className="ride-info-row__label">Ride Status</span>
+                <span className="ride-info-row__value" style={{ color: 'var(--hj-success)', fontWeight: 600 }}>
+                  Completed
+                </span>
+              </div>
+              <div className="ride-info-row">
+                <span className="ride-info-row__label">Payment</span>
+                <span className="ride-info-row__value">{ride.paymentMethod}</span>
+              </div>
+              <div className="ride-info-row">
+                <span className="ride-info-row__label">Amount</span>
+                <span className="ride-info-row__value ride-info-row__value--bold">
+                  ₹{(ride.actualFare ?? ride.estimatedFare ?? 0).toFixed(0)}
+                </span>
+              </div>
+              <div className="ride-info-row">
+                <span className="ride-info-row__label">Commission</span>
+                <span className="ride-info-row__value" style={{ color: 'var(--hj-warning)' }}>
+                  ₹{(ride.platformCommission ?? 0).toFixed(0)}
+                </span>
+              </div>
+              <div className="ride-info-row">
+                <span className="ride-info-row__label">Driver Earnings</span>
+                <span className="ride-info-row__value" style={{ color: 'var(--hj-success)' }}>
+                  ₹{(ride.driverEarnings ?? 0).toFixed(0)}
+                </span>
+              </div>
+              <div className="ride-info-row">
+                <span className="ride-info-row__label">Settlement</span>
+                <span className="ride-info-row__value">
+                  <span style={{
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: ride.settlementStatus === 'COMPLETED' ? '#fff' : ride.settlementStatus === 'FAILED' ? '#fff' : '#333',
+                    background: ride.settlementStatus === 'COMPLETED' ? 'var(--hj-success)' : ride.settlementStatus === 'FAILED' ? 'var(--hj-danger)' : 'var(--hj-warning)',
+                  }}>
+                    {ride.settlementStatus || 'PENDING'}
+                  </span>
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Cancellation Info */}
           {ride.status === 'CANCELLED' && (
-            <InfoCard title="Cancellation">
-              <InfoRow label="Reason" value={ride.cancellationReason || 'N/A'} />
-              <InfoRow label="Cancelled By" value={ride.cancelledBy || 'N/A'} />
-            </InfoCard>
+            <div className="ride-info-card">
+              <h3 className="ride-info-card__title">❌ Cancellation</h3>
+              <div className="ride-cancel-info">
+                <p className="ride-cancel-info__title">Cancellation Details</p>
+                <p className="ride-cancel-info__text">Reason: {ride.cancellationReason || 'N/A'}</p>
+                <p className="ride-cancel-info__text">Cancelled By: {ride.cancelledBy || 'N/A'}</p>
+              </div>
+            </div>
           )}
 
           {/* Actions */}
           {isActive && (
-            <div style={{ background: '#fff', borderRadius: 10, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
-              <h3 style={{ margin: '0 0 12px', fontSize: 14 }}>Actions</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className="ride-actions-card">
+              <h3 className="ride-actions-card__title">⚡ Actions</h3>
+              <div className="ride-actions-card__list">
                 {ride.driverPhone && (
-                  <button onClick={() => window.open(`tel:${ride.driverPhone}`, '_self')} style={actionBtnStyle('#9C27B0')}>
+                  <button
+                    className="ride-actions-card__btn ride-actions-card__btn--purple"
+                    onClick={() => window.open(`tel:${ride.driverPhone}`, '_self')}
+                  >
                     📞 Contact Driver
                   </button>
                 )}
                 {ride.userPhone && (
-                  <button onClick={() => window.open(`tel:${ride.userPhone}`, '_self')} style={actionBtnStyle('#4CAF50')}>
+                  <button
+                    className="ride-actions-card__btn ride-actions-card__btn--green"
+                    onClick={() => window.open(`tel:${ride.userPhone}`, '_self')}
+                  >
                     📞 Contact User
                   </button>
                 )}
                 {(ride.status === 'ACCEPTED' || ride.status === 'DRIVER_EN_ROUTE') && (
-                  <button onClick={handleReassign} style={actionBtnStyle('#FF6D00')}>
+                  <button
+                    className="ride-actions-card__btn ride-actions-card__btn--orange"
+                    onClick={handleReassign}
+                  >
                     🔄 Reassign Driver
                   </button>
                 )}
                 {!['COMPLETED', 'CANCELLED'].includes(ride.status) && (
-                  <button onClick={() => setCancelModal(true)} style={actionBtnStyle('#F44336')}>
+                  <button
+                    className="ride-actions-card__btn ride-actions-card__btn--red"
+                    onClick={() => setCancelModal(true)}
+                  >
                     ✕ Cancel Ride
                   </button>
                 )}
@@ -372,27 +554,31 @@ export default function RideDetailPage() {
         </div>
       </div>
 
-      {/* Cancel Modal */}
+      {/* ── Cancel Modal ─────────────────────────────────── */}
       {cancelModal && (
-        <div style={modalOverlay}>
-          <div style={{ ...modalContent, maxWidth: 420 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h2 style={{ fontSize: 18, margin: 0 }}>Cancel Ride #{ride.id}</h2>
-              <button onClick={() => setCancelModal(false)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer' }}>×</button>
+        <div className="ride-modal-overlay">
+          <div className="ride-modal ride-modal--sm">
+            <div className="ride-modal__header">
+              <h2 className="ride-modal__title">Cancel Ride #{ride.id}</h2>
+              <button className="ride-modal__close" onClick={() => setCancelModal(false)}>×</button>
             </div>
-            <p style={{ fontSize: 13, color: '#757575', marginBottom: 12 }}>
-              This will force-cancel the ride. The driver and user will be notified.
+            <p className="ride-modal__desc">
+              This will force-cancel the ride. The driver and user will be notified immediately.
             </p>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#333' }}>Reason</label>
+            <label className="ride-modal__label">Cancellation Reason</label>
             <input
+              className="ride-modal__input"
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="e.g. Safety concern, driver unresponsive..."
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #ddd', fontSize: 13, marginTop: 4, boxSizing: 'border-box' }}
+              placeholder="e.g. Safety concern, driver unresponsive…"
             />
-            <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
-              <button onClick={() => setCancelModal(false)} style={{ padding: '8px 16px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>Go Back</button>
-              <button onClick={handleCancelRide} style={{ padding: '8px 16px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>Confirm Cancel</button>
+            <div className="ride-modal__footer">
+              <button className="ride-btn ride-btn--outline" onClick={() => setCancelModal(false)}>
+                Go Back
+              </button>
+              <button className="ride-btn ride-btn--danger" onClick={handleCancelRide}>
+                Confirm Cancel
+              </button>
             </div>
           </div>
         </div>
@@ -400,40 +586,3 @@ export default function RideDetailPage() {
     </div>
   );
 }
-
-function InfoCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div style={{ background: '#fff', borderRadius: 10, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
-      <h3 style={{ margin: '0 0 12px', fontSize: 14 }}>{title}</h3>
-      {children}
-    </div>
-  );
-}
-
-function InfoRow({ label, value, bold, link }: { label: string; value: string; bold?: boolean; link?: string }) {
-  const content = (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 }}>
-      <span style={{ color: '#757575' }}>{label}</span>
-      <span style={{ fontWeight: bold ? 700 : 500, color: link ? '#1565C0' : '#333' }}>{value}</span>
-    </div>
-  );
-
-  if (link) {
-    return <a href={link} style={{ textDecoration: 'none', display: 'block' }}>{content}</a>;
-  }
-  return content;
-}
-
-const modalOverlay: React.CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
-const modalContent: React.CSSProperties = { background: '#fff', borderRadius: 12, padding: 24, width: '90%', maxHeight: '85vh', overflow: 'auto' };
-const actionBtnStyle = (color: string): React.CSSProperties => ({
-  padding: '10px 16px',
-  background: `${color}15`,
-  color,
-  border: `1px solid ${color}30`,
-  borderRadius: 8,
-  fontSize: 13,
-  fontWeight: 600,
-  cursor: 'pointer',
-  textAlign: 'left',
-});

@@ -1,0 +1,142 @@
+/* ================================================================
+   HJ Admin Portal — Design System Tokens
+   Premium enterprise dashboard • Material Design 3 inspired
+   ================================================================ */
+
+:root {
+  /* ── Colors ─────────────────────────────────────────────────── */
+  --hj-bg:            #F8FAFC;
+  --hj-surface:       #FFFFFF;
+  --hj-surface-hover: #F1F5F9;
+  --hj-surface-alt:   #F8FAFC;
+
+  --hj-primary:       #1E88E5;
+  --hj-primary-light: #60A5FA;
+  --hj-primary-dark:  #123D8A;
+  --hj-primary-50:    #EBF5FF;
+  --hj-primary-100:   #D6EAFF;
+
+  --hj-success:       #22C55E;
+  --hj-success-light: #DCFCE7;
+  --hj-warning:       #FF9800;
+  --hj-warning-light: #FFF3E0;
+  --hj-danger:        #EF4444;
+  --hj-danger-light:  #FEF2F2;
+  --hj-purple:        #7C3AED;
+  --hj-purple-light:  #F3E8FF;
+  --hj-info:          #00BCD4;
+  --hj-info-light:    #E0F7FA;
+
+  --hj-text:          #0A1F44;
+  --hj-text-secondary:#64748B;
+  --hj-text-tertiary: #94A3B8;
+  --hj-text-inverse:  #FFFFFF;
+
+  --hj-border:        #E2E8F0;
+  --hj-border-light:  #F1F5F9;
+  --hj-divider:       #E2E8F0;
+
+  /* ── Typography ─────────────────────────────────────────────── */
+  --hj-font-heading:  'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --hj-font-body:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --hj-font-mono:     'JetBrains Mono', 'Fira Code', monospace;
+
+  --hj-text-xs:       11px;
+  --hj-text-sm:       12px;
+  --hj-text-base:     13px;
+  --hj-text-md:       14px;
+  --hj-text-lg:       16px;
+  --hj-text-xl:       18px;
+  --hj-text-2xl:      22px;
+  --hj-text-3xl:      28px;
+
+  --hj-weight-regular: 400;
+  --hj-weight-medium:  500;
+  --hj-weight-semibold:600;
+  --hj-weight-bold:    700;
+
+  --hj-leading-tight:  1.25;
+  --hj-leading-normal: 1.5;
+  --hj-leading-relaxed:1.65;
+
+  /* ── Spacing ────────────────────────────────────────────────── */
+  --hj-space-1:  4px;
+  --hj-space-2:  8px;
+  --hj-space-3:  12px;
+  --hj-space-4:  16px;
+  --hj-space-5:  20px;
+  --hj-space-6:  24px;
+  --hj-space-8:  32px;
+  --hj-space-10: 40px;
+  --hj-space-12: 48px;
+
+  /* ── Radius ─────────────────────────────────────────────────── */
+  --hj-radius-sm:   6px;
+  --hj-radius-md:   10px;
+  --hj-radius-lg:   14px;
+  --hj-radius-xl:   18px;
+  --hj-radius-2xl:  20px;
+  --hj-radius-full: 9999px;
+
+  /* ── Shadows ────────────────────────────────────────────────── */
+  --hj-shadow-xs:  0 1px 2px rgba(10,31,68,0.04);
+  --hj-shadow-sm:  0 1px 3px rgba(10,31,68,0.06), 0 1px 2px rgba(10,31,68,0.04);
+  --hj-shadow-md:  0 4px 6px rgba(10,31,68,0.04), 0 2px 4px rgba(10,31,68,0.03);
+  --hj-shadow-lg:  0 10px 15px rgba(10,31,68,0.06), 0 4px 6px rgba(10,31,68,0.03);
+  --hj-shadow-xl:  0 20px 25px rgba(10,31,68,0.08), 0 8px 10px rgba(10,31,68,0.03);
+
+  /* ── Sidebar ────────────────────────────────────────────────── */
+  --hj-sidebar-width:      260px;
+  --hj-sidebar-collapsed:  72px;
+  --hj-sidebar-bg:         linear-gradient(180deg, #123D8A 0%, #1E88E5 100%);
+
+  /* ── Header ─────────────────────────────────────────────────── */
+  --hj-header-height: 64px;
+
+  /* ── Transitions ────────────────────────────────────────────── */
+  --hj-transition-fast:   150ms ease;
+  --hj-transition-base:   250ms ease;
+  --hj-transition-slow:   350ms ease;
+  --hj-transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Keyframes ──────────────────────────────────────────────────── */
+
+@keyframes hj-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes hj-slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hj-slide-down {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hj-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes hj-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes hj-pulse-soft {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}
+
+@keyframes hj-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes hj-counter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

@@ -18,11 +18,15 @@ interface Payment {
   refundId?: string;
   refundAmount?: number;
   refundReason?: string;
+  platformCommission?: number;
+  driverEarnings?: number;
+  settlementStatus?: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
   SUCCESS: '#4CAF50', PENDING: '#FFC107', FAILED: '#F44336',
   CANCELLED: '#9E9E9E', PROCESSING: '#2196F3', REFUNDED: '#FF6D00',
+  DISPUTED: '#E91E63', PENDING_USER_CONFIRMATION: '#FF9800',
 };
 
 export default function PaymentsPage() {
@@ -79,6 +83,9 @@ export default function PaymentsPage() {
       ${p.razorpayOrderId ? `<tr><td class="label">Razorpay Order ID</td><td>${p.razorpayOrderId}</td></tr>` : ''}
       ${p.razorpayPaymentId ? `<tr><td class="label">Razorpay Payment ID</td><td>${p.razorpayPaymentId}</td></tr>` : ''}
       <tr><td class="label">Status</td><td>${p.paymentStatus}</td></tr>
+      <tr><td class="label">Commission</td><td>₹${(p.platformCommission ?? 0).toFixed(0)}</td></tr>
+      <tr><td class="label">Driver Earnings</td><td>₹${(p.driverEarnings ?? 0).toFixed(0)}</td></tr>
+      <tr><td class="label">Settlement</td><td>${p.settlementStatus || 'PENDING'}</td></tr>
       <tr><td class="label">Date</td><td>${new Date(p.createdAt).toLocaleString('en-IN')}</td></tr>
       <tr><td class="label">Amount Paid</td><td class="amount">₹${p.totalFare.toFixed(2)}</td></tr></table>
       <p style="margin-top:30px;color:#757575;font-size:12px">Thank you for riding with HJ Ride!</p></body></html>`;
@@ -89,8 +96,8 @@ export default function PaymentsPage() {
   };
 
   const handleExport = () => {
-    const csv = ['Payment ID,Ride ID,User,Driver,Amount,Method,Status,Razorpay Order ID,Razorpay Payment ID,Transaction ID,Created At',
-      ...payments.map(p => `${p.paymentId},${p.rideId},"${(p.userName || '').replace(/"/g, '""')}","${(p.driverName || '').replace(/"/g, '""')}",${p.totalFare},${p.paymentMethod},${p.paymentStatus},${p.razorpayOrderId || ''},${p.razorpayPaymentId || ''},${p.transactionId || ''},${p.createdAt}`)].join('\n');
+    const csv = ['Payment ID,Ride ID,User,Driver,Amount,Commission,Driver Earnings,Method,Status,Settlement,Razorpay Order ID,Razorpay Payment ID,Transaction ID,Created At',
+      ...payments.map(p => `${p.paymentId},${p.rideId},"${(p.userName || '').replace(/"/g, '""')}","${(p.driverName || '').replace(/"/g, '""')}",${p.totalFare},${p.platformCommission ?? ''},${p.driverEarnings ?? ''},${p.paymentMethod},${p.paymentStatus},${p.settlementStatus ?? ''},${p.razorpayOrderId || ''},${p.razorpayPaymentId || ''},${p.transactionId || ''},${p.createdAt}`)].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'payments-export.csv'; a.click();
@@ -123,6 +130,8 @@ export default function PaymentsPage() {
           <option value="FAILED">Failed</option>
           <option value="REFUNDED">Refunded</option>
           <option value="CANCELLED">Cancelled</option>
+          <option value="DISPUTED">Disputed</option>
+          <option value="PENDING_USER_CONFIRMATION">Pending User Confirmation</option>
         </select>
         <button onClick={() => { setPage(1); fetchPayments(); }} style={{ padding: '8px 16px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Search</button>
         <button onClick={handleExport} style={{ padding: '8px 16px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Export CSV</button>
@@ -142,8 +151,11 @@ export default function PaymentsPage() {
                 <th style={thStyle}>User</th>
                 <th style={thStyle}>Driver</th>
                 <th style={thStyle}>Amount</th>
+                <th style={thStyle}>Commission</th>
+                <th style={thStyle}>Driver Earnings</th>
                 <th style={thStyle}>Method</th>
                 <th style={thStyle}>Status</th>
+                <th style={thStyle}>Settlement</th>
                 <th style={thStyle}>Razorpay Order</th>
                 <th style={thStyle}>Transaction ID</th>
                 <th style={thStyle}>Refund</th>
@@ -159,11 +171,27 @@ export default function PaymentsPage() {
                   <td style={tdStyle}>{p.userName || '-'}</td>
                   <td style={tdStyle}>{p.driverName || '-'}</td>
                   <td style={{ ...tdStyle, fontWeight: 600 }}>₹{p.totalFare.toFixed(2)}</td>
+                  <td style={{ ...tdStyle, color: '#FF9800', fontWeight: 600 }}>
+                    {p.platformCommission != null ? `₹${p.platformCommission.toFixed(0)}` : '-'}
+                  </td>
+                  <td style={{ ...tdStyle, color: '#4CAF50', fontWeight: 600 }}>
+                    {p.driverEarnings != null ? `₹${p.driverEarnings.toFixed(0)}` : '-'}
+                  </td>
                   <td style={tdStyle}>{p.paymentMethod}</td>
                   <td style={tdStyle}>
                     <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 12, fontWeight: 600, color: '#fff', background: STATUS_COLORS[p.paymentStatus] || '#9E9E9E' }}>
                       {p.paymentStatus}
                     </span>
+                  </td>
+                  <td style={tdStyle}>
+                    {p.settlementStatus ? (
+                      <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                        color: p.settlementStatus === 'COMPLETED' ? '#fff' : p.settlementStatus === 'FAILED' ? '#fff' : '#333',
+                        background: p.settlementStatus === 'COMPLETED' ? '#4CAF50' : p.settlementStatus === 'FAILED' ? '#F44336' : '#FFC107',
+                      }}>
+                        {p.settlementStatus}
+                      </span>
+                    ) : '-'}
                   </td>
                   <td style={{ ...tdStyle, color: '#757575', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.razorpayOrderId || ''}>
                     {p.razorpayOrderId ? p.razorpayOrderId.substring(0, 16) + '...' : '-'}
@@ -231,6 +259,9 @@ export default function PaymentsPage() {
                     <tr><td style={invLabel}>Razorpay Payment ID</td><td style={invVal}>{invoicePayment.razorpayPaymentId}</td></tr>
                   )}
                   <tr><td style={invLabel}>Status</td><td style={invVal}><span style={{ color: STATUS_COLORS[invoicePayment.paymentStatus], fontWeight: 600 }}>{invoicePayment.paymentStatus}</span></td></tr>
+                  <tr><td style={invLabel}>Commission</td><td style={invVal}>₹{(invoicePayment.platformCommission ?? 0).toFixed(0)}</td></tr>
+                  <tr><td style={invLabel}>Driver Earnings</td><td style={invVal}>₹{(invoicePayment.driverEarnings ?? 0).toFixed(0)}</td></tr>
+                  <tr><td style={invLabel}>Settlement</td><td style={invVal}>{invoicePayment.settlementStatus || 'PENDING'}</td></tr>
                   {invoicePayment.paymentStatus === 'REFUNDED' && invoicePayment.refundId && (
                     <tr><td style={invLabel}>Refund ID</td><td style={invVal}>{invoicePayment.refundId}</td></tr>
                   )}

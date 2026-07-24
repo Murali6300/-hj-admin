@@ -1,0 +1,1075 @@
+/* ================================================================
+   HJ Admin Portal — Ride Pages Premium Styles
+   Monitoring, History, Detail — Material Design 3 + Glassmorphism
+   ================================================================ */
+
+/* ── Shared Page Header ───────────────────────────────────────── */
+
+.ride-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  animation: hj-slide-up 0.4s ease-out;
+}
+
+.ride-page-header__left h1 {
+  font-family: var(--hj-font-heading);
+  font-size: var(--hj-text-2xl);
+  font-weight: var(--hj-weight-bold);
+  color: var(--hj-text);
+  margin: 0 0 4px;
+}
+
+.ride-page-header__left p {
+  font-size: var(--hj-text-sm);
+  color: var(--hj-text-secondary);
+  margin: 0;
+}
+
+.ride-page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Stat Cards ───────────────────────────────────────────────── */
+
+.ride-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+  animation: hj-slide-up 0.4s ease-out 0.1s both;
+}
+
+.ride-stat-card {
+  background: var(--hj-surface);
+  border-radius: var(--hj-radius-xl);
+  padding: 20px;
+  border: 1px solid var(--hj-border-light);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--hj-transition-base);
+}
+
+.ride-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--hj-shadow-lg);
+  border-color: transparent;
+}
+
+.ride-stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+}
+
+.ride-stat-card--blue::after { background: var(--hj-primary); }
+.ride-stat-card--purple::after { background: var(--hj-purple); }
+.ride-stat-card--orange::after { background: var(--hj-warning); }
+.ride-stat-card--green::after { background: var(--hj-success); }
+.ride-stat-card--red::after { background: var(--hj-danger); }
+
+.ride-stat-card__label {
+  font-size: var(--hj-text-sm);
+  color: var(--hj-text-secondary);
+  font-weight: var(--hj-weight-medium);
+  margin-bottom: 8px;
+}
+
+.ride-stat-card__value {
+  font-family: var(--hj-font-heading);
+  font-size: 28px;
+  font-weight: var(--hj-weight-bold);
+  color: var(--hj-text);
+  animation: hj-counter 0.5s ease-out 0.3s both;
+}
+
+.ride-stat-card__icon {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--hj-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.ride-stat-card__icon--blue { background: var(--hj-primary-50); }
+.ride-stat-card__icon--purple { background: var(--hj-purple-light); }
+.ride-stat-card__icon--orange { background: var(--hj-warning-light); }
+.ride-stat-card__icon--green { background: var(--hj-success-light); }
+.ride-stat-card__icon--red { background: var(--hj-danger-light); }
+
+/* ── Premium Table ────────────────────────────────────────────── */
+
+.ride-table-card {
+  background: var(--hj-surface);
+  border-radius: var(--hj-radius-xl);
+  border: 1px solid var(--hj-border-light);
+  overflow: hidden;
+  animation: hj-slide-up 0.4s ease-out 0.2s both;
+  box-shadow: var(--hj-shadow-sm);
+}
+
+.ride-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ride-table th {
+  text-align: left;
+  padding: 14px 16px;
+  font-size: var(--hj-text-xs);
+  font-weight: var(--hj-weight-semibold);
+  color: var(--hj-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--hj-bg);
+  border-bottom: 1px solid var(--hj-border-light);
+  white-space: nowrap;
+}
+
+.ride-table td {
+  padding: 14px 16px;
+  font-size: var(--hj-text-base);
+  color: var(--hj-text);
+  border-bottom: 1px solid var(--hj-border-light);
+  vertical-align: middle;
+}
+
+.ride-table tbody tr {
+  transition: background var(--hj-transition-fast);
+}
+
+.ride-table tbody tr:hover {
+  background: var(--hj-surface-hover);
+}
+
+.ride-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Status Badge ─────────────────────────────────────────────── */
+
+.ride-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: var(--hj-radius-full);
+  font-size: 11px;
+  font-weight: var(--hj-weight-semibold);
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+
+.ride-badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.ride-badge--requested { background: var(--hj-warning-light); color: #E65100; }
+.ride-badge--accepted { background: var(--hj-primary-50); color: var(--hj-primary); }
+.ride-badge--en-route { background: var(--hj-purple-light); color: var(--hj-purple); }
+.ride-badge--arrived { background: var(--hj-info-light); color: #00838F; }
+.ride-badge--in-progress { background: var(--hj-primary-50); color: var(--hj-primary-dark); }
+.ride-badge--completed { background: var(--hj-success-light); color: #16A34A; }
+.ride-badge--cancelled { background: var(--hj-danger-light); color: #DC2626; }
+.ride-badge--no-drivers { background: #F5F5F5; color: #757575; }
+
+/* ── Action Buttons ───────────────────────────────────────────── */
+
+.ride-action-btn {
+  padding: 6px 12px;
+  border-radius: var(--hj-radius-sm);
+  border: none;
+  font-size: var(--hj-text-xs);
+  font-weight: var(--hj-weight-semibold);
+  font-family: var(--hj-font-body);
+  cursor: pointer;
+  transition: all var(--hj-transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ride-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--hj-shadow-sm);
+}
+
+.ride-action-btn--primary { background: var(--hj-primary-50); color: var(--hj-primary); }
+.ride-action-btn--primary:hover { background: var(--hj-primary-100); }
+.ride-action-btn--success { background: var(--hj-success-light); color: #16A34A; }
+.ride-action-btn--warning { background: var(--hj-warning-light); color: #E65100; }
+.ride-action-btn--danger { background: var(--hj-danger-light); color: #DC2626; }
+.ride-action-btn--purple { background: var(--hj-purple-light); color: var(--hj-purple); }
+
+/* ── CTA Buttons ──────────────────────────────────────────────── */
+
+.ride-btn {
+  height: 38px;
+  padding: 0 18px;
+  border-radius: var(--hj-radius-md);
+  border: none;
+  font-size: var(--hj-text-sm);
+  font-weight: var(--hj-weight-semibold);
+  font-family: var(--hj-font-body);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--hj-transition-fast);
+  white-space: nowrap;
+}
+
+.ride-btn--primary {
+  background: var(--hj-primary);
+  color: #fff;
+}
+
+.ride-btn--primary:hover {
+  background: var(--hj-primary-dark);
+  box-shadow: 0 4px 12px rgba(30,136,229,0.3);
+}
+
+.ride-btn--outline {
+  background: var(--hj-surface);
+  color: var(--hj-text-secondary);
+  border: 1.5px solid var(--hj-border);
+}
+
+.ride-btn--outline:hover {
+  border-color: var(--hj-primary);
+  color: var(--hj-primary);
+  background: var(--hj-primary-50);
+}
+
+.ride-btn--success {
+  background: var(--hj-success);
+  color: #fff;
+}
+
+.ride-btn--success:hover {
+  background: #16A34A;
+}
+
+.ride-btn--danger {
+  background: var(--hj-danger);
+  color: #fff;
+}
+
+.ride-btn--danger:hover {
+  background: #DC2626;
+}
+
+.ride-btn--ghost {
+  background: transparent;
+  color: var(--hj-text-secondary);
+  border: none;
+}
+
+.ride-btn--ghost:hover {
+  background: var(--hj-surface-hover);
+  color: var(--hj-text);
+}
+
+/* ── Live Indicator ───────────────────────────────────────────── */
+
+.ride-live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--hj-radius-full);
+  font-size: var(--hj-text-xs);
+  font-weight: var(--hj-weight-semibold);
+}
+
+.ride-live-indicator--active {
+  background: var(--hj-success-light);
+  color: #16A34A;
+}
+
+.ride-live-indicator--paused {
+  background: #F5F5F5;
+  color: #757575;
+}
+
+.ride-live-indicator__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: hj-pulse-soft 1.5s ease-in-out infinite;
+}
+
+.ride-live-indicator--paused .ride-live-indicator__dot {
+  animation: none;
+}
+
+/* ── Filter Bar ───────────────────────────────────────────────── */
+
+.ride-filters {
+  background: var(--hj-surface);
+  border-radius: var(--hj-radius-xl);
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--hj-border-light);
+  animation: hj-slide-up 0.4s ease-out 0.15s both;
+}
+
+.ride-filters__row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ride-filters__input {
+  height: 38px;
+  padding: 0 14px;
+  border: 1.5px solid var(--hj-border);
+  border-radius: var(--hj-radius-md);
+  font-size: var(--hj-text-base);
+  font-family: var(--hj-font-body);
+  color: var(--hj-text);
+  background: var(--hj-bg);
+  outline: none;
+  transition: all var(--hj-transition-fast);
+  min-width: 200px;
+  box-sizing: border-box;
+}
+
+.ride-filters__input:focus {
+  border-color: var(--hj-primary);
+  background: var(--hj-surface);
+  box-shadow: 0 0 0 3px rgba(30,136,229,0.08);
+}
+
+.ride-filters__input::placeholder {
+  color: var(--hj-text-tertiary);
+}
+
+.ride-filters__select {
+  height: 38px;
+  padding: 0 32px 0 14px;
+  border: 1.5px solid var(--hj-border);
+  border-radius: var(--hj-radius-md);
+  font-size: var(--hj-text-base);
+  font-family: var(--hj-font-body);
+  color: var(--hj-text);
+  background: var(--hj-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748B' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E") no-repeat right 12px center;
+  appearance: none;
+  outline: none;
+  cursor: pointer;
+  transition: all var(--hj-transition-fast);
+}
+
+.ride-filters__select:focus {
+  border-color: var(--hj-primary);
+  box-shadow: 0 0 0 3px rgba(30,136,229,0.08);
+}
+
+.ride-filters__date {
+  height: 38px;
+  padding: 0 12px;
+  border: 1.5px solid var(--hj-border);
+  border-radius: var(--hj-radius-md);
+  font-size: var(--hj-text-base);
+  font-family: var(--hj-font-body);
+  color: var(--hj-text);
+  background: var(--hj-bg);
+  outline: none;
+  cursor: pointer;
+  transition: all var(--hj-transition-fast);
+}
+
+.ride-filters__date:focus {
+  border-color: var(--hj-primary);
+  box-shadow: 0 0 0 3px rgba(30,136,229,0.08);
+}
+
+/* ── Pagination ───────────────────────────────────────────────── */
+
+.ride-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding: 12px 0;
+}
+
+.ride-pagination__info {
+  font-size: var(--hj-text-sm);
+  color: var(--hj-text-secondary);
+}
+
+.ride-pagination__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ride-pagination__btn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--hj-radius-md);
+  border: 1.5px solid var(--hj-border);
+  background: var(--hj-surface);
+  color: var(--hj-text-secondary);
+  font-size: var(--hj-text-sm);
+  font-weight: var(--hj-weight-medium);
+  font-family: var(--hj-font-body);
+  cursor: pointer;
+  transition: all var(--hj-transition-fast);
+}
+
+.ride-pagination__btn:hover:not(:disabled) {
+  border-color: var(--hj-primary);
+  color: var(--hj-primary);
+  background: var(--hj-primary-50);
+}
+
+.ride-pagination__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ride-pagination__page {
+  font-size: var(--hj-text-sm);
+  color: var(--hj-text);
+  font-weight: var(--hj-weight-medium);
+  padding: 0 12px;
+}
+
+/* ── Modal (Premium) ──────────────────────────────────────────── */
+
+.ride-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 31, 68, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: hj-fade-in 0.2s ease-out;
+}
+
+.ride-modal {
+  background: var(--hj-surface);
+  border-radius: var(--hj-radius-2xl);
+  padding: 28px;
+  width: 90%;
+  max-height: 85vh;
+  overflow: auto;
+  box-shadow: var(--hj-shadow-xl);
+  animation: hj-scale-in 0.3s ease-out;
+}
+
+.ride-modal--sm { max-width: 420px; }
+.ride-modal--md { max-width: 560px; }
+.ride-modal--lg { max-width: 720px; }
+
+.ride-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.ride-modal__title {
+  font-family: var(--hj-font-heading);
+  font-size: var(--hj-text-xl);
+  font-weight: var(--hj-weight-semibold);
+  color: var(--hj-text);
+}
+
+.ride-modal__close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--hj-radius-sm);
+  border: none;
+  background: var(--hj-surface-hover);
+  color: var(--hj-text-secondary);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--hj-transition-fast);
+}
+
+.ride-modal__close:hover {
+  background: var(--hj-danger-light);
+  color: var(--hj-danger);
+}
+
+/* ── Detail Page — Map Card ───────────────────────────────────── */
+
+.ride-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  animation: hj-slide-up 0.4s ease-out 0.15s both;
+}
+
+.ride-detail-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ride-map-card {
+  background: var(--hj-surface);
+  border-radius: var(--hj-radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--hj-border-light);
+  box-shadow: var(--hj-shadow-sm);
+}
+
+.ride-map-card__header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--hj-border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ride-map-card__title {
+  font-family: var(--hj-font-heading);
+  font-size: var(--hj-text-md);
+  font-weight: var(--hj-weight-semibold);
+  color: var(--hj-text);
+}
+
+.ride-map-card__map {
+  height: 320px;
+  width: 100%;
+}
+
+.ride-map-card__legend {
+  padding: 10px 20px;
+  display: flex;
+  gap: 20px;
+  border-top: 1px solid var(--hj-border-light);
+}
+
+.ride-map-card__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--hj-text-xs);
+  color: var(--hj-text-secondary);
+}
+
+.ride-map-card__legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ── Detail Page — Timeline ───────────────────────────────────── */
+
+.ride-timeline-card {
+  background: var(--hj-surface);
+  border-radius: var(--hj-radius-xl);
+  padding: 22px;
+  border: 1px solid var(--hj-border-light);
+  box-shadow: var(--hj-shadow-sm);
+}
+
+.ride-timeline-card__title {
+  font-family: var(--hj-font-heading);
+  font-size: var(--hj-text-md);
+  font-weight: var(--hj-weight-semibold);
+  color: var(--hj-text);
+  margin: 0 0 18px;
+}
+
+.ride-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.ride-timeline__step {
+  display: flex;
+  gap: 14px;
+  position: relative;
+}
+
+.ride-timeline__track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 20px;
+}
+
+.ride-timeline__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: all var(--hj-transition-base);
+}
+
+.ride-timeline__dot--completed {
+  background: var(--hj-success);
+  box-shadow: 0 0 0 3px var(--hj-success-light);
+}
+
+.ride-timeline__dot--current {
+  background: var(--hj-primary);
+  box-shadow: 0 0 0 4px var(--hj-primary-50);
+  animation: hj-pulse-soft 2s ease-in-out infinite;
+}
+
+.ride-timeline__dot--pending {
+  background: var(--hj-border);
+}
+
+.ride-timeline__line {
+  width: 2px;
+  flex: 1;
+  min-height: 28px;
+  border-radius: 1px;
+}
+
+.ride-timeline__line--completed { background: var(--hj-success); }
+.ride-timeline__line--pending { background: var(--hj-border); }
+
+.ride-timeline__content {
+  padding-bottom: 18px;
+}
+
+.ride-timeline__label {
+  font-size: var(--hj-text-base);
+  font-weight: var(--hj-weight-medium);
+  color: var(--hj-text);
+  margin: 0;
+}
+
+.ride-timeline__label--current {
+  font-weight: var(--hj-weight-semibold);
+  color: var(--hj-primary);
+}
+
+.ride-timeline__label--pending {
+  color: var(--hj-text-tertiary);
+}
+
+.ride-timeline__time {
+  font-size: var(--hj-text-xs);
+  color: var(--hj-text-tertiary);
+  margin: 2px 0 0;
+}
+
+/* ── Detail Page — Info Cards ─────────────────────────────────── */
+
+.ride-info-card {
+  background: var(--hj-surface);
+  border-radius: var(--hj-radius-xl);
+  padding: 20px;
+  border: 1px solid var(--hj-border-light);
+  box-shadow: var(--hj-shadow-sm);
+  transition: all var(--hj-transition-base);
+}
+
+.ride-info-card:hover {
+  box-shadow: var(--hj-shadow-md);
+}
+
+.ride-info-card__title {
+  font-family: var(--hj-font-heading);
+  font-size: var(--hj-text-md);
+  font-weight: var(--hj-weight-semibold);
+  color: var(--hj-text);
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--hj-border-light);
+}
+
+.ride-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+}
+
+.ride-info-row__label {
+  font-size: var(--hj-text-base);
+  color: var(--hj-text-secondary);
+}
+
+.ride-info-row__value {
+  font-size: var(--hj-text-base);
+  font-weight: var(--hj-weight-medium);
+  color: var(--hj-text);
+}
+
+.ride-info-row__value--bold {
+  font-weight: var(--hj-weight-bold);
+  font-size: var(--hj-text-md);
+}
+
+.ride-info-row__value--link {
+  color: var(--hj-primary);
+  cursor: pointer;
+}
+
+.ride-info-row__value--link:hover {
+  text-decoration: underline;
+}
+
+/* ── Detail Page — Address Card ───────────────────────────────── */
+
+.ride-address-card {
+  background: var(--hj-surface);
+  border-radius: var(--hj-radius-xl);
+  padding: 20px;
+  border: 1px solid var(--hj-border-light);
+  box-shadow: var(--hj-shadow-sm);
+}
+
+.ride-address-card__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.ride-address-card__item-label {
+  font-size: var(--hj-text-xs);
+  font-weight: var(--hj-weight-semibold);
+  color: var(--hj-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 0 0 6px;
+}
+
+.ride-address-card__item-value {
+  font-size: var(--hj-text-base);
+  color: var(--hj-text);
+  margin: 0;
+  line-height: var(--hj-leading-relaxed);
+}
+
+.ride-address-card__item-coords {
+  font-size: var(--hj-text-xs);
+  color: var(--hj-text-tertiary);
+  font-family: var(--hj-font-mono);
+  margin: 4px 0 0;
+}
+
+/* ── Detail Page — Actions Card ───────────────────────────────── */
+
+.ride-actions-card {
+  background: var(--hj-surface);
+  border-radius: var(--hj-radius-xl);
+  padding: 20px;
+  border: 1px solid var(--hj-border-light);
+  box-shadow: var(--hj-shadow-sm);
+}
+
+.ride-actions-card__title {
+  font-family: var(--hj-font-heading);
+  font-size: var(--hj-text-md);
+  font-weight: var(--hj-weight-semibold);
+  color: var(--hj-text);
+  margin: 0 0 14px;
+}
+
+.ride-actions-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ride-actions-card__btn {
+  padding: 12px 18px;
+  border-radius: var(--hj-radius-md);
+  border: 1.5px solid transparent;
+  font-size: var(--hj-text-base);
+  font-weight: var(--hj-weight-semibold);
+  font-family: var(--hj-font-body);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all var(--hj-transition-fast);
+}
+
+.ride-actions-card__btn:hover {
+  transform: translateX(4px);
+}
+
+.ride-actions-card__btn--purple {
+  background: var(--hj-purple-light);
+  color: var(--hj-purple);
+  border-color: rgba(124, 58, 237, 0.15);
+}
+
+.ride-actions-card__btn--green {
+  background: var(--hj-success-light);
+  color: #16A34A;
+  border-color: rgba(34, 197, 94, 0.15);
+}
+
+.ride-actions-card__btn--orange {
+  background: var(--hj-warning-light);
+  color: #E65100;
+  border-color: rgba(255, 152, 0, 0.15);
+}
+
+.ride-actions-card__btn--red {
+  background: var(--hj-danger-light);
+  color: #DC2626;
+  border-color: rgba(239, 68, 68, 0.15);
+}
+
+/* ── Empty State ──────────────────────────────────────────────── */
+
+.ride-empty {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--hj-surface);
+  border-radius: var(--hj-radius-xl);
+  border: 1px solid var(--hj-border-light);
+  animation: hj-scale-in 0.3s ease-out;
+}
+
+.ride-empty__icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.ride-empty__title {
+  font-family: var(--hj-font-heading);
+  font-size: var(--hj-text-lg);
+  font-weight: var(--hj-weight-semibold);
+  color: var(--hj-text);
+  margin-bottom: 6px;
+}
+
+.ride-empty__desc {
+  font-size: var(--hj-text-md);
+  color: var(--hj-text-secondary);
+}
+
+/* ── Loading State ────────────────────────────────────────────── */
+
+.ride-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 14px;
+}
+
+.ride-loading__spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--hj-border);
+  border-top-color: var(--hj-primary);
+  border-radius: 50%;
+  animation: hj-spin 0.8s linear infinite;
+}
+
+.ride-loading__text {
+  font-size: var(--hj-text-md);
+  color: var(--hj-text-secondary);
+}
+
+/* ── Modal Form Elements ──────────────────────────────────────── */
+
+.ride-modal__desc {
+  font-size: var(--hj-text-base);
+  color: var(--hj-text-secondary);
+  margin-bottom: 16px;
+  line-height: var(--hj-leading-relaxed);
+}
+
+.ride-modal__label {
+  font-size: var(--hj-text-sm);
+  font-weight: var(--hj-weight-semibold);
+  color: var(--hj-text);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.ride-modal__input {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  border: 1.5px solid var(--hj-border);
+  border-radius: var(--hj-radius-md);
+  font-size: var(--hj-text-base);
+  font-family: var(--hj-font-body);
+  color: var(--hj-text);
+  outline: none;
+  transition: all var(--hj-transition-fast);
+  box-sizing: border-box;
+}
+
+.ride-modal__input:focus {
+  border-color: var(--hj-primary);
+  box-shadow: 0 0 0 3px rgba(30,136,229,0.08);
+}
+
+.ride-modal__input::placeholder {
+  color: var(--hj-text-tertiary);
+}
+
+.ride-modal__footer {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+/* ── Detail Modal Content ─────────────────────────────────────── */
+
+.ride-detail-modal__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.ride-detail-modal__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ride-detail-modal__item-label {
+  font-size: var(--hj-text-xs);
+  font-weight: var(--hj-weight-semibold);
+  color: var(--hj-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.ride-detail-modal__item-value {
+  font-size: var(--hj-text-base);
+  color: var(--hj-text);
+  font-weight: var(--hj-weight-medium);
+}
+
+/* ── Fare Cards (Detail Modal) ────────────────────────────────── */
+
+.ride-fare-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.ride-fare-card {
+  background: var(--hj-bg);
+  border-radius: var(--hj-radius-lg);
+  padding: 16px;
+  text-align: center;
+  border: 1px solid var(--hj-border-light);
+}
+
+.ride-fare-card__label {
+  font-size: var(--hj-text-xs);
+  color: var(--hj-text-tertiary);
+  margin: 0 0 6px;
+}
+
+.ride-fare-card__value {
+  font-family: var(--hj-font-heading);
+  font-size: var(--hj-text-xl);
+  font-weight: var(--hj-weight-bold);
+  margin: 0;
+}
+
+.ride-fare-card__value--primary { color: var(--hj-primary); }
+.ride-fare-card__value--orange { color: #E65100; }
+
+/* ── Cancellation Info Box ────────────────────────────────────── */
+
+.ride-cancel-info {
+  background: var(--hj-warning-light);
+  border-radius: var(--hj-radius-lg);
+  padding: 14px 18px;
+  border: 1px solid rgba(255, 152, 0, 0.15);
+}
+
+.ride-cancel-info__title {
+  font-size: var(--hj-text-sm);
+  font-weight: var(--hj-weight-semibold);
+  color: #E65100;
+  margin: 0 0 6px;
+}
+
+.ride-cancel-info__text {
+  font-size: var(--hj-text-base);
+  color: var(--hj-text);
+  margin: 4px 0 0;
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+
+@media (max-width: 1280px) {
+  .ride-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ride-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .ride-filters__row {
+    gap: 8px;
+  }
+
+  .ride-filters__input {
+    min-width: 150px;
+  }
+
+  .ride-detail-modal__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .ride-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .ride-page-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ride-page-header__actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .ride-address-card__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ride-fare-cards {
+    grid-template-columns: 1fr;
+  }
+}

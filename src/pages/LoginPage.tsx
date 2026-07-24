@@ -1,6 +1,88 @@
+/**
+ * LoginPage — HJ Admin Portal Premium Enterprise Design
+ *
+ * Two-column responsive layout:
+ *   Desktop: Illustration (left) + Login Card (right)
+ *   Mobile:  Stacked vertically
+ *
+ * Features:
+ *   - HJ branding with logo + tagline
+ *   - Flat vector illustration (city skyline, vehicles, pin)
+ *   - Three feature cards (Driver Management, Ride Monitoring, Analytics)
+ *   - Glassmorphism login card with rounded inputs
+ *   - Gradient submit button with loading spinner
+ *   - Remember me + Forgot password
+ *   - Fade-in / slide-up animations
+ *   - Fully responsive
+ */
+
 import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
+import '../styles/LoginPage.css';
+
+/* ── SVG Icon Components ────────────────────────────────────────── */
+
+const UserIcon = () => (
+  <svg className="login-input-wrap__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+const LockIcon = () => (
+  <svg className="login-input-wrap__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
+
+const EyeIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const EyeOffIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+    <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+    <line x1="1" y1="1" x2="23" y2="23" />
+  </svg>
+);
+
+const ArrowRightIcon = () => (
+  <svg className="login-submit__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <polyline points="12 5 19 12 12 19" />
+  </svg>
+);
+
+const AlertIcon = () => (
+  <svg className="login-error__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+/* ── Feature Cards Data ─────────────────────────────────────────── */
+
+const FEATURES = [
+  { icon: '👥', label: 'Driver Management', color: 'blue' as const },
+  { icon: '📍', label: 'Ride Monitoring', color: 'green' as const },
+  { icon: '📊', label: 'Analytics Dashboard', color: 'orange' as const },
+];
+
+/* ── Component ──────────────────────────────────────────────────── */
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -69,71 +151,205 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#1E88E5' }}>
-      <form onSubmit={handleSubmit} style={{ background: '#fff', padding: 40, borderRadius: 12, width: 380, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>
-        <h1 style={{ textAlign: 'center', marginBottom: 8, color: '#1E88E5' }}>HJ Admin</h1>
-        <p style={{ textAlign: 'center', color: '#757575', marginBottom: 24 }}>Sign in to your admin account</p>
+    <div className="login-page">
+      {/* Background orbs */}
+      <div className="login-bg-orb login-bg-orb--blue" />
+      <div className="login-bg-orb login-bg-orb--green" />
+      <div className="login-bg-orb login-bg-orb--orange" />
 
-        {error && (
-          <div style={{ background: '#FFEBEE', color: '#D32F2F', padding: 12, borderRadius: 6, marginBottom: 16, fontSize: 13, lineHeight: 1.5 }}>
-            {error}
+      {/* ── LEFT: Illustration Panel ──────────────────────── */}
+      <div className="login-left">
+        <div className="login-left__brand">
+          <div className="login-left__logo">
+            <span className="login-left__logo-text">HJ</span>
           </div>
-        )}
-
-        <label style={{ display: 'block', marginBottom: 16 }}>
-          <span style={{ fontSize: 13, fontWeight: 500, color: '#333' }}>Email</span>
-          <input type="email" value={email} onChange={(e) => { setEmail(e.target.value); setFieldErrors(prev => ({ ...prev, email: undefined })); }}
-            style={{ display: 'block', width: '100%', padding: '10px 12px', border: `1px solid ${fieldErrors.email ? '#D32F2F' : '#E0E0E0'}`, borderRadius: 6, marginTop: 4, fontSize: 14, boxSizing: 'border-box' }}
-            placeholder="admin@hjapp.com" />
-          {fieldErrors.email && <span style={{ color: '#D32F2F', fontSize: 12, marginTop: 2, display: 'block' }}>{fieldErrors.email}</span>}
-        </label>
-
-        <label style={{ display: 'block', marginBottom: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 500, color: '#333' }}>Password</span>
-          <div style={{ position: 'relative' }}>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => { setPassword(e.target.value); setFieldErrors(prev => ({ ...prev, password: undefined })); }}
-              style={{ display: 'block', width: '100%', padding: '10px 36px 10px 12px', border: `1px solid ${fieldErrors.password ? '#D32F2F' : '#E0E0E0'}`, borderRadius: 6, marginTop: 4, fontSize: 14, boxSizing: 'border-box' }}
-              placeholder="Enter password"
-            />
-            <button type="button" onClick={() => setShowPassword(!showPassword)}
-              style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}>
-              {showPassword ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#757575" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                  <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
-                  <line x1="1" y1="1" x2="23" y2="23" />
-                </svg>
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#757575" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              )}
-            </button>
-          </div>
-          {fieldErrors.password && <span style={{ color: '#D32F2F', fontSize: 12, marginTop: 2, display: 'block' }}>{fieldErrors.password}</span>}
-        </label>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, marginTop: 8 }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#555', cursor: 'pointer' }}>
-            <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)}
-              style={{ width: 16, height: 16, accentColor: '#1E88E5' }} />
-            Remember me
-          </label>
-          <Link to="/forgot-password" style={{ fontSize: 13, color: '#1E88E5', textDecoration: 'none' }}>
-            Forgot Password?
-          </Link>
+          <h1 className="login-left__title">Happy Journey</h1>
+          <p className="login-left__subtitle">Administrator Portal</p>
+          <p className="login-left__desc">Premium Ride Management System</p>
         </div>
 
-        <button type="submit" disabled={loading}
-          style={{ width: '100%', padding: 12, background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, fontSize: 15, fontWeight: 600, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>
-          {loading ? 'Signing in...' : 'Sign In'}
-        </button>
-      </form>
+        {/* Illustration */}
+        <div className="login-illustration">
+          <div className="illust-sky" />
+          <div className="illust-sun">
+            <div className="illust-sun__ring" />
+          </div>
+          <div className="illust-cloud illust-cloud--1" />
+          <div className="illust-cloud illust-cloud--2" />
+
+          {/* Buildings */}
+          <div className="illust-building illust-building--1" />
+          <div className="illust-building illust-building--2" />
+          <div className="illust-building illust-building--3" />
+          <div className="illust-building illust-building--4" />
+          <div className="illust-building illust-building--5" />
+          <div className="illust-building illust-building--6" />
+
+          {/* Navigation Pin */}
+          <div className="illust-pin">
+            <div className="illust-pin__head">
+              <div className="illust-pin__dot" />
+            </div>
+          </div>
+
+          {/* Route line */}
+          <div className="illust-route" />
+
+          {/* Road */}
+          <div className="illust-road">
+            <div className="illust-road__line" />
+          </div>
+
+          {/* Vehicles */}
+          <div className="illust-vehicle illust-bike">
+            <div className="illust-bike__body">
+              <div className="illust-bike__rider" />
+              <div className="illust-bike__wheel illust-bike__wheel--l" />
+              <div className="illust-bike__wheel illust-bike__wheel--r" />
+            </div>
+          </div>
+
+          <div className="illust-vehicle illust-auto">
+            <div className="illust-auto__body">
+              <div className="illust-auto__roof" />
+              <div className="illust-auto__wheel illust-auto__wheel--l" />
+              <div className="illust-auto__wheel illust-auto__wheel--r" />
+            </div>
+          </div>
+
+          <div className="illust-vehicle illust-car">
+            <div className="illust-car__body">
+              <div className="illust-car__roof" />
+              <div className="illust-car__wheel illust-car__wheel--l" />
+              <div className="illust-car__wheel illust-car__wheel--r" />
+            </div>
+          </div>
+        </div>
+
+        {/* Feature Cards */}
+        <div className="login-features">
+          {FEATURES.map((f) => (
+            <div className="login-feature" key={f.label}>
+              <div className={`login-feature__icon login-feature__icon--${f.color}`}>
+                <CheckIcon />
+              </div>
+              <span className="login-feature__text">{f.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── RIGHT: Login Card ─────────────────────────────── */}
+      <div className="login-right">
+        <div className="login-card">
+          {/* Header */}
+          <div className="login-card__header">
+            <div className="login-card__logo">
+              <span className="login-card__logo-text">HJ</span>
+            </div>
+            <p className="login-card__portal">Admin Portal</p>
+            <h2 className="login-card__title">Welcome Back</h2>
+            <p className="login-card__subtitle">Sign in to continue managing your platform.</p>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="login-error">
+              <AlertIcon />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Form */}
+          <form className="login-form" onSubmit={handleSubmit}>
+            {/* Email */}
+            <div className="login-field">
+              <label className="login-field__label" htmlFor="login-email">Username</label>
+              <div className="login-input-wrap">
+                <UserIcon />
+                <input
+                  id="login-email"
+                  className={`login-input${fieldErrors.email ? ' login-input--error' : ''}`}
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                  }}
+                  placeholder="Enter username"
+                  autoComplete="username"
+                />
+              </div>
+              {fieldErrors.email && <span className="login-field__error">{fieldErrors.email}</span>}
+            </div>
+
+            {/* Password */}
+            <div className="login-field">
+              <label className="login-field__label" htmlFor="login-password">Password</label>
+              <div className="login-input-wrap">
+                <LockIcon />
+                <input
+                  id="login-password"
+                  className={`login-input${fieldErrors.password ? ' login-input--error' : ''}`}
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                  }}
+                  placeholder="Enter password"
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="login-input-wrap__toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+              </div>
+              {fieldErrors.password && <span className="login-field__error">{fieldErrors.password}</span>}
+            </div>
+
+            {/* Remember + Forgot */}
+            <div className="login-form-row">
+              <label className="login-remember">
+                <input
+                  type="checkbox"
+                  className="login-remember__checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
+                Remember me
+              </label>
+              <Link to="/forgot-password" className="login-forgot">Forgot Password?</Link>
+            </div>
+
+            {/* Submit */}
+            <button type="submit" className="login-submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <div className="login-submit__spinner" />
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In</span>
+                  <ArrowRightIcon />
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Footer */}
+          <div className="login-footer">
+            <p className="login-footer__text">
+              &copy; Happy Journey &middot; v1.0.0
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

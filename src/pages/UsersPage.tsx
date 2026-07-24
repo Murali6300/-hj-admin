@@ -15,6 +15,11 @@ interface UserListResponse {
   ratingCount: number;
   profileImageUrl: string | null;
   createdAt: string;
+  flaggedForReview: boolean;
+  forceOnlinePayment: boolean;
+  disputeCount: number;
+  unconfirmedPaymentCount: number;
+  restrictionReason: string | null;
 }
 
 interface UsersPageData {
@@ -191,9 +196,10 @@ export default function UsersPage() {
 
   const handleExportCsv = () => {
     if (!data?.users?.length) return;
-    const headers = ['ID', 'Name', 'Email', 'Phone', 'Status', 'Wallet Balance', 'Rides', 'Avg Rating', 'Registered'];
+    const headers = ['ID', 'Name', 'Email', 'Phone', 'Status', 'Flagged', 'Disputes', 'Unconfirmed', 'Wallet Balance', 'Rides', 'Avg Rating', 'Registered'];
     const rows = data.users.map(u => [
       u.id, u.name, u.email, u.phoneNumber, u.accountStatus,
+      u.flaggedForReview ? 'Yes' : 'No', u.disputeCount, u.unconfirmedPaymentCount,
       u.walletBalance.toFixed(2), u.rideCount, u.averageRating.toFixed(1),
       new Date(u.createdAt).toLocaleDateString('en-IN')
     ]);
@@ -250,7 +256,7 @@ export default function UsersPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 8, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
           <thead>
             <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
-              {['ID', 'Name', 'Phone', 'Email', 'Status', 'Wallet', 'Rides', 'Rating', 'Registered', 'Actions'].map(h => (
+              {['ID', 'Name', 'Phone', 'Email', 'Status', 'Restriction', 'Wallet', 'Rides', 'Rating', 'Registered', 'Actions'].map(h => (
                 <th key={h} style={thStyle}>{h}</th>
               ))}
             </tr>
@@ -270,6 +276,15 @@ export default function UsersPage() {
                 <td style={tdStyle}>{user.phoneNumber}</td>
                 <td style={tdStyle}>{user.email}</td>
                 <td style={tdStyle}>{getStatusBadge(user.accountStatus)}</td>
+                <td style={tdStyle}>
+                  {user.flaggedForReview ? (
+                    <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: '#FFEBEE', color: '#C62828' }}>
+                      Flagged ({user.disputeCount}D/{user.unconfirmedPaymentCount}U)
+                    </span>
+                  ) : (
+                    <span style={{ color: '#999', fontSize: 12 }}>—</span>
+                  )}
+                </td>
                 <td style={tdStyle}>₹{user.walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
                 <td style={tdStyle}>{user.rideCount}</td>
                 <td style={tdStyle}>
@@ -291,6 +306,13 @@ export default function UsersPage() {
                     )}
                     <button onClick={() => handleResetPassword(user.id)} style={btnSmall('#9C27B0')}>Reset PW</button>
                     <button onClick={() => handleDelete(user.id)} style={btnSmall('#B71C1C')}>Delete</button>
+                    {user.flaggedForReview && (
+                      <button onClick={async () => {
+                        if (!confirm(`Clear restriction for "${user.name}"? This will allow cash payments again.`)) return;
+                        await api.put(`/users/${user.id}/clear-restriction`, { notes: 'Cleared by admin from user list' });
+                        fetchUsers();
+                      }} style={btnSmall('#4CAF50')}>Clear Flag</button>
+                    )}
                   </div>
                 </td>
               </tr>

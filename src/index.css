@@ -1,10 +1,38 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F7F9FC; color: #0A1F44; }
-a { color: #1E88E5; text-decoration: none; }
-button { cursor: pointer; }
+/* ── Global Reset ──────────────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-.admin-sidebar-nav::-webkit-scrollbar { width: 6px; }
-.admin-sidebar-nav::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
-.admin-sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); border-radius: 3px; }
-.admin-sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
-.admin-sidebar-nav { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.25) rgba(255,255,255,0.05); }
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--hj-bg, #F8FAFC);
+  color: var(--hj-text, #0A1F44);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--hj-primary, #1E88E5);
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Scrollbar (sidebar) ──────────────────────────────────────── */
+.admin-sidebar-nav::-webkit-scrollbar { width: 4px; }
+.admin-sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.admin-sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+.admin-sidebar-nav { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent; }
