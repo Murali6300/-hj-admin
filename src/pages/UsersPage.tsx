@@ -20,6 +20,9 @@ interface UserListResponse {
   disputeCount: number;
   unconfirmedPaymentCount: number;
   restrictionReason: string | null;
+  restrictedAt: string | null;
+  outstandingBalance: number;
+  outstandingReason: string | null;
 }
 
 interface UsersPageData {
@@ -196,11 +199,11 @@ export default function UsersPage() {
 
   const handleExportCsv = () => {
     if (!data?.users?.length) return;
-    const headers = ['ID', 'Name', 'Email', 'Phone', 'Status', 'Flagged', 'Disputes', 'Unconfirmed', 'Wallet Balance', 'Rides', 'Avg Rating', 'Registered'];
+    const headers = ['ID', 'Name', 'Email', 'Phone', 'Status', 'Flagged', 'Disputes', 'Unconfirmed', 'Outstanding', 'Wallet Balance', 'Rides', 'Avg Rating', 'Registered'];
     const rows = data.users.map(u => [
       u.id, u.name, u.email, u.phoneNumber, u.accountStatus,
       u.flaggedForReview ? 'Yes' : 'No', u.disputeCount, u.unconfirmedPaymentCount,
-      u.walletBalance.toFixed(2), u.rideCount, u.averageRating.toFixed(1),
+      u.outstandingBalance.toFixed(2), u.walletBalance.toFixed(2), u.rideCount, u.averageRating.toFixed(1),
       new Date(u.createdAt).toLocaleDateString('en-IN')
     ]);
     const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -256,7 +259,7 @@ export default function UsersPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 8, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
           <thead>
             <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
-              {['ID', 'Name', 'Phone', 'Email', 'Status', 'Restriction', 'Wallet', 'Rides', 'Rating', 'Registered', 'Actions'].map(h => (
+              {['ID', 'Name', 'Phone', 'Email', 'Status', 'Restriction', 'Outstanding', 'Wallet', 'Rides', 'Rating', 'Registered', 'Actions'].map(h => (
                 <th key={h} style={thStyle}>{h}</th>
               ))}
             </tr>
@@ -280,6 +283,15 @@ export default function UsersPage() {
                   {user.flaggedForReview ? (
                     <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: '#FFEBEE', color: '#C62828' }}>
                       Flagged ({user.disputeCount}D/{user.unconfirmedPaymentCount}U)
+                    </span>
+                  ) : (
+                    <span style={{ color: '#999', fontSize: 12 }}>—</span>
+                  )}
+                </td>
+                <td style={tdStyle}>
+                  {user.outstandingBalance > 0 ? (
+                    <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 700, background: '#FCE4EC', color: '#E91E63' }}>
+                      ₹{user.outstandingBalance.toFixed(0)}
                     </span>
                   ) : (
                     <span style={{ color: '#999', fontSize: 12 }}>—</span>
@@ -312,6 +324,13 @@ export default function UsersPage() {
                         await api.put(`/users/${user.id}/clear-restriction`, { notes: 'Cleared by admin from user list' });
                         fetchUsers();
                       }} style={btnSmall('#4CAF50')}>Clear Flag</button>
+                    )}
+                    {user.outstandingBalance > 0 && (
+                      <button onClick={async () => {
+                        if (!confirm(`Clear ₹${user.outstandingBalance.toFixed(0)} outstanding balance for "${user.name}"? This will allow them to book rides again.`)) return;
+                        await api.put(`/users/${user.id}/clear-outstanding`, { notes: 'Outstanding cleared by admin' });
+                        fetchUsers();
+                      }} style={btnSmall('#E91E63')}>Clear Outstanding</button>
                     )}
                   </div>
                 </td>
@@ -382,6 +401,14 @@ export default function UsersPage() {
                       <InfoItem label="Registered" value={new Date(detailUser.userInfo.createdAt).toLocaleDateString('en-IN')} />
                       <InfoItem label="Saved Addresses" value={String(detailUser.savedAddresses.length)} />
                       <InfoItem label="Total Payments" value={String(detailUser.paymentHistory.length)} />
+                      {detailUser.userInfo.outstandingBalance > 0 && (
+                        <InfoItem label="Outstanding Balance" value={`₹${detailUser.userInfo.outstandingBalance.toLocaleString('en-IN')}`} color="#E91E63" />
+                      )}
+                      {detailUser.userInfo.outstandingReason && (
+                        <div style={{ gridColumn: '1 / -1', padding: '8px 12px', background: '#FCE4EC', borderRadius: 6, fontSize: 12, color: '#880E4F' }}>
+                          {detailUser.userInfo.outstandingReason}
+                        </div>
+                      )}
                     </div>
                   )}
 

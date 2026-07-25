@@ -24,6 +24,9 @@ import AuditLogsPage from './pages/AuditLogsPage';
 import RolesPermissionsPage from './pages/RolesPermissionsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import CompanyPaymentPage from './pages/CompanyPaymentPage';
+import CashPaymentsPage from './pages/CashPaymentsPage';
+import CashPaymentDetailPage from './pages/CashPaymentDetailPage';
+import FraudDetectionPage from './pages/FraudDetectionPage';
 import Layout from './components/Layout';
 import { hasPermission, type Permission } from './utils/adminPermissions';
 
@@ -52,6 +55,8 @@ export default function App() {
           <Route path="vehicles" element={<VehiclesPage />} />
           <Route path="drivers/pending" element={<PendingDriversPage />} />
           <Route path="payments" element={<PaymentsPage />} />
+          <Route path="cash-payments" element={<RoleProtectedRoute permission="PAYMENTS_VIEW"><CashPaymentsPage /></RoleProtectedRoute>} />
+          <Route path="cash-payments/:paymentId" element={<RoleProtectedRoute permission="PAYMENTS_VIEW"><CashPaymentDetailPage /></RoleProtectedRoute>} />
           <Route path="company-payment" element={<RoleProtectedRoute permission="PAYMENTS_MANAGE"><CompanyPaymentPage /></RoleProtectedRoute>} />
           <Route path="rides" element={<RideMonitoringPage />} />
           <Route path="rides/history" element={<RoleProtectedRoute permission="RIDES_VIEW"><RideHistoryPage /></RoleProtectedRoute>} />
@@ -60,6 +65,7 @@ export default function App() {
           <Route path="earnings" element={<EarningsCommissionPage />} />
           <Route path="sos" element={<SOSManagementPage />} />
           <Route path="config" element={<RoleProtectedRoute permission="CONFIG_VIEW"><SystemConfigPage /></RoleProtectedRoute>} />
+          <Route path="fraud" element={<RoleProtectedRoute permission="CONFIG_VIEW"><FraudDetectionPage /></RoleProtectedRoute>} />
           <Route path="pricing" element={<RoleProtectedRoute permission="CONFIG_VIEW"><PricingPage /></RoleProtectedRoute>} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />

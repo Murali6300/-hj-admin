@@ -6,8 +6,9 @@
  */
 
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { hasPermission, getAdminRole, type Permission } from '../utils/adminPermissions';
+import api from '../api';
 import '../styles/design-system.css';
 import '../styles/Layout.css';
 
@@ -64,6 +65,7 @@ const navGroups: NavGroup[] = [
     label: 'Finance',
     items: [
       { path: '/payments', label: 'Payments', icon: '💳', permission: 'PAYMENTS_VIEW' },
+      { path: '/cash-payments', label: 'Cash Payments', icon: '💵', permission: 'PAYMENTS_VIEW' },
       { path: '/company-payment', label: 'Company Payments', icon: '🏦', permission: 'PAYMENTS_MANAGE' },
       { path: '/earnings', label: 'Earnings & Commission', icon: '💰', permission: 'REPORTS_VIEW' },
       { path: '/coupons', label: 'Coupons & Offers', icon: '🎟️', permission: 'COUPONS_VIEW' },
@@ -79,6 +81,7 @@ const navGroups: NavGroup[] = [
   {
     label: 'System',
     items: [
+      { path: '/fraud', label: 'Fraud Detection', icon: '🛡️', permission: 'CONFIG_VIEW' },
       { path: '/pricing', label: 'Pricing & Surge', icon: '💲', permission: 'CONFIG_VIEW' },
       { path: '/config', label: 'Settings', icon: '⚙️', permission: 'CONFIG_VIEW' },
       { path: '/roles', label: 'Roles & Permissions', icon: '🔐', permission: 'ADMIN_USERS_VIEW' },
@@ -128,6 +131,7 @@ export default function Layout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [now, setNow] = useState(new Date());
+  const [fraudCount, setFraudCount] = useState(0);
 
   useEffect(() => {
     const name = localStorage.getItem('admin_name');
@@ -140,18 +144,44 @@ export default function Layout() {
     return () => clearInterval(t);
   }, []);
 
+  useEffect(() => {
+    const fetchFraudCount = async () => {
+      try {
+        const res = await api.get<{ unresolvedFlags: number }>('/api/v1/admin/fraud/stats');
+        setFraudCount(res.data.unresolvedFlags || 0);
+      } catch {
+        // silent
+      }
+    };
+    fetchFraudCount();
+    const interval = setInterval(fetchFraudCount, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   const hasItemAccess = useCallback((item: NavItem): boolean => {
     if (item.permission) return hasPermission(item.permission);
     if (item.anyPermission) return item.anyPermission.some((p) => hasPermission(p));
     return true;
   }, []);
 
-  const filteredGroups = navGroups
-    .map((g) => ({
-      ...g,
-      items: g.items.filter((item) => hasItemAccess(item)),
-    }))
-    .filter((g) => g.items.length > 0 || g.label === '');
+  const filteredGroups = useMemo(() => {
+    const groups = navGroups
+      .map((g) => ({
+        ...g,
+        items: g.items.map((item) => {
+          if (item.path === '/fraud' && fraudCount > 0) {
+            return { ...item, badge: fraudCount };
+          }
+          return item;
+        }),
+      }))
+      .map((g) => ({
+        ...g,
+        items: g.items.filter((item) => hasItemAccess(item)),
+      }))
+      .filter((g) => g.items.length > 0 || g.label === '');
+    return groups;
+  }, [fraudCount, hasItemAccess]);
 
   const handleLogout = () => {
     if (!confirm('Log out of the admin portal?')) return;
