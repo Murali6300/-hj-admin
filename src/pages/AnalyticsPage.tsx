@@ -26,10 +26,11 @@ export default function AnalyticsPage() {
 
   const fetchAnalytics = useCallback(async () => {
     try {
-      const [ridesRes, earningsRes, usersRes] = await Promise.allSettled([
+      const [ridesRes, earningsRes, usersRes, ratingsRes] = await Promise.allSettled([
         api.get('/rides', { params: { page: 0, size: 500 } }),
         api.get('/earnings'),
         api.get('/users', { params: { page: 0, size: 500 } }),
+        api.get('/ratings/summary'),
       ]);
 
       const newErrors: { rides?: string; earnings?: string; users?: string } = {};
@@ -96,6 +97,16 @@ export default function AnalyticsPage() {
       }
 
       const ratingBuckets: Record<string, number> = { '1-2': 0, '2-3': 0, '3-4': 0, '4-5': 0 };
+
+      // Populate rating buckets from summary API
+      const ratingSummary = ratingsRes.status === 'fulfilled' ? ratingsRes.value.data : null;
+      if (ratingSummary) {
+        const { oneStarCount = 0, twoStarCount = 0, threeStarCount = 0, fourStarCount = 0, fiveStarCount = 0 } = ratingSummary;
+        ratingBuckets['1-2'] = (oneStarCount || 0) + (twoStarCount || 0);
+        ratingBuckets['2-3'] = ratingBuckets['1-2'];
+        ratingBuckets['3-4'] = (threeStarCount || 0) + (fourStarCount || 0);
+        ratingBuckets['4-5'] = (fourStarCount || 0) + (fiveStarCount || 0);
+      }
 
       setData({
         topDrivers: earnings?.topDrivers?.slice(0, 10) || [],
