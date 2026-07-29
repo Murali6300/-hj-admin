@@ -240,6 +240,51 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* ── Activity Heatmap ───────────────────────────── */}
+      <div className="dash-heatmap">
+        <div className="dash-heatmap__header">
+          <h3 className="dash-heatmap__title">Activity Heatmap (Rides by Area)</h3>
+          <div className="dash-heatmap__legend">
+            <span>Low</span>
+            <div className="dash-heatmap__legend-bar">
+              {['#E8F5E9','#C8E6C9','#A5D6A7','#66BB6A','#43A047','#2E7D32','#1B5E20'].map(c => (
+                <div key={c} className="dash-heatmap__legend-item" style={{ background: c }} />
+              ))}
+            </div>
+            <span>High</span>
+          </div>
+        </div>
+        <div className="dash-heatmap__grid">
+          {[
+            { area: 'HITEC', val: 142 }, { area: 'Gachi', val: 98 }, { area: 'Madhapur', val: 187 },
+            { area: 'Kondapur', val: 76 }, { area: 'J Hills', val: 55 }, { area: 'B Hills', val: 134 },
+            { area: 'Ameerpet', val: 92 }, { area: 'SR Nagar', val: 61 },
+            { area: 'Secbad', val: 112 }, { area: 'Paradise', val: 78 }, { area: 'KPHB', val: 145 },
+            { area: 'Miyapur', val: 83 }, { area: 'LB Nagar', val: 67 }, { area: 'Dilsuk', val: 44 },
+            { area: 'Uppal', val: 71 }, { area: 'NTR Ghat', val: 39 },
+            { area: 'Airport', val: 210 }, { area: 'Shamsh', val: 88 }, { area: 'Kokapet', val: 156 },
+            { area: 'Narsingi', val: 73 }, { area: 'Tellapur', val: 52 }, { area: 'Patanc', val: 29 },
+            { area: 'BHEL', val: 35 }, { area: 'Chanda', val: 18 },
+          ].map((cell) => {
+            const intensity = Math.min(cell.val / 210, 1);
+            const r = Math.round(232 - intensity * 160);
+            const g = Math.round(245 - intensity * 150);
+            const b = Math.round(233 - intensity * 160);
+            return (
+              <div
+                key={cell.area}
+                className="dash-heatmap__cell"
+                style={{ background: `rgb(${r},${g},${b})`, position: 'relative' }}
+                title={`${cell.area}: ${cell.val} rides`}
+              >
+                <span>{cell.val}</span>
+                <span className="dash-heatmap__cell-label">{cell.area}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* ── Charts + Activity Grid ────────────────────── */}
       <div className="dash-grid">
         {/* Main Charts */}

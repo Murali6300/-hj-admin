@@ -128,10 +128,15 @@ export default function FraudDetectionPage() {
     <div style={{ padding: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#0F172A', margin: 0 }}>
-            🛡️ Fraud Detection
-          </h1>
-          <p style={{ color: '#64748B', margin: '4px 0 0' }}>Automatic fraud flagging and monitoring</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#0F172A', margin: 0 }}>
+              🛡️ Fraud Detection
+            </h1>
+            <span style={{ padding: '4px 12px', borderRadius: 20, background: '#7C3AED20', color: '#7C3AED', fontSize: 12, fontWeight: 600 }}>
+              🤖 AI-Powered
+            </span>
+          </div>
+          <p style={{ color: '#64748B', margin: '4px 0 0' }}>Machine learning models automatically detect suspicious patterns across rides, payments, and driver behavior</p>
         </div>
       </div>
 

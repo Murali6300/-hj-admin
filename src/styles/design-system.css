@@ -1,43 +1,36 @@
-/* ================================================================
-   HJ Admin Portal — Design System Tokens
-   Premium enterprise dashboard • Material Design 3 inspired
-   ================================================================ */
-
 :root {
-  /* ── Colors ─────────────────────────────────────────────────── */
   --hj-bg:            #F8FAFC;
   --hj-surface:       #FFFFFF;
   --hj-surface-hover: #F1F5F9;
   --hj-surface-alt:   #F8FAFC;
 
-  --hj-primary:       #1E88E5;
-  --hj-primary-light: #60A5FA;
-  --hj-primary-dark:  #123D8A;
-  --hj-primary-50:    #EBF5FF;
-  --hj-primary-100:   #D6EAFF;
+  --hj-primary:       #2563EB;
+  --hj-primary-light: #3B82F6;
+  --hj-primary-dark:  #1D4ED8;
+  --hj-primary-50:    #DBEAFE;
+  --hj-primary-100:   #BFDBFE;
 
   --hj-success:       #22C55E;
   --hj-success-light: #DCFCE7;
-  --hj-warning:       #FF9800;
-  --hj-warning-light: #FFF3E0;
+  --hj-warning:       #F59E0B;
+  --hj-warning-light: #FEF3C7;
   --hj-danger:        #EF4444;
-  --hj-danger-light:  #FEF2F2;
+  --hj-danger-light:  #FEE2E2;
   --hj-purple:        #7C3AED;
   --hj-purple-light:  #F3E8FF;
-  --hj-info:          #00BCD4;
-  --hj-info-light:    #E0F7FA;
+  --hj-info:          #06B6D4;
+  --hj-info-light:    #CFFAFE;
 
-  --hj-text:          #0A1F44;
-  --hj-text-secondary:#64748B;
-  --hj-text-tertiary: #94A3B8;
+  --hj-text:          #111827;
+  --hj-text-secondary:#6B7280;
+  --hj-text-tertiary: #9CA3AF;
   --hj-text-inverse:  #FFFFFF;
 
   --hj-border:        #E2E8F0;
   --hj-border-light:  #F1F5F9;
   --hj-divider:       #E2E8F0;
 
-  /* ── Typography ─────────────────────────────────────────────── */
-  --hj-font-heading:  'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --hj-font-heading:  'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --hj-font-body:     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --hj-font-mono:     'JetBrains Mono', 'Fira Code', monospace;
 
@@ -59,7 +52,6 @@
   --hj-leading-normal: 1.5;
   --hj-leading-relaxed:1.65;
 
-  /* ── Spacing ────────────────────────────────────────────────── */
   --hj-space-1:  4px;
   --hj-space-2:  8px;
   --hj-space-3:  12px;
@@ -70,7 +62,6 @@
   --hj-space-10: 40px;
   --hj-space-12: 48px;
 
-  /* ── Radius ─────────────────────────────────────────────────── */
   --hj-radius-sm:   6px;
   --hj-radius-md:   10px;
   --hj-radius-lg:   14px;
@@ -78,29 +69,23 @@
   --hj-radius-2xl:  20px;
   --hj-radius-full: 9999px;
 
-  /* ── Shadows ────────────────────────────────────────────────── */
-  --hj-shadow-xs:  0 1px 2px rgba(10,31,68,0.04);
-  --hj-shadow-sm:  0 1px 3px rgba(10,31,68,0.06), 0 1px 2px rgba(10,31,68,0.04);
-  --hj-shadow-md:  0 4px 6px rgba(10,31,68,0.04), 0 2px 4px rgba(10,31,68,0.03);
-  --hj-shadow-lg:  0 10px 15px rgba(10,31,68,0.06), 0 4px 6px rgba(10,31,68,0.03);
-  --hj-shadow-xl:  0 20px 25px rgba(10,31,68,0.08), 0 8px 10px rgba(10,31,68,0.03);
+  --hj-shadow-xs:  0 1px 2px rgba(17,24,39,0.04);
+  --hj-shadow-sm:  0 1px 3px rgba(17,24,39,0.06), 0 1px 2px rgba(17,24,39,0.04);
+  --hj-shadow-md:  0 4px 6px rgba(17,24,39,0.04), 0 2px 4px rgba(17,24,39,0.03);
+  --hj-shadow-lg:  0 10px 15px rgba(17,24,39,0.06), 0 4px 6px rgba(17,24,39,0.03);
+  --hj-shadow-xl:  0 20px 25px rgba(17,24,39,0.08), 0 8px 10px rgba(17,24,39,0.03);
 
-  /* ── Sidebar ────────────────────────────────────────────────── */
   --hj-sidebar-width:      260px;
   --hj-sidebar-collapsed:  72px;
-  --hj-sidebar-bg:         linear-gradient(180deg, #123D8A 0%, #1E88E5 100%);
+  --hj-sidebar-bg:         linear-gradient(180deg, #1D4ED8 0%, #2563EB 100%);
 
-  /* ── Header ─────────────────────────────────────────────────── */
   --hj-header-height: 64px;
 
-  /* ── Transitions ────────────────────────────────────────────── */
   --hj-transition-fast:   150ms ease;
   --hj-transition-base:   250ms ease;
   --hj-transition-slow:   350ms ease;
   --hj-transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-/* ── Keyframes ──────────────────────────────────────────────────── */
 
 @keyframes hj-fade-in {
   from { opacity: 0; }

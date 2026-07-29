@@ -175,7 +175,7 @@
   transform: translateY(-50%);
   width: 3px;
   height: 20px;
-  background: #FF8C00;
+  background: var(--hj-primary);
   border-radius: 0 3px 3px 0;
 }
 

@@ -264,6 +264,69 @@ export default function AnalyticsPage() {
         </ChartCard>
 
       </div>
+
+      {/* ── AI Route Optimization & Demand Forecasting ──────── */}
+      <div style={{ marginTop: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>🤖 AI Route Optimization & Demand Forecasting</h2>
+          <button
+            onClick={() => alert('Refreshing AI predictions...')}
+            style={{ padding: '6px 16px', background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+          >
+            Refresh Predictions
+          </button>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 16 }}>
+          <div style={{ background: '#F5F3FF', borderRadius: 12, padding: 20, border: '1px solid #DDD6FE' }}>
+            <div style={{ fontSize: 13, color: '#5B21B6', fontWeight: 500 }}>Route Accuracy</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#7C3AED' }}>94.2%</div>
+            <div style={{ fontSize: 12, color: '#6D28D9', marginTop: 4 }}>AI-optimized route match rate</div>
+          </div>
+          <div style={{ background: '#FFF7ED', borderRadius: 12, padding: 20, border: '1px solid #FED7AA' }}>
+            <div style={{ fontSize: 13, color: '#9A3412', fontWeight: 500 }}>Demand Forecast</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#EA580C' }}>4h</div>
+            <div style={{ fontSize: 12, color: '#C2410C', marginTop: 4 }}>Dynamic demand prediction window</div>
+          </div>
+          <div style={{ background: '#ECFDF5', borderRadius: 12, padding: 20, border: '1px solid #A7F3D0' }}>
+            <div style={{ fontSize: 13, color: '#065F46', fontWeight: 500 }}>Optimized Routes</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#059669' }}>3</div>
+            <div style={{ fontSize: 12, color: '#047857', marginTop: 4 }}>Active AI-recommended route alternatives</div>
+          </div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: 12, padding: 20, border: '1px solid #E2E8F0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: 0, color: '#475569' }}>Recommended Route Adjustments</h3>
+            <span style={{ fontSize: 11, color: '#94A3B8' }}>Updated hourly</span>
+          </div>
+          {[
+            { from: 'HITEC City', to: 'Airport', eta: '32 min', saving: '7 min via ORR', demand: 'High' },
+            { from: 'Gachibowli', to: 'Secunderabad', eta: '28 min', saving: '5 min via Flyover', demand: 'Medium' },
+            { from: 'Jubilee Hills', to: 'Madhapur', eta: '14 min', saving: '3 min via Road No 10', demand: 'Very High' },
+          ].map((r, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderTop: i > 0 ? '1px solid #F1F5F9' : 'none' }}>
+              <div style={{ fontSize: 13 }}>
+                <span style={{ fontWeight: 500 }}>{r.from}</span>
+                <span style={{ color: '#94A3B8', margin: '0 6px' }}>→</span>
+                <span style={{ fontWeight: 500 }}>{r.to}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 12, color: '#16A34A', fontWeight: 600 }}>⏱ {r.saving}</span>
+                <span style={{
+                  padding: '2px 8px',
+                  borderRadius: 12,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  background: r.demand === 'Very High' ? '#FEE2E2' : r.demand === 'High' ? '#FEF3C7' : '#F3F4F6',
+                  color: r.demand === 'Very High' ? '#DC2626' : r.demand === 'High' ? '#D97706' : '#6B7280',
+                }}>
+                  {r.demand}
+                </span>
+                <span style={{ fontSize: 12, color: '#64748B' }}>{r.eta}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-/* ── Global Reset ──────────────────────────────────────────────── */
 *, *::before, *::after {
   margin: 0;
   padding: 0;
@@ -13,12 +12,12 @@ html {
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--hj-bg, #F8FAFC);
-  color: var(--hj-text, #0A1F44);
+  color: var(--hj-text, #111827);
   line-height: 1.5;
 }
 
 a {
-  color: var(--hj-primary, #1E88E5);
+  color: var(--hj-primary, #2563EB);
   text-decoration: none;
 }
 
@@ -31,7 +30,6 @@ img {
   height: auto;
 }
 
-/* ── Scrollbar (sidebar) ──────────────────────────────────────── */
 .admin-sidebar-nav::-webkit-scrollbar { width: 4px; }
 .admin-sidebar-nav::-webkit-scrollbar-track { background: transparent; }
 .admin-sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
