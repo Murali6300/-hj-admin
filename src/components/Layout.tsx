@@ -9,6 +9,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { hasPermission, getAdminRole, type Permission } from '../utils/adminPermissions';
 import api from '../api';
+import AiAssistant from './AiAssistant/AiAssistant';
 import '../styles/design-system.css';
 import '../styles/Layout.css';
 
@@ -74,8 +75,31 @@ const navGroups: NavGroup[] = [
   {
     label: 'Insights',
     items: [
+      { path: '/business', label: 'Business Dashboard', icon: '💡', permission: 'DASHBOARD_VIEW' },
+      { path: '/monitoring', label: 'AI Operations Center', icon: '🧠', permission: 'DASHBOARD_VIEW' },
       { path: '/analytics', label: 'Analytics', icon: '📉', permission: 'ANALYTICS_VIEW' },
       { path: '/reports', label: 'Reports', icon: '📈', permission: 'REPORTS_VIEW' },
+    ],
+  },
+  {
+    label: 'AI Intelligence',
+    items: [
+      { path: '/ai/demand', label: 'Demand Prediction', icon: '📍', permission: 'DASHBOARD_VIEW' },
+      { path: '/ai/revenue', label: 'Revenue Analytics', icon: '💰', permission: 'DASHBOARD_VIEW' },
+      { path: '/ai/drivers', label: 'Driver Performance', icon: '🚖', permission: 'DRIVERS_VIEW' },
+      { path: '/ai/passengers', label: 'Passenger Analytics', icon: '👤', permission: 'DASHBOARD_VIEW' },
+      { path: '/ai/fraud', label: 'Fraud Alerts', icon: '🚩', permission: 'DASHBOARD_VIEW' },
+      { path: '/ai/complaints', label: 'Complaint Analysis', icon: '🎫', permission: 'SUPPORT_VIEW' },
+      { path: '/ai/notifications', label: 'Notification Studio', icon: '📣', permission: 'NOTIFICATIONS_VIEW' },
+      { path: '/ai/kyc', label: 'KYC Verification', icon: '🪪', permission: 'DRIVERS_APPROVE' },
+      { path: '/ai/scheduling', label: 'Predictive Scheduling', icon: '🗓️', permission: 'DASHBOARD_VIEW' },
+      { path: '/ai/goals', label: 'Goal Tracking', icon: '🎯', permission: 'DASHBOARD_VIEW' },
+      { path: '/ai/forecast', label: 'AI Forecasting', icon: '🔮', permission: 'DASHBOARD_VIEW' },
+      { path: '/ai/alerts', label: 'Alerts Center', icon: '🚨', permission: 'DASHBOARD_VIEW' },
+      { path: '/ai/map', label: 'Live Operations Map', icon: '🗺️', permission: 'DASHBOARD_VIEW' },
+      { path: '/ai/rewards', label: 'Reward Management', icon: '🏆', permission: 'DRIVERS_VIEW' },
+      { path: '/ai/audit-log', label: 'AI Audit Logs', icon: '🕵️', permission: 'AUDIT_VIEW' },
+      { path: '/search', label: 'AI Search', icon: '🔍', permission: 'DASHBOARD_VIEW' },
     ],
   },
   {
@@ -132,6 +156,7 @@ export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [now, setNow] = useState(new Date());
   const [fraudCount, setFraudCount] = useState(0);
+  const [searchInput, setSearchInput] = useState('');
 
   useEffect(() => {
     const name = localStorage.getItem('admin_name');
@@ -341,6 +366,14 @@ export default function Layout() {
               className="hj-header__search-input"
               type="text"
               placeholder="Search users, drivers, rides..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && searchInput.trim()) {
+                  navigate(`/search?q=${encodeURIComponent(searchInput.trim())}`);
+                  setSearchInput('');
+                }
+              }}
             />
           </div>
 
@@ -389,6 +422,9 @@ export default function Layout() {
           onClick={() => setMobileOpen(false)}
         />
       )}
+
+      {/* AI Operations Intelligence Assistant (every admin screen) */}
+      {hasPermission('DASHBOARD_VIEW') && <AiAssistant />}
     </div>
   );
 }

@@ -1,121 +1,275 @@
-import { useEffect, useState } from 'react';
-import api from '../api';
+/**
+ * ReportsPage — AI Smart Reports.
+ *
+ * Six report types (Revenue, Driver Performance, Passenger Activity,
+ * Payments, Ride Analytics, Complaints) with period selection and
+ * one-click export to Excel (CSV) or PDF.
+ */
 
-interface ReportData {
-  reportType: string;
+import { useState, useCallback, useEffect } from 'react';
+import api from '../api';
+import '../styles/AiIntelligence.css';
+
+/* ── Types ────────────────────────────────────────────────────── */
+
+interface SmartReport {
+  type: string;
+  title: string;
   period: string;
-  totalRides: number;
-  completedRides: number;
-  cancelledRides: number;
-  totalRevenue: number;
-  totalDriverEarnings: number;
-  totalPlatformCommission: number;
-  averageFare: number;
-  averageRating: number;
+  generatedAt: string;
+  summary: Record<string, string>;
+  columns: string[];
+  rows: string[][];
+  insights: string[];
 }
 
-type ReportType = 'daily' | 'weekly' | 'monthly';
+const REPORT_TYPES: { key: string; label: string; icon: string }[] = [
+  { key: 'REVENUE', label: 'Revenue', icon: '💰' },
+  { key: 'DRIVER_PERFORMANCE', label: 'Driver Performance', icon: '🚖' },
+  { key: 'PASSENGER_ACTIVITY', label: 'Passenger Activity', icon: '👥' },
+  { key: 'PAYMENTS', label: 'Payments', icon: '💳' },
+  { key: 'RIDE_ANALYTICS', label: 'Ride Analytics', icon: '🚕' },
+  { key: 'COMPLAINTS', label: 'Complaints', icon: '🎫' },
+];
+
+const RANGES: { label: string; days: number }[] = [
+  { label: '7 days', days: 7 },
+  { label: '30 days', days: 30 },
+  { label: '90 days', days: 90 },
+];
+
+function dateStr(offsetDays: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return d.toISOString().slice(0, 10);
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ── Component ────────────────────────────────────────────────── */
 
 export default function ReportsPage() {
-  const [report, setReport] = useState<ReportData | null>(null);
+  const [type, setType] = useState('REVENUE');
+  const [rangeDays, setRangeDays] = useState(30);
+  const [from, setFrom] = useState(dateStr(-30));
+  const [to, setTo] = useState(dateStr(0));
+  const [report, setReport] = useState<SmartReport | null>(null);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<ReportType>('daily');
-  const [dateParam, setDateParam] = useState('');
 
-  const fetchReport = async (type: ReportType) => {
+  const pickRange = (days: number) => {
+    setRangeDays(days);
+    setFrom(dateStr(-days));
+    setTo(dateStr(0));
+  };
+
+  const fetchReport = useCallback(async (t: string, f: string, tt: string) => {
     setLoading(true);
-    setActiveTab(type);
     setError(null);
     try {
-      let url = `/reports/${type}`;
-      if (dateParam) url += `?${type === 'daily' ? 'date' : type === 'monthly' ? 'month' : 'startDate'}=${dateParam}`;
-      const res = await api.get(url);
+      const res = await api.get<SmartReport>('/reports/smart', {
+        params: { type: t, from: f, to: tt },
+      });
       setReport(res.data);
     } catch (err: any) {
-      setReport(null);
-      setError(err?.response?.data?.message || 'Failed to load report data.');
-    } finally { setLoading(false); }
+      setError(err?.response?.data?.message || err?.message || 'Failed to generate report.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchReport(type, from, to);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleGenerate = () => fetchReport(type, from, to);
+
+  const handleExport = async (format: 'excel' | 'pdf') => {
+    setExporting(true);
+    try {
+      const res = await api.get('/reports/smart/export', {
+        params: { type, from, to, format },
+        responseType: 'blob',
+      });
+      const blob = res.data as Blob;
+      const ext = format === 'pdf' ? 'pdf' : 'csv';
+      const mime = format === 'pdf' ? 'application/pdf' : 'text/csv';
+      const fixed = new Blob([blob], { type: mime });
+      downloadBlob(fixed, `smart-report-${type.toLowerCase()}-${dateStr(0)}.${ext}`);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Export failed.');
+    } finally {
+      setExporting(false);
+    }
   };
 
-  useEffect(() => { fetchReport('daily'); }, []);
-
-  const handleExport = () => {
-    if (!report) return;
-    const csv = [
-      'Metric,Value',
-      `Report Type,${report.reportType}`,
-      `Period,${report.period}`,
-      `Total Rides,${report.totalRides}`,
-      `Completed Rides,${report.completedRides}`,
-      `Cancelled Rides,${report.cancelledRides}`,
-      `Total Revenue,\u20B9${report.totalRevenue}`,
-      `Average Fare,\u20B9${report.averageFare}`,
-      `Average Rating,${report.averageRating}`,
-    ].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `report-${report.reportType}-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const typeMeta = REPORT_TYPES.find((t) => t.key === type) || REPORT_TYPES[0];
 
   return (
-    <div>
-      <h1 style={{ marginBottom: 24, fontSize: 24 }}>Reports & Analytics</h1>
-
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {(['daily', 'weekly', 'monthly'] as ReportType[]).map(t => (
-          <button key={t} onClick={() => fetchReport(t)}
-            style={{ padding: '8px 20px', borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: 'pointer', border: 'none',
-              background: activeTab === t ? '#1E88E5' : '#E0E0E0', color: activeTab === t ? '#fff' : '#616161' }}>
-            {t.charAt(0).toUpperCase() + t.slice(1)} Report
-          </button>
-        ))}
-        <input type={activeTab === 'daily' ? 'date' : activeTab === 'monthly' ? 'month' : 'date'}
-          value={dateParam} onChange={(e) => setDateParam(e.target.value)}
-          style={{ padding: '6px 12px', border: '1px solid #ddd', borderRadius: 6, marginLeft: 8 }} />
-        <button onClick={() => fetchReport(activeTab)} style={{ padding: '8px 16px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>Generate</button>
-        <button onClick={handleExport} disabled={!report} style={{ padding: '8px 16px', background: report ? '#4CAF50' : '#E0E0E0', color: '#fff', border: 'none', borderRadius: 6, cursor: report ? 'pointer' : 'default' }}>Export CSV</button>
+    <div className="ai">
+      {/* ── Header ──────────────────────────────────────── */}
+      <div className="ai-header">
+        <div className="ai-header__left">
+          <div className="ai-header__title-row">
+            <h1>AI Smart Reports</h1>
+            <span className="ai-badge"><span className="ai-badge__dot" /> INSTANT</span>
+          </div>
+          <p style={{ margin: '6px 0 0', color: '#64748B', fontSize: 13 }}>
+            Generate any report in one click and export to Excel or PDF
+          </p>
+        </div>
       </div>
 
-      {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
-          <p style={{ color: '#757575', fontSize: 14 }}>Generating report...</p>
+      {/* ── Controls ────────────────────────────────────── */}
+      <div className="ai-panel">
+        <div className="ai-section__label" style={{ marginBottom: 10 }}>
+          <span className="ai-section__label-icon">📄</span> Report Type
         </div>
-      ) : error ? (
-        <div style={{ textAlign: 'center', padding: 40 }}>
-          <p style={{ color: '#F44336', fontSize: 14, marginBottom: 12 }}>{error}</p>
-          <button onClick={() => fetchReport(activeTab)} style={{ padding: '8px 20px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>Retry</button>
+        <div className="ai-tabs" style={{ flexWrap: 'wrap', marginBottom: 16 }}>
+          {REPORT_TYPES.map((t) => (
+            <button
+              key={t.key}
+              className={`ai-tabs__btn${type === t.key ? ' ai-tabs__btn--active' : ''}`}
+              onClick={() => setType(t.key)}
+            >
+              {t.icon} {t.label}
+            </button>
+          ))}
         </div>
-      ) : report ? (
+
+        <div className="ai-section__label" style={{ marginBottom: 10 }}>
+          <span className="ai-section__label-icon">🗓️</span> Period
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="ai-tabs">
+            {RANGES.map((r) => (
+              <button
+                key={r.days}
+                className={`ai-tabs__btn${rangeDays === r.days ? ' ai-tabs__btn--active' : ''}`}
+                onClick={() => pickRange(r.days)}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+          <input
+            type="date"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            style={{ padding: '7px 12px', border: '1px solid #E2E8F0', borderRadius: 9, fontSize: 13 }}
+          />
+          <span style={{ color: '#64748B', fontSize: 13 }}>→</span>
+          <input
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            style={{ padding: '7px 12px', border: '1px solid #E2E8F0', borderRadius: 9, fontSize: 13 }}
+          />
+          <button className="ai-error__retry" onClick={handleGenerate} disabled={loading}>
+            Generate
+          </button>
+          <button
+            className="ai-header__refresh"
+            onClick={() => handleExport('excel')}
+            disabled={exporting || !report}
+          >
+            📊 Export Excel
+          </button>
+          <button
+            className="ai-header__refresh"
+            onClick={() => handleExport('pdf')}
+            disabled={exporting || !report}
+          >
+            📄 Export PDF
+          </button>
+        </div>
+      </div>
+
+      {/* ── Loading ─────────────────────────────────────── */}
+      {loading && (
+        <div className="ai-loading" style={{ minHeight: 220 }}>
+          <div className="ai-loading__spinner" />
+          <p className="ai-loading__text">Generating {typeMeta.label} report…</p>
+        </div>
+      )}
+
+      {/* ── Error ───────────────────────────────────────── */}
+      {error && !loading && (
+        <div className="ai-error">
+          <div className="ai-error__icon">⚠️</div>
+          <h3 className="ai-error__title">Report failed</h3>
+          <p className="ai-error__msg">{error}</p>
+          <button className="ai-error__retry" onClick={handleGenerate}>Retry</button>
+        </div>
+      )}
+
+      {/* ── Report ──────────────────────────────────────── */}
+      {report && !loading && (
         <>
-          <p style={{ color: '#757575', marginBottom: 16 }}>Period: {report.period}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
-            <ReportCard label="Total Rides" value={String(report.totalRides)} icon="&#x1F697;" />
-            <ReportCard label="Completed" value={String(report.completedRides)} icon="&#x2705;" />
-            <ReportCard label="Cancelled" value={String(report.cancelledRides)} icon="&#x274C;" />
-            <ReportCard label="Revenue" value={`\u20B9${report.totalRevenue.toLocaleString()}`} icon="&#x1F4B0;" />
-            <ReportCard label="Average Fare" value={`\u20B9${report.averageFare.toFixed(0)}`} icon="&#x1F4CA;" />
-            <ReportCard label="Avg Rating" value={report.averageRating.toFixed(1)} icon="&#x2B50;" />
-            <ReportCard label="Cancellation Rate" value={report.totalRides > 0 ? `${((report.cancelledRides / report.totalRides) * 100).toFixed(1)}%` : '0%'} icon="&#x1F4C9;" />
+          <div className="ai-section">
+            <div className="ai-section__label">
+              <span className="ai-section__label-icon">{typeMeta.icon}</span> {report.title}
+              <span className="ai-header__time"> {report.period} · generated {report.generatedAt}</span>
+            </div>
+
+            <div className="ai-grid">
+              {Object.entries(report.summary).map(([k, v]) => (
+                <div className="ai-card" key={k}>
+                  <div className="ai-card__label">{k}</div>
+                  <div className="ai-card__value" style={{ fontSize: 20 }}>{v}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="ai-section">
+            <div className="ai-section__label">
+              <span className="ai-section__label-icon">📊</span> Details
+            </div>
+            <div className="ai-table-wrap">
+              <table className="ai-table">
+                <thead>
+                  <tr>
+                    {report.columns.map((c) => <th key={c}>{c}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {report.rows.map((row, idx) => (
+                    <tr key={idx}>
+                      {row.map((cell, ci) => (
+                        <td key={ci} className={ci === 0 ? 'ai-table__cell-main' : ''}>{cell}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="ai-section">
+            <div className="ai-section__label">
+              <span className="ai-section__label-icon">🧠</span> AI Insights
+            </div>
+            <div className="ai-grid">
+              {report.insights.map((insight) => (
+                <div className="ai-insight" key={insight}>
+                  <span className="ai-insight__icon">💡</span>
+                  <div className="ai-insight__msg">{insight}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </>
-      ) : (
-        <p style={{ color: '#757575' }}>Select a report type and click Generate.</p>
       )}
-    </div>
-  );
-}
-
-function ReportCard({ label, value, icon }: { label: string; value: string; icon: string }) {
-  return (
-    <div style={{ background: '#fff', borderRadius: 10, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', textAlign: 'center' }}>
-      <p style={{ fontSize: 32, marginBottom: 8 }}>{icon}</p>
-      <p style={{ fontSize: 13, color: '#757575', marginBottom: 4 }}>{label}</p>
-      <p style={{ fontSize: 24, fontWeight: 700, color: '#333' }}>{value}</p>
     </div>
   );
 }
