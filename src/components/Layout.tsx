@@ -6,7 +6,7 @@
  */
 
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { hasPermission, getAdminRole, type Permission } from '../utils/adminPermissions';
 import api from '../api';
 import AiAssistant from './AiAssistant/AiAssistant';
@@ -157,6 +157,7 @@ export default function Layout() {
   const [now, setNow] = useState(new Date());
   const [fraudCount, setFraudCount] = useState(0);
   const [searchInput, setSearchInput] = useState('');
+  const fraudFetchingRef = useRef(false);
 
   useEffect(() => {
     const name = localStorage.getItem('admin_name');
@@ -171,11 +172,15 @@ export default function Layout() {
 
   useEffect(() => {
     const fetchFraudCount = async () => {
+      if (fraudFetchingRef.current) return;
+      fraudFetchingRef.current = true;
       try {
         const res = await api.get<{ unresolvedFlags: number }>('/api/v1/admin/fraud/stats');
         setFraudCount(res.data.unresolvedFlags || 0);
       } catch {
         // silent
+      } finally {
+        fraudFetchingRef.current = false;
       }
     };
     fetchFraudCount();

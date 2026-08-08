@@ -61,11 +61,14 @@ export default function AiAssistant() {
   const [query, setQuery] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const inFlightRef = useRef(false);
 
   const can = (permission?: string | null) =>
     !permission || hasPermission(permission as Parameters<typeof hasPermission>[0]);
 
   const fetchBriefing = async () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     try {
       const res = await api.get<Briefing>('/assistant/briefing');
       setBriefing(res.data);
@@ -73,6 +76,7 @@ export default function AiAssistant() {
       // silent — widget stays collapsed/empty rather than breaking the shell
     } finally {
       setLoading(false);
+      inFlightRef.current = false;
     }
   };
 

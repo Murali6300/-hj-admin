@@ -914,11 +914,24 @@ function TrackingModal({ driver, onClose }: { driver: DriverListResponse; onClos
   }, [location]);
 
   useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      @import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
-    `;
-    document.head.appendChild(style);
+    return () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const map: any = mapObjRef.current;
+      if (map && typeof map.remove === 'function') map.remove();
+      mapObjRef.current = null;
+      markerObjRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!document.getElementById('leaflet-css')) {
+      const style = document.createElement('style');
+      style.id = 'leaflet-css';
+      style.textContent = `
+        @import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+      `;
+      document.head.appendChild(style);
+    }
     if (!(window as unknown as Record<string, unknown>).L) {
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';

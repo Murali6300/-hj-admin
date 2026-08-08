@@ -16,7 +16,7 @@
  *   - Fully responsive
  */
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
 import '../styles/LoginPage.css';
@@ -93,6 +93,16 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+  const [slowWarning, setSlowWarning] = useState(false);
+
+  useEffect(() => {
+    if (!loading) {
+      setSlowWarning(false);
+      return;
+    }
+    const t = setTimeout(() => setSlowWarning(true), 12_000);
+    return () => clearTimeout(t);
+  }, [loading]);
 
   const validate = () => {
     const errors: { email?: string; password?: string } = {};
@@ -140,6 +150,8 @@ export default function LoginPage() {
         setError(serverMsg || 'Account is locked. Try again later.');
       } else if (status === 500) {
         setError('Server error. The backend may be starting up - please try again in 30 seconds.');
+      } else if (err?.code === 'ECONNABORTED') {
+        setError('Login request timed out. The backend may be cold-starting - please try again.');
       } else if (!err?.response) {
         setError('Cannot reach the server. Check if the backend is running.');
       } else {
@@ -340,6 +352,11 @@ export default function LoginPage() {
                 </>
               )}
             </button>
+            {slowWarning && (
+              <p className="login-slow-hint">
+                Backend is warming up (free-tier cold start). First login after inactivity can take up to a minute.
+              </p>
+            )}
           </form>
 
           {/* Footer */}

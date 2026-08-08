@@ -811,6 +811,18 @@
   margin-top: 1px;
 }
 
+.login-slow-hint {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1D4ED8;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  animation: slideUp 0.3s ease-out;
+}
+
 /* ── Footer ─────────────────────────────────────────────────────── */
 
 .login-footer {

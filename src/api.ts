@@ -6,7 +6,7 @@ const baseURL = import.meta.env.PROD
   ? `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin`
   : '/api/v1/admin';
 
-const api = axios.create({ baseURL });
+const api = axios.create({ baseURL, timeout: 60_000 });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('admin_token');
@@ -32,7 +32,7 @@ api.interceptors.response.use(
           const refreshBaseURL = import.meta.env.PROD
             ? import.meta.env.VITE_API_BASE_URL
             : '';
-          const res = await axios.post(`${refreshBaseURL}/api/v1/auth/refresh`, { refreshToken });
+          const res = await axios.post(`${refreshBaseURL}/api/v1/auth/refresh`, { refreshToken }, { timeout: 60_000 });
           const newToken = res.data?.accessToken;
           if (newToken) {
             localStorage.setItem('admin_token', newToken);
