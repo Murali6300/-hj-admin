@@ -48,7 +48,7 @@ export default function SupportTicketsPage() {
 
   const handleAssign = async (id: number) => {
     if (!confirm('Assign this ticket to yourself?')) return;
-    await api.put(`/support/${id}/assign?adminId=1`);
+    await api.put(`/support/${id}/assign`);
     fetchTickets();
   };
 

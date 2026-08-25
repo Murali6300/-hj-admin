@@ -37,7 +37,7 @@ export default function NotificationsPage() {
     if (!title.trim() || !body.trim()) { alert('Title and message are required'); return; }
     if (!confirm(`Send ${targetType} notification to ${targetRole === 'ALL' ? 'all users' : targetRole}?`)) return;
     try {
-      await api.post('/notifications?adminId=1', { title, body, targetRole, targetType });
+      await api.post('/notifications', { title, body, targetRole, targetType });
       alert('Notification sent successfully!');
       setTitle('');
       setBody('');

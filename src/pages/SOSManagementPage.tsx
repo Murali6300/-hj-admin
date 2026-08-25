@@ -50,14 +50,14 @@ export default function SOSManagementPage() {
 
   const handleAcknowledge = async (id: number) => {
     if (!confirm('Acknowledge this emergency alert? This marks it as reviewed.')) return;
-    await api.put(`/sos/${id}/acknowledge?adminId=1`);
+    await api.put(`/sos/${id}/acknowledge`);
     fetchAlerts();
     fetchActiveCount();
   };
 
   const handleResolve = async (id: number) => {
     if (!confirm('Mark this emergency as resolved?')) return;
-    await api.put(`/sos/${id}/resolve?adminId=1&notes=${encodeURIComponent(resolveNotes[id] || 'Resolved by admin')}`);
+    await api.put(`/sos/${id}/resolve`, null, { params: { notes: resolveNotes[id] || 'Resolved by admin' } });
     fetchAlerts();
     fetchActiveCount();
   };

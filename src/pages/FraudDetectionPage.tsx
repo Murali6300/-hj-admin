@@ -60,8 +60,8 @@ export default function FraudDetectionPage() {
   const fetchData = useCallback(async () => {
     try {
       const [flagsRes, statsRes] = await Promise.all([
-        api.get<FraudFlag[]>('/api/v1/admin/fraud/flags'),
-        api.get<FraudStats>('/api/v1/admin/fraud/stats'),
+        api.get<FraudFlag[]>('/fraud/flags'),
+        api.get<FraudStats>('/fraud/stats'),
       ]);
       setFlags(flagsRes.data);
       setStats(statsRes.data);
@@ -80,7 +80,7 @@ export default function FraudDetectionPage() {
     if (!resolveModalFlag) return;
     setResolving(true);
     try {
-      await api.put(`/api/v1/admin/fraud/flags/${resolveModalFlag.id}/resolve`, {
+      await api.put(`/fraud/flags/${resolveModalFlag.id}/resolve`, {
         resolvedBy: 'admin',
         notes: resolveNotes,
       });

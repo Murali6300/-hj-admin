@@ -175,7 +175,7 @@ export default function Layout() {
       if (fraudFetchingRef.current) return;
       fraudFetchingRef.current = true;
       try {
-        const res = await api.get<{ unresolvedFlags: number }>('/api/v1/admin/fraud/stats');
+        const res = await api.get<{ unresolvedFlags: number }>('/fraud/stats');
         setFraudCount(res.data.unresolvedFlags || 0);
       } catch {
         // silent
