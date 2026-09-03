@@ -150,9 +150,9 @@ export default function VehiclesPage() {
 
   const handleSave = async () => {
     if (!form.displayName.trim()) { setFormError('Display name is required'); return; }
-    if (!form.baseFare || Number(form.baseFare) < 0) { setFormError('Base fare must be >= 0'); return; }
-    if (!form.perKmRate || Number(form.perKmRate) < 0) { setFormError('Per km rate must be >= 0'); return; }
-    if (!form.perMinRate || Number(form.perMinRate) < 0) { setFormError('Per min rate must be >= 0'); return; }
+    if (form.baseFare === '' || Number.isNaN(Number(form.baseFare)) || Number(form.baseFare) < 0) { setFormError('Base fare must be a valid number >= 0'); return; }
+    if (form.perKmRate === '' || Number.isNaN(Number(form.perKmRate)) || Number(form.perKmRate) < 0) { setFormError('Per km rate must be a valid number >= 0'); return; }
+    if (form.perMinRate === '' || Number.isNaN(Number(form.perMinRate)) || Number(form.perMinRate) < 0) { setFormError('Per min rate must be a valid number >= 0'); return; }
     if (!confirm(editingVehicle ? `Update vehicle type "${form.displayName}"?` : `Create new vehicle type "${form.displayName}"?`)) return;
 
     setActionLoading(editingVehicle?.id ?? -1);
@@ -296,10 +296,10 @@ export default function VehiclesPage() {
                     {v.description || '-'}
                   </td>
                   <td style={tdStyle}>
-                    <span style={{ fontWeight: 600 }}>₹{v.baseFare.toFixed(0)}</span>
+                    <span style={{ fontWeight: 600 }}>₹{v.baseFare.toFixed(2)}</span>
                   </td>
-                  <td style={tdStyle}>₹{v.perKmRate.toFixed(1)}</td>
-                  <td style={tdStyle}>₹{v.perMinRate.toFixed(1)}</td>
+                  <td style={tdStyle}>₹{v.perKmRate.toFixed(2)}</td>
+                  <td style={tdStyle}>₹{v.perMinRate.toFixed(2)}</td>
                   <td style={tdStyle}>
                     <span style={{ fontWeight: 600 }}>👥 {v.capacity ?? 4}</span>
                   </td>

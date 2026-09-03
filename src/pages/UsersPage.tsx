@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import api from '../api';
+import PermissionGate from '../components/PermissionGate';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -163,6 +164,18 @@ export default function UsersPage() {
     fetchUsers();
   };
 
+  const handleApproveReactivation = async (id: number) => {
+    if (!confirm('Approve reactivation? The account will be set to ACTIVE and the user can log in again.')) return;
+    await api.put(`/users/${id}/reactivation/approve`);
+    fetchUsers();
+  };
+
+  const handleRejectReactivation = async (id: number) => {
+    if (!confirm('Reject reactivation request? The account stays deactivated.')) return;
+    await api.put(`/users/${id}/reactivation/reject`);
+    fetchUsers();
+  };
+
   const handleResetPassword = async (id: number) => {
     if (!confirm('Reset this user password to default (HJ@12345)?')) return;
     const res = await api.put(`/users/${id}/reset-password`);
@@ -170,7 +183,7 @@ export default function UsersPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('PERMANENTLY delete this user? This cannot be undone.')) return;
+    if (!confirm('Deactivate this user? They will be blocked from logging in, but their history is preserved and they can be reactivated later.')) return;
     await api.delete(`/users/${id}`);
     fetchUsers();
   };
@@ -182,10 +195,18 @@ export default function UsersPage() {
 
   const handleEditSave = async () => {
     if (!editUser) return;
+    if (!editForm.name.trim()) { alert('Name is required'); return; }
+    if (editForm.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email.trim())) {
+      alert('Please enter a valid email address'); return;
+    }
     if (!confirm(`Save changes to "${editUser.name}"?`)) return;
     setEditSaving(true);
     try {
-      await api.put(`/users/${editUser.id}`, editForm);
+      await api.put(`/users/${editUser.id}`, {
+        name: editForm.name.trim(),
+        email: editForm.email.trim(),
+        phoneNumber: editForm.phoneNumber.trim(),
+      });
       setEditUser(null);
       fetchUsers();
       if (detailUser?.userInfo.id === editUser.id) {
@@ -238,6 +259,7 @@ export default function UsersPage() {
           <option value="SUSPENDED">Suspended</option>
           <option value="LOCKED">Locked</option>
           <option value="DEACTIVATED">Deactivated</option>
+          <option value="REACTIVATION_REQUESTED">Reactivation Requested</option>
         </select>
         <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(0); }}
           style={inputStyle}>
@@ -310,27 +332,41 @@ export default function UsersPage() {
                     <button onClick={() => handleViewDetail(user.id)} style={btnSmall('#1E88E5')} disabled={detailLoading}>
                       View
                     </button>
-                    <button onClick={() => handleEdit(user)} style={btnSmall('#FF9800')}>Edit</button>
-                    {user.accountStatus === 'ACTIVE' ? (
-                      <button onClick={() => handleSuspend(user.id)} style={btnSmall('#F44336')}>Suspend</button>
-                    ) : (
-                      <button onClick={() => handleActivate(user.id)} style={btnSmall('#4CAF50')}>Activate</button>
-                    )}
-                    <button onClick={() => handleResetPassword(user.id)} style={btnSmall('#9C27B0')}>Reset PW</button>
-                    <button onClick={() => handleDelete(user.id)} style={btnSmall('#B71C1C')}>Delete</button>
+                    <PermissionGate permission="USERS_UPDATE">
+                      {user.accountStatus === 'REACTIVATION_REQUESTED' && (
+                        <>
+                          <button onClick={() => handleApproveReactivation(user.id)} style={btnSmall('#4CAF50')}>Approve Reactivation</button>
+                          <button onClick={() => handleRejectReactivation(user.id)} style={btnSmall('#F44336')}>Reject</button>
+                        </>
+                      )}
+                      <button onClick={() => handleEdit(user)} style={btnSmall('#FF9800')}>Edit</button>
+                      {user.accountStatus === 'ACTIVE' ? (
+                        <button onClick={() => handleSuspend(user.id)} style={btnSmall('#F44336')}>Suspend</button>
+                      ) : (
+                        <button onClick={() => handleActivate(user.id)} style={btnSmall('#4CAF50')}>Activate</button>
+                      )}
+                      <button onClick={() => handleResetPassword(user.id)} style={btnSmall('#9C27B0')}>Reset PW</button>
+                    </PermissionGate>
+                    <PermissionGate permission="USERS_DELETE">
+                      <button onClick={() => handleDelete(user.id)} style={btnSmall('#B71C1C')}>Delete</button>
+                    </PermissionGate>
                     {user.flaggedForReview && (
-                      <button onClick={async () => {
-                        if (!confirm(`Clear restriction for "${user.name}"? This will allow cash payments again.`)) return;
-                        await api.put(`/users/${user.id}/clear-restriction`, { notes: 'Cleared by admin from user list' });
-                        fetchUsers();
-                      }} style={btnSmall('#4CAF50')}>Clear Flag</button>
+                      <PermissionGate permission="USERS_UPDATE">
+                        <button onClick={async () => {
+                          if (!confirm(`Clear restriction for "${user.name}"? This will allow cash payments again.`)) return;
+                          await api.put(`/users/${user.id}/clear-restriction`, { notes: 'Cleared by admin from user list' });
+                          fetchUsers();
+                        }} style={btnSmall('#4CAF50')}>Clear Flag</button>
+                      </PermissionGate>
                     )}
                     {user.outstandingBalance > 0 && (
-                      <button onClick={async () => {
-                        if (!confirm(`Clear ₹${user.outstandingBalance.toFixed(0)} outstanding balance for "${user.name}"? This will allow them to book rides again.`)) return;
-                        await api.put(`/users/${user.id}/clear-outstanding`, { notes: 'Outstanding cleared by admin' });
-                        fetchUsers();
-                      }} style={btnSmall('#E91E63')}>Clear Outstanding</button>
+                      <PermissionGate permission="USERS_UPDATE">
+                        <button onClick={async () => {
+                          if (!confirm(`Clear ₹${user.outstandingBalance.toFixed(0)} outstanding balance for "${user.name}"? This will allow them to book rides again.`)) return;
+                          await api.put(`/users/${user.id}/clear-outstanding`, { notes: 'Outstanding cleared by admin' });
+                          fetchUsers();
+                        }} style={btnSmall('#E91E63')}>Clear Outstanding</button>
+                      </PermissionGate>
                     )}
                   </div>
                 </td>
@@ -534,12 +570,14 @@ export default function UsersPage() {
                 {/* Detail Actions */}
                 <div style={{ display: 'flex', gap: 8, marginTop: 16, borderTop: '1px solid #E0E0E0', paddingTop: 16 }}>
                   <button onClick={() => { setDetailUser(null); handleEdit(detailUser.userInfo); }} style={btnSmall('#FF9800')}>Edit User</button>
-                  {detailUser.userInfo.accountStatus === 'ACTIVE' ? (
-                    <button onClick={() => { handleSuspend(detailUser.userInfo.id); setDetailUser(null); }} style={btnSmall('#F44336')}>Suspend</button>
-                  ) : (
-                    <button onClick={() => { handleActivate(detailUser.userInfo.id); setDetailUser(null); }} style={btnSmall('#4CAF50')}>Activate</button>
-                  )}
-                  <button onClick={() => { handleResetPassword(detailUser.userInfo.id); }} style={btnSmall('#9C27B0')}>Reset Password</button>
+                  <PermissionGate permission="USERS_UPDATE">
+                    {detailUser.userInfo.accountStatus === 'ACTIVE' ? (
+                      <button onClick={() => { handleSuspend(detailUser.userInfo.id); setDetailUser(null); }} style={btnSmall('#F44336')}>Suspend</button>
+                    ) : (
+                      <button onClick={() => { handleActivate(detailUser.userInfo.id); setDetailUser(null); }} style={btnSmall('#4CAF50')}>Activate</button>
+                    )}
+                    <button onClick={() => { handleResetPassword(detailUser.userInfo.id); }} style={btnSmall('#9C27B0')}>Reset Password</button>
+                  </PermissionGate>
                   <button onClick={() => setDetailUser(null)} style={{ marginLeft: 'auto', ...btnSmall('#9E9E9E') }}>Close</button>
                 </div>
               </>
@@ -591,6 +629,7 @@ function getStatusBadge(status: string) {
     SUSPENDED: { bg: '#FFEBEE', fg: '#C62828' },
     LOCKED: { bg: '#FFF3E0', fg: '#E65100' },
     DEACTIVATED: { bg: '#F5F5F5', fg: '#757575' },
+    REACTIVATION_REQUESTED: { bg: '#FFF8E1', fg: '#F57F17' },
     PENDING_VERIFICATION: { bg: '#E3F2FD', fg: '#1565C0' },
     COMPLETED: { bg: '#E8F5E9', fg: '#2E7D32' },
     CANCELLED: { bg: '#FFEBEE', fg: '#C62828' },

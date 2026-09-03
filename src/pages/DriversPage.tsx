@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import api from '../api';
 import { getVehicleIcon, getVehicleColor } from '../utils/vehicleIcons';
+import PermissionGate from '../components/PermissionGate';
 
 function getDocumentUrl(url: string): string {
   if (!url) return url;
@@ -197,6 +198,28 @@ export default function DriversPage() {
     fetchDrivers();
   };
 
+  const handleApproveReactivation = async (id: number) => {
+    if (!confirm('Approve reactivation? The account will be set to ACTIVE and the driver can log in again.')) return;
+    try {
+      await api.put(`/drivers/${id}/reactivation/approve`);
+      setDetail(null);
+      fetchDrivers();
+    } catch (err: unknown) {
+      alert((err as any)?.response?.data?.message || 'Approve failed');
+    }
+  };
+
+  const handleRejectReactivation = async (id: number) => {
+    if (!confirm('Reject reactivation request? The account stays deactivated.')) return;
+    try {
+      await api.put(`/drivers/${id}/reactivation/reject`);
+      setDetail(null);
+      fetchDrivers();
+    } catch (err: unknown) {
+      alert((err as any)?.response?.data?.message || 'Reject failed');
+    }
+  };
+
   const handleApprove = (driver: DriverListResponse) => {
     setApproveTarget(driver);
   };
@@ -269,16 +292,26 @@ export default function DriversPage() {
       phoneNumber: driver.phoneNumber,
       vehicleBrand: driver.vehicleBrand || '',
       vehicleModel: driver.vehicleModel || '',
-      vehicleColor: '',
+      vehicleColor: driver.vehicleColor || '',
     });
   };
 
   const handleEditSave = async () => {
     if (!editDriver) return;
+    if (!editForm.name.trim()) { alert('Name is required'); return; }
+    if (!editForm.phoneNumber.trim()) { alert('Phone number is required'); return; }
     if (!confirm(`Save changes to "${editDriver.name}"?`)) return;
     setEditSaving(true);
     try {
-      await api.put(`/drivers/${editDriver.id}`, editForm);
+      // Only send fields with a value; blank vehicle fields must not overwrite existing data.
+      const payload = {
+        name: editForm.name.trim(),
+        phoneNumber: editForm.phoneNumber.trim(),
+        vehicleBrand: editForm.vehicleBrand.trim() || null,
+        vehicleModel: editForm.vehicleModel.trim() || null,
+        vehicleColor: editForm.vehicleColor.trim() || null,
+      };
+      await api.put(`/drivers/${editDriver.id}`, payload);
       setEditDriver(null);
       fetchDrivers();
       if (detail?.driverInfo.id === editDriver.id) handleViewDetail(editDriver.id);
@@ -341,6 +374,8 @@ export default function DriversPage() {
           <option value="DOCUMENTS_UNDER_REVIEW">Documents Under Review</option>
           <option value="REJECTED">Rejected</option>
           <option value="LOCKED">Locked</option>
+          <option value="DEACTIVATED">Deactivated</option>
+          <option value="REACTIVATION_REQUESTED">Reactivation Requested</option>
         </select>
         <select value={filterVehicle} onChange={(e) => setFilterVehicle(e.target.value)} style={inputStyle}>
           <option value="ALL">All Vehicles</option>
@@ -406,14 +441,24 @@ export default function DriversPage() {
                 <td style={tdStyle}>
                   <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                     <button onClick={() => handleViewDetail(d.id)} style={btnSmall('#1E88E5')} disabled={detailLoading}>View</button>
-                    <button onClick={() => handleEdit(d)} style={btnSmall('#FF9800')}>Edit</button>
-                    {d.accountStatus === 'ACTIVE' ? (
-                      <button onClick={() => handleSuspend(d)} style={btnSmall('#F44336')}>Suspend</button>
-                    ) : (
-                      <button onClick={() => handleActivate(d.id)} style={btnSmall('#4CAF50')}>Activate</button>
-                    )}
-                    <button onClick={() => handleResetPassword(d)} style={btnSmall('#9C27B0')}>Reset Pwd</button>
-                    <button onClick={() => handleDelete(d)} style={btnSmall('#B71C1C')}>Delete</button>
+                    <PermissionGate permission="DRIVERS_UPDATE">
+                      {d.accountStatus === 'REACTIVATION_REQUESTED' && (
+                        <>
+                          <button onClick={() => handleApproveReactivation(d.id)} style={btnSmall('#4CAF50')}>Approve Reactivation</button>
+                          <button onClick={() => handleRejectReactivation(d.id)} style={btnSmall('#F44336')}>Reject</button>
+                        </>
+                      )}
+                      <button onClick={() => handleEdit(d)} style={btnSmall('#FF9800')}>Edit</button>
+                      {d.accountStatus === 'ACTIVE' ? (
+                        <button onClick={() => handleSuspend(d)} style={btnSmall('#F44336')}>Suspend</button>
+                      ) : (
+                        <button onClick={() => handleActivate(d.id)} style={btnSmall('#4CAF50')}>Activate</button>
+                      )}
+                      <button onClick={() => handleResetPassword(d)} style={btnSmall('#9C27B0')}>Reset Pwd</button>
+                    </PermissionGate>
+                    <PermissionGate permission="DRIVERS_DELETE">
+                      <button onClick={() => handleDelete(d)} style={btnSmall('#B71C1C')}>Delete</button>
+                    </PermissionGate>
                     <button onClick={() => handleTrack(d)} style={btnSmall('#00BCD4')}>Track</button>
                   </div>
                 </td>
@@ -615,16 +660,24 @@ export default function DriversPage() {
 
                 {/* Detail Actions */}
                 <div style={{ display: 'flex', gap: 8, marginTop: 16, borderTop: '1px solid #E0E0E0', paddingTop: 16 }}>
-                  <button onClick={() => { setDetail(null); handleEdit(detail.driverInfo); }} style={btnSmall('#FF9800')}>Edit</button>
-                  {detail.driverInfo.accountStatus === 'ACTIVE' ? (
-                    <button onClick={() => { handleSuspend(detail.driverInfo); }} style={btnSmall('#F44336')}>Suspend</button>
-                  ) : (
-                    <button onClick={() => { handleActivate(detail.driverInfo.id); setDetail(null); }} style={btnSmall('#4CAF50')}>Activate</button>
-                  )}
-                  <button onClick={() => handleApprove(detail.driverInfo)} style={btnSmall('#4CAF50')}>Approve</button>
-                  <button onClick={() => handleReject(detail.driverInfo)} style={btnSmall('#F44336')}>Reject</button>
-                  <button onClick={() => handleResetPassword(detail.driverInfo)} style={btnSmall('#9C27B0')}>Reset Password</button>
-                  <button onClick={() => handleDelete(detail.driverInfo)} style={btnSmall('#B71C1C')}>Delete</button>
+                  <PermissionGate permission="DRIVERS_UPDATE">
+                    <button onClick={() => { setDetail(null); handleEdit(detail.driverInfo); }} style={btnSmall('#FF9800')}>Edit</button>
+                    {detail.driverInfo.accountStatus === 'ACTIVE' ? (
+                      <button onClick={() => { handleSuspend(detail.driverInfo); }} style={btnSmall('#F44336')}>Suspend</button>
+                    ) : (
+                      <button onClick={() => { handleActivate(detail.driverInfo.id); setDetail(null); }} style={btnSmall('#4CAF50')}>Activate</button>
+                    )}
+                  </PermissionGate>
+                  <PermissionGate permission="DRIVERS_APPROVE">
+                    <button onClick={() => handleApprove(detail.driverInfo)} style={btnSmall('#4CAF50')}>Approve</button>
+                    <button onClick={() => handleReject(detail.driverInfo)} style={btnSmall('#F44336')}>Reject</button>
+                  </PermissionGate>
+                  <PermissionGate permission="DRIVERS_UPDATE">
+                    <button onClick={() => handleResetPassword(detail.driverInfo)} style={btnSmall('#9C27B0')}>Reset Password</button>
+                  </PermissionGate>
+                  <PermissionGate permission="DRIVERS_DELETE">
+                    <button onClick={() => handleDelete(detail.driverInfo)} style={btnSmall('#B71C1C')}>Delete</button>
+                  </PermissionGate>
                   <button onClick={() => setDetail(null)} style={{ marginLeft: 'auto', ...btnSmall('#9E9E9E') }}>Close</button>
                 </div>
               </>
@@ -748,16 +801,16 @@ export default function DriversPage() {
       {deleteTarget && (
         <div style={modalOverlay} onClick={() => setDeleteTarget(null)}>
           <div style={{ ...modalContent, maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ fontSize: 18, margin: '0 0 12px', color: '#F44336' }}>Delete Driver?</h2>
+            <h2 style={{ fontSize: 18, margin: '0 0 12px', color: '#F44336' }}>Deactivate Driver?</h2>
             <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 8, marginBottom: 12 }}>
               <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{deleteTarget.name}</p>
               <p style={{ fontSize: 13, color: '#555', margin: '4px 0 0' }}>{deleteTarget.vehicleType} • {deleteTarget.vehicleNumber}</p>
             </div>
-            <div style={{ padding: 12, background: '#FFEBEE', borderRadius: 8, border: '1px solid #FFCDD2', marginBottom: 16 }}>
-              <p style={{ fontSize: 13, color: '#C62828', fontWeight: 600, margin: 0 }}>⚠ Warning! This action cannot be undone.</p>
+            <div style={{ padding: 12, background: '#FFF3E0', borderRadius: 8, border: '1px solid #FFE0B2', marginBottom: 16 }}>
+              <p style={{ fontSize: 13, color: '#E65100', fontWeight: 600, margin: 0 }}>The driver will be blocked from logging in and taken offline. Their history is preserved and they can be reactivated later.</p>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={handleDeleteConfirm} style={{ flex: 1, padding: '10px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Delete</button>
+              <button onClick={handleDeleteConfirm} style={{ flex: 1, padding: '10px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Deactivate</button>
               <button onClick={() => setDeleteTarget(null)} style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
@@ -831,6 +884,7 @@ function getStatusBadge(status: string) {
     PENDING: { bg: '#FFF3E0', fg: '#E65100' }, PENDING_VERIFICATION: { bg: '#E3F2FD', fg: '#1565C0' },
     DOCUMENTS_UNDER_REVIEW: { bg: '#FFF3E0', fg: '#E65100' }, APPROVED: { bg: '#E8F5E9', fg: '#2E7D32' },
     REJECTED: { bg: '#FFEBEE', fg: '#C62828' }, LOCKED: { bg: '#FFF3E0', fg: '#E65100' },
+    DEACTIVATED: { bg: '#F5F5F5', fg: '#757575' }, REACTIVATION_REQUESTED: { bg: '#FFF8E1', fg: '#F57F17' },
   };
   const colors = c[status] || { bg: '#F5F5F5', fg: '#333' };
   return <span style={{ padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: colors.bg, color: colors.fg }}>{status}</span>;
