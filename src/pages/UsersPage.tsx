@@ -4,6 +4,8 @@ import { formatINR } from '../utils/formatCurrency';
 import PermissionGate from '../components/PermissionGate';
 import CloseButton from '../components/CloseButton';
 import CancelButton from '../components/CancelButton';
+import DeactivateButton from '../components/DeactivateButton';
+import ActivateButton from '../components/ActivateButton';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -355,12 +357,12 @@ export default function UsersPage() {
                       {user.accountStatus === 'ACTIVE' ? (
                         <button onClick={() => handleSuspend(user.id)} style={btnSmall('#F44336')}>Suspend</button>
                       ) : (
-                        <button onClick={() => handleActivate(user.id)} style={btnSmall('#4CAF50')}>Activate</button>
+                        <ActivateButton onClick={() => handleActivate(user.id)} />
                       )}
                       <button onClick={() => handleResetPassword(user.id)} style={btnSmall('#9C27B0')}>Reset PW</button>
                     </PermissionGate>
                     <PermissionGate permission="USERS_DELETE">
-                      <button onClick={() => handleDelete(user.id)} style={btnSmall('#B71C1C')}>Delete</button>
+                      <DeactivateButton onClick={() => handleDelete(user.id)} text="Deactivate" />
                     </PermissionGate>
                     {user.flaggedForReview && (
                       <PermissionGate permission="USERS_UPDATE">

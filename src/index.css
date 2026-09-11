@@ -91,3 +91,61 @@ img {
 .hj-btn-cancel:active { background: #B91C1C; transform: translateY(1px); }
 .hj-btn-cancel:focus-visible { outline: 2px solid var(--hj-danger, #EF4444); outline-offset: 2px; }
 .hj-btn-cancel:disabled { background: var(--hj-text-secondary, #6B7280); cursor: not-allowed; }
+
+/* ── Shared Deactivate button (amber bg, white text) ────────── */
+.hj-btn-deactivate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: var(--hj-radius-sm, 8px);
+  background: #F59E0B;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--hj-transition-fast, 150ms ease), transform var(--hj-transition-fast, 150ms ease);
+}
+.hj-btn-deactivate:hover { background: #D97706; }
+.hj-btn-deactivate:active { background: #B45309; transform: translateY(1px); }
+.hj-btn-deactivate:focus-visible { outline: 2px solid #F59E0B; outline-offset: 2px; }
+.hj-btn-deactivate:disabled { background: var(--hj-text-secondary, #6B7280); cursor: not-allowed; }
+.hj-btn-deactivate--icon {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* ── Shared Activate button (green bg, white text) ──────────── */
+.hj-btn-activate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: var(--hj-radius-sm, 8px);
+  background: #4CAF50;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--hj-transition-fast, 150ms ease), transform var(--hj-transition-fast, 150ms ease);
+}
+.hj-btn-activate:hover { background: #388E3C; }
+.hj-btn-activate:active { background: #2E7D32; transform: translateY(1px); }
+.hj-btn-activate:focus-visible { outline: 2px solid #4CAF50; outline-offset: 2px; }
+.hj-btn-activate:disabled { background: var(--hj-text-secondary, #6B7280); cursor: not-allowed; }
+.hj-btn-activate--icon {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  flex-shrink: 0;
+}

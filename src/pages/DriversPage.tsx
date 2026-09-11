@@ -5,6 +5,8 @@ import { formatINR } from '../utils/formatCurrency';
 import PermissionGate from '../components/PermissionGate';
 import CloseButton from '../components/CloseButton';
 import CancelButton from '../components/CancelButton';
+import DeactivateButton from '../components/DeactivateButton';
+import ActivateButton from '../components/ActivateButton';
 
 function getDocumentUrl(url: string): string {
   if (!url) return url;
@@ -464,12 +466,12 @@ export default function DriversPage() {
                       {d.accountStatus === 'ACTIVE' ? (
                         <button onClick={() => handleSuspend(d)} style={btnSmall('#F44336')}>Suspend</button>
                       ) : (
-                        <button onClick={() => handleActivate(d.id)} style={btnSmall('#4CAF50')}>Activate</button>
+                        <ActivateButton onClick={() => handleActivate(d.id)} />
                       )}
                       <button onClick={() => handleResetPassword(d)} style={btnSmall('#9C27B0')}>Reset Pwd</button>
                     </PermissionGate>
                     <PermissionGate permission="DRIVERS_DELETE">
-                      <button onClick={() => handleDelete(d)} style={btnSmall('#B71C1C')}>Delete</button>
+                      <DeactivateButton onClick={() => handleDelete(d)} text="Deactivate" />
                     </PermissionGate>
                     <button onClick={() => handleTrack(d)} style={btnSmall('#00BCD4')}>Track</button>
                   </div>
@@ -688,7 +690,7 @@ export default function DriversPage() {
                     <button onClick={() => handleResetPassword(detail.driverInfo)} style={btnSmall('#9C27B0')}>Reset Password</button>
                   </PermissionGate>
                   <PermissionGate permission="DRIVERS_DELETE">
-                    <button onClick={() => handleDelete(detail.driverInfo)} style={btnSmall('#B71C1C')}>Delete</button>
+                    <DeactivateButton onClick={() => handleDelete(detail.driverInfo)} text="Deactivate" />
                   </PermissionGate>
                   <CloseButton label onClick={() => setDetail(null)} style={{ marginLeft: 'auto' }} />
                 </div>
@@ -834,7 +836,7 @@ export default function DriversPage() {
               <p style={{ fontSize: 13, color: '#E65100', fontWeight: 600, margin: 0 }}>The driver will be blocked from logging in and taken offline. Their history is preserved and they can be reactivated later.</p>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={handleDeleteConfirm} style={{ flex: 1, padding: '10px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Deactivate</button>
+              <DeactivateButton onClick={handleDeleteConfirm} style={{ flex: 1 }} />
               <CancelButton onClick={() => setDeleteTarget(null)} style={{ flex: 1 }} />
             </div>
           </div>

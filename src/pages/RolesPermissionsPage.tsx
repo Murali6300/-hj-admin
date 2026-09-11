@@ -3,6 +3,8 @@ import api from '../api';
 import { isFullAccess } from '../utils/adminPermissions';
 import CloseButton from '../components/CloseButton';
 import CancelButton from '../components/CancelButton';
+import DeactivateButton from '../components/DeactivateButton';
+import ActivateButton from '../components/ActivateButton';
 
 interface AdminUser {
   id: number;
@@ -239,10 +241,11 @@ export default function RolesPermissionsPage() {
                   {fullAccess && (
                     <td style={tdStyle}>
                       <button onClick={() => openEdit(a)} style={{ marginRight: 6, padding: '4px 10px', background: '#FFC107', color: '#333', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>Edit</button>
-                      <button onClick={() => handleToggleActive(a)}
-                        style={{ marginRight: 6, padding: '4px 10px', background: a.isActive ? '#FF6D00' : '#4CAF50', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>
-                        {a.isActive ? 'Deactivate' : 'Activate'}
-                      </button>
+                      {a.isActive ? (
+                        <DeactivateButton onClick={() => handleToggleActive(a)} text={a.isActive ? 'Deactivate' : 'Activate'} style={{ marginRight: 6 }} />
+                      ) : (
+                        <ActivateButton onClick={() => handleToggleActive(a)} style={{ marginRight: 6 }} />
+                      )}
                       <button onClick={() => handleDelete(a)}
                         style={{ padding: '4px 10px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>
                         Delete

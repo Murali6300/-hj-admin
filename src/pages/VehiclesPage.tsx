@@ -3,6 +3,8 @@ import api from '../api';
 import { getVehicleIcon, getVehicleColor } from '../utils/vehicleIcons';
 import CloseButton from '../components/CloseButton';
 import CancelButton from '../components/CancelButton';
+import DeactivateButton from '../components/DeactivateButton';
+import ActivateButton from '../components/ActivateButton';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -326,11 +328,12 @@ export default function VehiclesPage() {
                   <td style={{ ...tdStyle, textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                       <button onClick={() => openEdit(v)} style={{ padding: '4px 10px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>Edit</button>
-                      <button onClick={() => handleToggleActive(v)} disabled={actionLoading === v.id}
-                        style={{ padding: '4px 10px', background: v.isActive ? '#FF9800' : '#4CAF50', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>
-                        {actionLoading === v.id ? '...' : v.isActive ? 'Deactivate' : 'Activate'}
-                      </button>
-                      <button onClick={() => setDeleteTarget(v)} style={{ padding: '4px 10px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>Delete</button>
+                      {v.isActive ? (
+                        <DeactivateButton onClick={() => handleToggleActive(v)} disabled={actionLoading === v.id} text={actionLoading === v.id ? '...' : 'Deactivate'} />
+                      ) : (
+                        <ActivateButton onClick={() => handleToggleActive(v)} disabled={actionLoading === v.id} text={actionLoading === v.id ? '...' : 'Activate'} />
+                      )}
+                      <DeactivateButton onClick={() => setDeleteTarget(v)} text="Remove" />
                     </div>
                   </td>
                 </tr>
@@ -450,10 +453,8 @@ export default function VehiclesPage() {
               This will hide it from the user app. Existing drivers/rides using this type will not be affected. You can reactivate it later.
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={handleDelete} disabled={actionLoading === deleteTarget.id}
-                style={{ flex: 1, padding: '10px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                {actionLoading === deleteTarget.id ? 'Deactivating...' : 'Deactivate'}
-              </button>
+              <DeactivateButton onClick={handleDelete} disabled={actionLoading === deleteTarget.id}
+                text={actionLoading === deleteTarget.id ? 'Deactivating...' : 'Deactivate'} style={{ flex: 1 }} />
               <CancelButton onClick={() => setDeleteTarget(null)} style={{ flex: 1 }} />
             </div>
           </div>

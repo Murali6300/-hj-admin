@@ -3,6 +3,8 @@ import api from '../api';
 import { resolveImageUrl } from '../utils/resolveImageUrl';
 import CloseButton from '../components/CloseButton';
 import CancelButton from '../components/CancelButton';
+import DeactivateButton from '../components/DeactivateButton';
+import ActivateButton from '../components/ActivateButton';
 
 interface CompanyPayment {
   id: number;
@@ -333,9 +335,9 @@ export default function CompanyPaymentPage() {
                     <button onClick={() => setViewProfile(p)} style={actionBtnStyle('#666')} title="View">👁</button>
                     <button onClick={() => openEditForm(p)} style={actionBtnStyle('#1E88E5')} title="Edit">✏️</button>
                     {p.status === 'ACTIVE' ? (
-                      <button onClick={() => handleDeactivate(p.id)} style={actionBtnStyle('#F44336')} title="Deactivate">🔴</button>
+                      <DeactivateButton onClick={() => handleDeactivate(p.id)} iconOnly title="Deactivate" style={{ marginRight: 4 }} />
                     ) : (
-                      <button onClick={() => setConfirmDialog({ show: true, profileId: p.id, profileName: p.upiId, action: 'activate' })} style={actionBtnStyle('#4CAF50')} title="Activate">🟢</button>
+                      <ActivateButton onClick={() => setConfirmDialog({ show: true, profileId: p.id, profileName: p.upiId, action: 'activate' })} iconOnly title="Activate" />
                     )}
                     <button onClick={() => handleDelete(p.id)} style={actionBtnStyle('#F44336')} title="Delete">🗑</button>
                   </td>
