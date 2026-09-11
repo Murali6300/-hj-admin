@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
+import { formatINR } from '../utils/formatCurrency';
+import CloseButton from '../components/CloseButton';
 
 interface Payment {
   paymentId: number;
@@ -40,11 +42,12 @@ export default function PaymentsPage() {
 
   const METHODS = ['ALL', 'CASH', 'UPI', 'WALLET'];
 
-  const fetchPayments = async () => {
+  const fetchPayments = async (rideIdOverride?: string) => {
     setLoading(true); setError('');
+    const rideId = (rideIdOverride ?? searchRideId).trim();
     try {
-      if (searchRideId.trim()) {
-        const res = await api.get(`/payments/ride/${searchRideId.trim()}`);
+      if (rideId) {
+        const res = await api.get(`/payments/ride/${rideId}`);
         setPayments([res.data]); setTotal(1);
       } else {
         const params: Record<string, string | number> = { page: page - 1, size: 20 };
@@ -60,6 +63,15 @@ export default function PaymentsPage() {
   };
 
   useEffect(() => { fetchPayments(); }, [page, filterStatus, filterMethod]);
+
+  const handleRideIdChange = (e: { target: { value: string } }) => {
+    const v = e.target.value;
+    setSearchRideId(v);
+    if (v.trim() === '') {
+      setPage(1);
+      fetchPayments('');
+    }
+  };
 
   const handleRetry = async (paymentId: number) => {
     if (!confirm('Retry this payment?')) return;
@@ -79,11 +91,11 @@ export default function PaymentsPage() {
       <tr><td class="label">Payment Method</td><td>${p.paymentMethod}</td></tr>
       <tr><td class="label">Transaction ID</td><td>${p.transactionId || 'N/A'}</td></tr>
       <tr><td class="label">Status</td><td>${p.paymentStatus}</td></tr>
-      <tr><td class="label">Commission</td><td>₹${(p.platformCommission ?? 0).toFixed(0)}</td></tr>
-      <tr><td class="label">Driver Earnings</td><td>₹${(p.driverEarnings ?? 0).toFixed(0)}</td></tr>
+      <tr><td class="label">Commission</td><td>${formatINR(p.platformCommission ?? 0, 0)}</td></tr>
+      <tr><td class="label">Driver Earnings</td><td>${formatINR(p.driverEarnings ?? 0, 0)}</td></tr>
       <tr><td class="label">Settlement</td><td>${p.settlementStatus || 'PENDING'}</td></tr>
       <tr><td class="label">Date</td><td>${new Date(p.createdAt).toLocaleString('en-IN')}</td></tr>
-      <tr><td class="label">Amount Paid</td><td class="amount">₹${p.totalFare.toFixed(2)}</td></tr></table>
+      <tr><td class="label">Amount Paid</td><td class="amount">${formatINR(p.totalFare)}</td></tr></table>
       <p style="margin-top:30px;color:#757575;font-size:12px">Thank you for riding with HJ Ride!</p></body></html>`;
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
@@ -115,7 +127,7 @@ export default function PaymentsPage() {
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
         <input type="text" placeholder="Search by Ride ID..." value={searchRideId}
-          onChange={(e) => setSearchRideId(e.target.value)}
+          onChange={handleRideIdChange}
           onKeyDown={(e) => e.key === 'Enter' && (() => { setPage(1); fetchPayments(); })()}
           style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 14 }} />
         <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
@@ -165,12 +177,12 @@ export default function PaymentsPage() {
                   <td style={tdStyle}>#{p.rideId}</td>
                   <td style={tdStyle}>{p.userName || '-'}</td>
                   <td style={tdStyle}>{p.driverName || '-'}</td>
-                  <td style={{ ...tdStyle, fontWeight: 600 }}>₹{p.totalFare.toFixed(2)}</td>
+                  <td style={{ ...tdStyle, fontWeight: 600 }}>{formatINR(p.totalFare)}</td>
                   <td style={{ ...tdStyle, color: '#FF9800', fontWeight: 600 }}>
-                    {p.platformCommission != null ? `₹${p.platformCommission.toFixed(0)}` : '-'}
+                    {p.platformCommission != null ? formatINR(p.platformCommission, 0) : '-'}
                   </td>
                   <td style={{ ...tdStyle, color: '#4CAF50', fontWeight: 600 }}>
-                    {p.driverEarnings != null ? `₹${p.driverEarnings.toFixed(0)}` : '-'}
+                    {p.driverEarnings != null ? formatINR(p.driverEarnings, 0) : '-'}
                   </td>
                   <td style={tdStyle}>{p.paymentMethod}</td>
                   <td style={tdStyle}>
@@ -192,7 +204,7 @@ export default function PaymentsPage() {
                   <td style={tdStyle}>
                     {p.paymentStatus === 'REFUNDED' ? (
                       <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, color: '#fff', background: '#FF6D00' }}>
-                        ₹{(p.refundAmount ?? p.totalFare).toFixed(2)}
+                        {formatINR(p.refundAmount ?? p.totalFare)}
                       </span>
                     ) : '-'}
                   </td>
@@ -236,7 +248,7 @@ export default function PaymentsPage() {
           <div style={{ ...modalContent, maxWidth: 500 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ fontSize: 18 }}>Invoice #INV{invoicePayment.paymentId}</h2>
-              <button onClick={() => setInvoicePayment(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer' }}>×</button>
+              <CloseButton onClick={() => setInvoicePayment(null)} />
             </div>
             <div style={{ background: '#f5f5f5', borderRadius: 8, padding: 20, fontSize: 13 }}>
               <div style={{ textAlign: 'center', marginBottom: 16 }}>
@@ -254,20 +266,20 @@ export default function PaymentsPage() {
                   <tr><td style={invLabel}>Method</td><td style={invVal}>{invoicePayment.paymentMethod}</td></tr>
                   <tr><td style={invLabel}>Transaction ID</td><td style={invVal}>{invoicePayment.transactionId || 'N/A'}</td></tr>
                   <tr><td style={invLabel}>Status</td><td style={invVal}><span style={{ color: STATUS_COLORS[invoicePayment.paymentStatus], fontWeight: 600 }}>{invoicePayment.paymentStatus}</span></td></tr>
-                  <tr><td style={invLabel}>Commission</td><td style={invVal}>₹{(invoicePayment.platformCommission ?? 0).toFixed(0)}</td></tr>
-                  <tr><td style={invLabel}>Driver Earnings</td><td style={invVal}>₹{(invoicePayment.driverEarnings ?? 0).toFixed(0)}</td></tr>
+                  <tr><td style={invLabel}>Commission</td><td style={invVal}>{formatINR(invoicePayment.platformCommission ?? 0, 0)}</td></tr>
+                  <tr><td style={invLabel}>Driver Earnings</td><td style={invVal}>{formatINR(invoicePayment.driverEarnings ?? 0, 0)}</td></tr>
                   <tr><td style={invLabel}>Settlement</td><td style={invVal}>{invoicePayment.settlementStatus || 'PENDING'}</td></tr>
                   {invoicePayment.paymentStatus === 'REFUNDED' && invoicePayment.refundId && (
                     <tr><td style={invLabel}>Refund ID</td><td style={invVal}>{invoicePayment.refundId}</td></tr>
                   )}
                   <tr><td style={invLabel}>Date</td><td style={invVal}>{new Date(invoicePayment.createdAt).toLocaleString('en-IN')}</td></tr>
-                  <tr><td style={{ ...invLabel, fontWeight: 700, fontSize: 14 }}>Amount</td><td style={{ ...invVal, fontSize: 20, fontWeight: 700, color: '#1E88E5' }}>₹{invoicePayment.totalFare.toFixed(2)}</td></tr>
+                  <tr><td style={{ ...invLabel, fontWeight: 700, fontSize: 14 }}>Amount</td><td style={{ ...invVal, fontSize: 20, fontWeight: 700, color: '#1E88E5' }}>{formatINR(invoicePayment.totalFare)}</td></tr>
                 </tbody>
               </table>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
               <button onClick={() => handleDownloadReceipt(invoicePayment)} style={{ padding: '8px 16px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>Download Receipt</button>
-              <button onClick={() => setInvoicePayment(null)} style={{ padding: '8px 16px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>Close</button>
+              <CloseButton label onClick={() => setInvoicePayment(null)} />
             </div>
           </div>
         </div>

@@ -1,6 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import api from '../api';
+import { formatINR } from '../utils/formatCurrency';
 import PermissionGate from '../components/PermissionGate';
+import CloseButton from '../components/CloseButton';
+import CancelButton from '../components/CancelButton';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -143,6 +146,15 @@ export default function UsersPage() {
     setSearch(searchInput);
   };
 
+  const handleSearchInputChange = (e: { target: { value: string } }) => {
+    const v = e.target.value;
+    setSearchInput(v);
+    if (v.trim() === '' && search.trim() !== '') {
+      setSearch('');
+      setPage(0);
+    }
+  };
+
   const handleViewDetail = async (userId: number) => {
     setDetailLoading(true);
     setDetailTab('overview');
@@ -249,7 +261,7 @@ export default function UsersPage() {
       {/* Toolbar */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
         <input type="text" placeholder="Search name, email, phone..." value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
+          onChange={handleSearchInputChange}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           style={inputStyle} />
         <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(0); }}
@@ -313,13 +325,13 @@ export default function UsersPage() {
                 <td style={tdStyle}>
                   {user.outstandingBalance > 0 ? (
                     <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 700, background: '#FCE4EC', color: '#E91E63' }}>
-                      ₹{user.outstandingBalance.toFixed(0)}
+                      {formatINR(user.outstandingBalance, 0)}
                     </span>
                   ) : (
                     <span style={{ color: '#999', fontSize: 12 }}>—</span>
                   )}
                 </td>
-                <td style={tdStyle}>₹{user.walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+                <td style={tdStyle}>{formatINR(user.walletBalance, 0)}</td>
                 <td style={tdStyle}>{user.rideCount}</td>
                 <td style={tdStyle}>
                   {user.ratingCount > 0 ? (
@@ -362,7 +374,7 @@ export default function UsersPage() {
                     {user.outstandingBalance > 0 && (
                       <PermissionGate permission="USERS_UPDATE">
                         <button onClick={async () => {
-                          if (!confirm(`Clear ₹${user.outstandingBalance.toFixed(0)} outstanding balance for "${user.name}"? This will allow them to book rides again.`)) return;
+                          if (!confirm(`Clear ${formatINR(user.outstandingBalance, 0)} outstanding balance for "${user.name}"? This will allow them to book rides again.`)) return;
                           await api.put(`/users/${user.id}/clear-outstanding`, { notes: 'Outstanding cleared by admin' });
                           fetchUsers();
                         }} style={btnSmall('#E91E63')}>Clear Outstanding</button>
@@ -398,7 +410,7 @@ export default function UsersPage() {
           <div style={{ ...modalContent, maxWidth: 800 }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ fontSize: 18, margin: 0 }}>User Details</h2>
-              <button onClick={() => setDetailUser(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer' }}>×</button>
+              <CloseButton onClick={() => setDetailUser(null)} />
             </div>
 
             {detailLoading ? <p>Loading...</p> : detailUser && (
@@ -431,14 +443,14 @@ export default function UsersPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                       <InfoItem label="Phone" value={detailUser.userInfo.phoneNumber} />
                       <InfoItem label="Status" value={detailUser.userInfo.accountStatus} color={detailUser.userInfo.accountStatus === 'ACTIVE' ? '#4CAF50' : '#F44336'} />
-                      <InfoItem label="Wallet Balance" value={`₹${detailUser.userInfo.walletBalance.toLocaleString('en-IN')}`} />
+                      <InfoItem label="Wallet Balance" value={formatINR(detailUser.userInfo.walletBalance)} />
                       <InfoItem label="Total Rides" value={String(detailUser.userInfo.rideCount)} />
                       <InfoItem label="Avg Rating" value={detailUser.userInfo.ratingCount > 0 ? `⭐ ${detailUser.userInfo.averageRating.toFixed(1)} (${detailUser.userInfo.ratingCount} ratings)` : 'No ratings'} />
                       <InfoItem label="Registered" value={new Date(detailUser.userInfo.createdAt).toLocaleDateString('en-IN')} />
                       <InfoItem label="Saved Addresses" value={String(detailUser.savedAddresses.length)} />
                       <InfoItem label="Total Payments" value={String(detailUser.paymentHistory.length)} />
                       {detailUser.userInfo.outstandingBalance > 0 && (
-                        <InfoItem label="Outstanding Balance" value={`₹${detailUser.userInfo.outstandingBalance.toLocaleString('en-IN')}`} color="#E91E63" />
+                        <InfoItem label="Outstanding Balance" value={formatINR(detailUser.userInfo.outstandingBalance)} color="#E91E63" />
                       )}
                       {detailUser.userInfo.outstandingReason && (
                         <div style={{ gridColumn: '1 / -1', padding: '8px 12px', background: '#FCE4EC', borderRadius: 6, fontSize: 12, color: '#880E4F' }}>
@@ -470,7 +482,7 @@ export default function UsersPage() {
                             <td style={tdStyle}>{r.dropoffAddress || '—'}</td>
                             <td style={tdStyle}>{r.rideType}</td>
                             <td style={tdStyle}>{getStatusBadge(r.status)}</td>
-                            <td style={tdStyle}>₹{r.actualFare?.toFixed(0) || r.estimatedFare?.toFixed(0) || '—'}</td>
+                            <td style={tdStyle}>{r.actualFare != null ? formatINR(r.actualFare, 0) : r.estimatedFare != null ? formatINR(r.estimatedFare, 0) : '—'}</td>
                             <td style={tdStyle}>{new Date(r.createdAt).toLocaleDateString('en-IN')}</td>
                           </tr>
                         ))}
@@ -482,7 +494,7 @@ export default function UsersPage() {
                     !detailUser.wallet ? <p style={{ color: '#999', padding: 20 }}>No wallet.</p> : (
                       <>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
-                          <InfoItem label="Balance" value={`₹${detailUser.wallet.balance.toLocaleString('en-IN')}`} />
+                          <InfoItem label="Balance" value={formatINR(detailUser.wallet.balance)} />
                           <InfoItem label="Currency" value={detailUser.wallet.currency} />
                           <InfoItem label="Active" value={detailUser.wallet.isActive ? 'Yes' : 'No'} />
                         </div>
@@ -499,9 +511,9 @@ export default function UsersPage() {
                                 <tr key={t.id} style={{ borderBottom: '1px solid #E0E0E0' }}>
                                   <td style={tdStyle}>{t.type}</td>
                                   <td style={{ ...tdStyle, color: t.type === 'PAYMENT' || t.type === 'WITHDRAWAL' ? '#F44336' : '#4CAF50' }}>
-                                    {t.type === 'PAYMENT' || t.type === 'WITHDRAWAL' ? '-' : '+'}₹{t.amount.toFixed(2)}
+                                    {t.type === 'PAYMENT' || t.type === 'WITHDRAWAL' ? '-' : '+'}{formatINR(t.amount)}
                                   </td>
-                                  <td style={tdStyle}>₹{t.balanceAfter.toFixed(2)}</td>
+                                  <td style={tdStyle}>{formatINR(t.balanceAfter)}</td>
                                   <td style={tdStyle}>{t.description || '—'}</td>
                                   <td style={tdStyle}>{new Date(t.createdAt).toLocaleDateString('en-IN')}</td>
                                 </tr>
@@ -541,7 +553,7 @@ export default function UsersPage() {
                           <tr key={p.id} style={{ borderBottom: '1px solid #E0E0E0' }}>
                             <td style={tdStyle}>{p.id}</td>
                             <td style={tdStyle}>{p.rideId}</td>
-                            <td style={tdStyle}>₹{p.totalFare.toFixed(2)}</td>
+                            <td style={tdStyle}>{formatINR(p.totalFare)}</td>
                             <td style={tdStyle}>{p.paymentMethod || '—'}</td>
                             <td style={tdStyle}>{getStatusBadge(p.paymentStatus)}</td>
                             <td style={tdStyle}>{new Date(p.createdAt).toLocaleDateString('en-IN')}</td>
@@ -578,7 +590,7 @@ export default function UsersPage() {
                     )}
                     <button onClick={() => { handleResetPassword(detailUser.userInfo.id); }} style={btnSmall('#9C27B0')}>Reset Password</button>
                   </PermissionGate>
-                  <button onClick={() => setDetailUser(null)} style={{ marginLeft: 'auto', ...btnSmall('#9E9E9E') }}>Close</button>
+                  <CloseButton label onClick={() => setDetailUser(null)} style={{ marginLeft: 'auto' }} />
                 </div>
               </>
             )}
@@ -592,7 +604,7 @@ export default function UsersPage() {
           <div style={{ ...modalContent, maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ fontSize: 18, margin: 0 }}>Edit User</h2>
-              <button onClick={() => setEditUser(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer' }}>×</button>
+              <CloseButton onClick={() => setEditUser(null)} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
@@ -612,7 +624,7 @@ export default function UsersPage() {
               <button onClick={handleEditSave} disabled={editSaving} style={{ ...btnPrimary, flex: 1 }}>
                 {editSaving ? 'Saving...' : 'Save Changes'}
               </button>
-              <button onClick={() => setEditUser(null)} style={{ ...btnSmall('#9E9E9E'), flex: 1 }}>Cancel</button>
+              <CancelButton onClick={() => setEditUser(null)} style={{ flex: 1 }} />
             </div>
           </div>
         </div>

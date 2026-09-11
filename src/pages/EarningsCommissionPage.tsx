@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
+import { formatINR } from '../utils/formatCurrency';
 
 interface EarningsSummary {
   totalRevenue: number;
@@ -65,10 +66,10 @@ export default function EarningsCommissionPage() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16, marginBottom: 32 }}>
-        <MetricCard label="Total Revenue" value={`\u20B9${summary.totalRevenue.toLocaleString()}`} color="#388E3C" />
-        <MetricCard label="Platform Commission (20%)" value={`\u20B9${summary.totalPlatformCommission.toLocaleString()}`} color="#1E88E5" />
-        <MetricCard label="Driver Earnings" value={`\u20B9${summary.totalDriverEarnings.toLocaleString()}`} color="#9C27B0" />
-        <MetricCard label="GST (18% on Commission)" value={`\u20B9${summary.totalGst.toLocaleString()}`} color="#FF6D00" />
+        <MetricCard label="Total Revenue" value={formatINR(summary.totalRevenue)} color="#388E3C" />
+        <MetricCard label="Platform Commission (20%)" value={formatINR(summary.totalPlatformCommission)} color="#1E88E5" />
+        <MetricCard label="Driver Earnings" value={formatINR(summary.totalDriverEarnings)} color="#9C27B0" />
+        <MetricCard label="GST (18% on Commission)" value={formatINR(summary.totalGst)} color="#FF6D00" />
         <MetricCard label="Total Rides" value={String(summary.totalRides)} color="#00BCD4" />
       </div>
 
@@ -91,7 +92,7 @@ export default function EarningsCommissionPage() {
                 <td style={tdStyle}>{d.driverId}</td>
                 <td style={tdStyle}>{d.driverName}</td>
                 <td style={tdStyle}>{d.totalRides}</td>
-                <td style={tdStyle}>\u20B9{d.netEarnings.toLocaleString()}</td>
+                <td style={tdStyle}>{formatINR(d.netEarnings)}</td>
               </tr>
             ))}
           </tbody>

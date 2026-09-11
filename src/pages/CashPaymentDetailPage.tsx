@@ -1,6 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
+import { formatINR } from '../utils/formatCurrency';
+import CloseButton from '../components/CloseButton';
+import CancelButton from '../components/CancelButton';
 import '../styles/RidePages.css';
 
 interface PreviousDispute {
@@ -422,61 +425,61 @@ export default function CashPaymentDetailPage() {
             <h3 className="ride-info-card__title">Payment Breakdown (Cash)</h3>
             <div className="ride-info-row">
               <span className="ride-info-row__label">Base Fare</span>
-              <span className="ride-info-row__value">₹{detail.baseFare.toFixed(0)}</span>
+              <span className="ride-info-row__value">{formatINR(detail.baseFare, 0)}</span>
             </div>
             <div className="ride-info-row">
               <span className="ride-info-row__label">Distance</span>
-              <span className="ride-info-row__value">₹{detail.distanceCharge.toFixed(0)}</span>
+              <span className="ride-info-row__value">{formatINR(detail.distanceCharge, 0)}</span>
             </div>
             <div className="ride-info-row">
               <span className="ride-info-row__label">Time</span>
-              <span className="ride-info-row__value">₹{detail.timeCharge.toFixed(0)}</span>
+              <span className="ride-info-row__value">{formatINR(detail.timeCharge, 0)}</span>
             </div>
             {detail.tollCharges > 0 && (
               <div className="ride-info-row">
                 <span className="ride-info-row__label">Toll</span>
-                <span className="ride-info-row__value">₹{detail.tollCharges.toFixed(0)}</span>
+                <span className="ride-info-row__value">{formatINR(detail.tollCharges, 0)}</span>
               </div>
             )}
             {detail.waitingCharges > 0 && (
               <div className="ride-info-row">
                 <span className="ride-info-row__label">Waiting</span>
-                <span className="ride-info-row__value">₹{detail.waitingCharges.toFixed(0)}</span>
+                <span className="ride-info-row__value">{formatINR(detail.waitingCharges, 0)}</span>
               </div>
             )}
             {detail.nightCharges > 0 && (
               <div className="ride-info-row">
                 <span className="ride-info-row__label">Night</span>
-                <span className="ride-info-row__value">₹{detail.nightCharges.toFixed(0)}</span>
+                <span className="ride-info-row__value">{formatINR(detail.nightCharges, 0)}</span>
               </div>
             )}
             {detail.promoDiscount > 0 && (
               <div className="ride-info-row">
                 <span className="ride-info-row__label">Promo</span>
-                <span className="ride-info-row__value" style={{ color: 'var(--hj-success)' }}>-₹{detail.promoDiscount.toFixed(0)}</span>
+                <span className="ride-info-row__value" style={{ color: 'var(--hj-success)' }}>-{formatINR(detail.promoDiscount, 0)}</span>
               </div>
             )}
             <div className="ride-info-row">
               <span className="ride-info-row__label">GST</span>
-              <span className="ride-info-row__value">₹{(detail.gstAmount ?? detail.taxes).toFixed(0)}</span>
+              <span className="ride-info-row__value">{formatINR(detail.gstAmount ?? detail.taxes, 0)}</span>
             </div>
             <div style={{ height: 1, background: 'var(--hj-border-light)', margin: '10px 0' }} />
             <div className="ride-info-row">
               <span className="ride-info-row__label">Total Fare</span>
               <span className="ride-info-row__value ride-info-row__value--bold" style={{ color: 'var(--hj-success)' }}>
-                ₹{detail.totalFare.toFixed(0)}
+{formatINR(detail.totalFare, 0)}
               </span>
             </div>
             <div className="ride-info-row">
               <span className="ride-info-row__label">Commission</span>
               <span className="ride-info-row__value" style={{ color: 'var(--hj-warning)' }}>
-                ₹{(detail.platformCommission ?? 0).toFixed(0)}
+                {formatINR(detail.platformCommission ?? 0, 0)}
               </span>
             </div>
             <div className="ride-info-row">
               <span className="ride-info-row__label">Driver Earnings</span>
               <span className="ride-info-row__value" style={{ color: 'var(--hj-success)' }}>
-                ₹{(detail.driverEarnings ?? 0).toFixed(0)}
+                {formatINR(detail.driverEarnings ?? 0, 0)}
               </span>
             </div>
             <div className="ride-info-row">
@@ -528,7 +531,7 @@ export default function CashPaymentDetailPage() {
               <div className="ride-info-row">
                 <span className="ride-info-row__label">Outstanding</span>
                 <span className="ride-info-row__value" style={{ color: '#E91E63', fontWeight: 700 }}>
-                  ₹{detail.userOutstandingBalance.toFixed(0)}
+                  {formatINR(detail.userOutstandingBalance, 0)}
                 </span>
               </div>
             )}
@@ -673,7 +676,7 @@ export default function CashPaymentDetailPage() {
               </div>
               <div className="ride-info-row">
                 <span className="ride-info-row__label">Amount</span>
-                <span className="ride-info-row__value" style={{ color: 'var(--hj-success)' }}>₹{(detail.refundAmount ?? 0).toFixed(0)}</span>
+                <span className="ride-info-row__value" style={{ color: 'var(--hj-success)' }}>{formatINR(detail.refundAmount ?? 0, 0)}</span>
               </div>
               <div className="ride-info-row">
                 <span className="ride-info-row__label">Reason</span>
@@ -693,7 +696,7 @@ export default function CashPaymentDetailPage() {
                     <span style={{ fontSize: 11, color: '#E91E63', fontWeight: 600 }}>{d.ticketNumber || 'No ticket'}</span>
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--hj-text-secondary)', marginTop: 4 }}>
-                    {d.category} · ₹{d.amount.toFixed(0)} · {d.resolution || 'Pending'}
+                    {d.category} · {formatINR(d.amount, 0)} · {d.resolution || 'Pending'}
                   </div>
                   {d.disputedAt && (
                     <div style={{ fontSize: 11, color: 'var(--hj-text-tertiary)', marginTop: 2 }}>
@@ -801,7 +804,7 @@ export default function CashPaymentDetailPage() {
                 {actionModal === 'MANUAL_SETTLEMENT' && 'Manual Settlement'}
                 {actionModal === 'CLOSE_CASE' && 'Close Case'}
               </h2>
-              <button className="ride-modal__close" onClick={() => setActionModal(null)}>×</button>
+              <CloseButton onClick={() => setActionModal(null)} />
             </div>
 
             {/* ── Driver Wins ──────────────────────────────── */}
@@ -819,11 +822,11 @@ export default function CashPaymentDetailPage() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                       <span style={{ fontWeight: 700, minWidth: 18 }}>2.</span>
-                      <span><strong>Driver Wallet</strong> — ₹{(detail.driverEarnings ?? (detail.totalFare - (detail.platformCommission ?? 0))).toFixed(0)} credited as ride earnings</span>
+                      <span><strong>Driver Wallet</strong> — {formatINR(detail.driverEarnings ?? (detail.totalFare - (detail.platformCommission ?? 0)), 0)} credited as ride earnings</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                       <span style={{ fontWeight: 700, minWidth: 18 }}>3.</span>
-                      <span><strong>Passenger</strong> — Outstanding balance of ₹{detail.totalFare.toFixed(0)} added</span>
+                      <span><strong>Passenger</strong> — Outstanding balance of {formatINR(detail.totalFare, 0)} added</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                       <span style={{ fontWeight: 700, minWidth: 18 }}>4.</span>
@@ -853,7 +856,7 @@ export default function CashPaymentDetailPage() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                       <span style={{ fontWeight: 700, minWidth: 18 }}>2.</span>
-                      <span><strong>Passenger</strong> — Refund of ₹{detail.totalFare.toFixed(0)} processed</span>
+                      <span><strong>Passenger</strong> — Refund of {formatINR(detail.totalFare, 0)} processed</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                       <span style={{ fontWeight: 700, minWidth: 18 }}>3.</span>
@@ -894,9 +897,7 @@ export default function CashPaymentDetailPage() {
               style={{ resize: 'vertical', minHeight: 70 }}
             />
             <div className="ride-modal__footer">
-              <button className="ride-btn ride-btn--outline" onClick={() => setActionModal(null)}>
-                Cancel
-              </button>
+              <CancelButton onClick={() => setActionModal(null)} />
               <button
                 className="ride-btn ride-btn--primary"
                 onClick={() => handleAction(actionModal)}

@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
+import { formatINR } from '../utils/formatCurrency';
+import CloseButton from '../components/CloseButton';
+import CancelButton from '../components/CancelButton';
 
 interface Wallet {
   id: number;
@@ -65,15 +68,28 @@ export default function WalletPage() {
   useEffect(() => { fetchData(); }, [page]);
 
   const handleSearch = async () => {
-    if (!searchUserId.trim()) { fetchData(); return; }
+    if (!searchUserId.trim()) {
+      if (page !== 0) setPage(0);
+      fetchData();
+      return;
+    }
     try {
       const res = await api.get(`/wallets/user/${searchUserId.trim()}`);
       setWallets([res.data]);
     } catch { setWallets([]); }
   };
 
+  const handleSearchInputChange = (e: { target: { value: string } }) => {
+    const v = e.target.value;
+    setSearchUserId(v);
+    if (v.trim() === '') {
+      if (page !== 0) setPage(0);
+      fetchData();
+    }
+  };
+
   const handleAdjust = async () => {
-    if (!confirm(`${Number(adjustForm.amount) >= 0 ? 'Credit' : 'Deduct'} ₹${Math.abs(Number(adjustForm.amount)).toLocaleString()} ${Number(adjustForm.amount) >= 0 ? 'to' : 'from'} this wallet?`)) return;
+    if (!confirm(`${Number(adjustForm.amount) >= 0 ? 'Credit' : 'Deduct'} ${formatINR(Math.abs(Number(adjustForm.amount)))} ${Number(adjustForm.amount) >= 0 ? 'to' : 'from'} this wallet?`)) return;
     try {
       await api.post('/wallets/adjust', {
         userId: Number(adjustForm.userId),
@@ -109,9 +125,9 @@ export default function WalletPage() {
 
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
-          <MetricCard label="Total Balance" value={`₹${stats.totalBalance.toLocaleString()}`} color="#1E88E5" />
-          <MetricCard label="Total Top-ups" value={`₹${stats.totalTopUps.toLocaleString()}`} color="#4CAF50" />
-          <MetricCard label="Total Payments" value={`₹${stats.totalPayments.toLocaleString()}`} color="#F44336" />
+          <MetricCard label="Total Balance" value={formatINR(stats.totalBalance)} color="#1E88E5" />
+          <MetricCard label="Total Top-ups" value={formatINR(stats.totalTopUps)} color="#4CAF50" />
+          <MetricCard label="Total Payments" value={formatINR(stats.totalPayments)} color="#F44336" />
           <MetricCard label="Total Wallets" value={String(stats.totalWallets)} color="#9C27B0" />
           <MetricCard label="Active Wallets" value={String(stats.activeWallets)} color="#00BCD4" />
         </div>
@@ -120,7 +136,7 @@ export default function WalletPage() {
       <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
         <input
           type="text" placeholder="Search by User ID..."
-          value={searchUserId} onChange={(e) => setSearchUserId(e.target.value)}
+          value={searchUserId} onChange={handleSearchInputChange}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 14 }}
         />
@@ -149,7 +165,7 @@ export default function WalletPage() {
               <tr key={w.id} style={{ borderTop: '1px solid #eee' }}>
                 <td style={tdStyle}>{w.id}</td>
                 <td style={tdStyle}>{w.userId}</td>
-                <td style={{ ...tdStyle, fontWeight: 600 }}>₹{w.balance.toLocaleString()}</td>
+                <td style={{ ...tdStyle, fontWeight: 600 }}>{formatINR(w.balance)}</td>
                 <td style={tdStyle}>
                   <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 12, fontWeight: 600, color: '#fff', background: w.isActive ? '#4CAF50' : '#9E9E9E' }}>
                     {w.isActive ? 'ACTIVE' : 'INACTIVE'}
@@ -171,7 +187,10 @@ export default function WalletPage() {
       {showAdjust && (
         <div style={modalOverlay}>
           <div style={modalContent}>
-            <h2 style={{ fontSize: 18, marginBottom: 16 }}>Adjust Wallet Balance</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 style={{ fontSize: 18, margin: 0 }}>Adjust Wallet Balance</h2>
+            <CloseButton onClick={() => setShowAdjust(false)} />
+          </div>
             <label style={{ display: 'block', marginBottom: 12 }}>
               <span style={{ fontSize: 13, fontWeight: 500 }}>User ID</span>
               <input type="number" value={adjustForm.userId} onChange={(e) => setAdjustForm({ ...adjustForm, userId: e.target.value })}
@@ -201,10 +220,7 @@ export default function WalletPage() {
                 style={{ padding: '8px 16px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
                 Submit
               </button>
-              <button onClick={() => setShowAdjust(false)}
-                style={{ padding: '8px 16px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
-                Cancel
-              </button>
+              <CancelButton onClick={() => setShowAdjust(false)} />
             </div>
           </div>
         </div>
@@ -215,8 +231,7 @@ export default function WalletPage() {
           <div style={{ ...modalContent, maxWidth: 800 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ fontSize: 18 }}>Transactions — User #{txnModal.userId}</h2>
-              <button onClick={() => setTxnModal(null)}
-                style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer' }}>×</button>
+              <CloseButton onClick={() => setTxnModal(null)} />
             </div>
             {transactions.length === 0 ? (
               <p style={{ color: '#757575' }}>No transactions yet</p>
@@ -240,8 +255,8 @@ export default function WalletPage() {
                           {t.type}
                         </span>
                       </td>
-                      <td style={{ ...tdStyle, fontWeight: 600 }}>₹{t.amount.toLocaleString()}</td>
-                      <td style={tdStyle}>₹{t.balanceAfter.toLocaleString()}</td>
+                      <td style={{ ...tdStyle, fontWeight: 600 }}>{formatINR(t.amount)}</td>
+                      <td style={tdStyle}>{formatINR(t.balanceAfter)}</td>
                       <td style={tdStyle}>{t.description || '-'}</td>
                       <td style={tdStyle}>{t.status}</td>
                       <td style={{ ...tdStyle, color: '#757575' }}>{new Date(t.createdAt).toLocaleDateString('en-IN')}</td>

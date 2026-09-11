@@ -1,6 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
+import { formatINR } from '../utils/formatCurrency';
+import CloseButton from '../components/CloseButton';
+import CancelButton from '../components/CancelButton';
 import '../styles/RidePages.css';
 
 interface RideDetail {
@@ -405,13 +408,13 @@ export default function RideDetailPage() {
             <div className="ride-info-row">
               <span className="ride-info-row__label">Estimated Fare</span>
               <span className="ride-info-row__value">
-                {ride.estimatedFare ? `₹${ride.estimatedFare.toFixed(0)}` : 'N/A'}
+                {ride.estimatedFare != null ? formatINR(ride.estimatedFare, 0) : 'N/A'}
               </span>
             </div>
             <div className="ride-info-row">
               <span className="ride-info-row__label">Actual Fare</span>
               <span className="ride-info-row__value ride-info-row__value--bold">
-                {ride.actualFare ? `₹${ride.actualFare.toFixed(0)}` : 'Pending'}
+                {ride.actualFare != null ? formatINR(ride.actualFare, 0) : 'Pending'}
               </span>
             </div>
             <div className="ride-info-row">
@@ -466,19 +469,19 @@ export default function RideDetailPage() {
               <div className="ride-info-row">
                 <span className="ride-info-row__label">Amount</span>
                 <span className="ride-info-row__value ride-info-row__value--bold">
-                  ₹{(ride.actualFare ?? ride.estimatedFare ?? 0).toFixed(0)}
+                  {formatINR(ride.actualFare ?? ride.estimatedFare ?? 0, 0)}
                 </span>
               </div>
               <div className="ride-info-row">
                 <span className="ride-info-row__label">Commission</span>
                 <span className="ride-info-row__value" style={{ color: 'var(--hj-warning)' }}>
-                  ₹{(ride.platformCommission ?? 0).toFixed(0)}
+                  {formatINR(ride.platformCommission ?? 0, 0)}
                 </span>
               </div>
               <div className="ride-info-row">
                 <span className="ride-info-row__label">Driver Earnings</span>
                 <span className="ride-info-row__value" style={{ color: 'var(--hj-success)' }}>
-                  ₹{(ride.driverEarnings ?? 0).toFixed(0)}
+                  {formatINR(ride.driverEarnings ?? 0, 0)}
                 </span>
               </div>
               <div className="ride-info-row">
@@ -560,7 +563,7 @@ export default function RideDetailPage() {
           <div className="ride-modal ride-modal--sm">
             <div className="ride-modal__header">
               <h2 className="ride-modal__title">Cancel Ride #{ride.id}</h2>
-              <button className="ride-modal__close" onClick={() => setCancelModal(false)}>×</button>
+              <CloseButton onClick={() => setCancelModal(false)} />
             </div>
             <p className="ride-modal__desc">
               This will force-cancel the ride. The driver and user will be notified immediately.
@@ -573,9 +576,7 @@ export default function RideDetailPage() {
               placeholder="e.g. Safety concern, driver unresponsive…"
             />
             <div className="ride-modal__footer">
-              <button className="ride-btn ride-btn--outline" onClick={() => setCancelModal(false)}>
-                Go Back
-              </button>
+              <CancelButton text="Go Back" onClick={() => setCancelModal(false)} />
               <button className="ride-btn ride-btn--danger" onClick={handleCancelRide}>
                 Confirm Cancel
               </button>

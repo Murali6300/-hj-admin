@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import api from '../api';
 import { resolveImageUrl } from '../utils/resolveImageUrl';
+import CloseButton from '../components/CloseButton';
+import CancelButton from '../components/CancelButton';
 
 interface CompanyPayment {
   id: number;
@@ -350,7 +352,7 @@ export default function CompanyPaymentPage() {
           <div style={modalStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ fontSize: 18, margin: 0 }}>{editingId ? 'Edit Payment Profile' : 'New Payment Profile'}</h2>
-              <button onClick={closeForm} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#666' }}>✕</button>
+              <CloseButton onClick={closeForm} />
             </div>
 
             <div style={gridStyle}>
@@ -416,9 +418,7 @@ export default function CompanyPaymentPage() {
             </div>
 
             <div style={{ display: 'flex', gap: 10, marginTop: 24, justifyContent: 'flex-end' }}>
-              <button onClick={closeForm} style={{ padding: '10px 20px', background: '#F5F5F5', color: '#333', border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer', fontSize: 14 }}>
-                Cancel
-              </button>
+              <CancelButton onClick={closeForm} />
               <button onClick={handleSave} disabled={saving}
                 style={{ padding: '10px 24px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600, opacity: saving ? 0.6 : 1 }}>
                 {saving ? 'Saving...' : editingId ? 'Update Profile' : 'Create Profile'}
@@ -434,7 +434,7 @@ export default function CompanyPaymentPage() {
           <div style={modalStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ fontSize: 18, margin: 0 }}>Payment Profile Details</h2>
-              <button onClick={() => setViewProfile(null)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#666' }}>✕</button>
+              <CloseButton onClick={() => setViewProfile(null)} />
             </div>
 
             <div style={{ background: '#F5F5F5', borderRadius: 8, padding: 16, marginBottom: 16 }}>
@@ -489,10 +489,7 @@ export default function CompanyPaymentPage() {
                 style={{ padding: '10px 20px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
                 Edit
               </button>
-              <button onClick={() => setViewProfile(null)}
-                style={{ padding: '10px 20px', background: '#F5F5F5', color: '#333', border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer', fontSize: 14 }}>
-                Close
-              </button>
+              <CloseButton label onClick={() => setViewProfile(null)} />
             </div>
           </div>
         </div>
@@ -502,7 +499,11 @@ export default function CompanyPaymentPage() {
       {confirmDialog.show && (
         <div style={overlayStyle}>
           <div style={{ ...modalStyle, maxWidth: 420 }}>
-            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+            <div style={{ position: 'relative', textAlign: 'center', marginBottom: 20 }}>
+              <CloseButton
+                onClick={() => setConfirmDialog({ show: false, profileId: 0, profileName: '', action: 'activate' })}
+                style={{ position: 'absolute', top: -8, right: -8 }}
+              />
               <div style={{ fontSize: 40, marginBottom: 12 }}>🟢</div>
               <h2 style={{ fontSize: 18, margin: 0 }}>Activate Payment Profile?</h2>
             </div>
@@ -512,10 +513,7 @@ export default function CompanyPaymentPage() {
               Only one payment profile can be active at a time.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <button onClick={() => setConfirmDialog({ show: false, profileId: 0, profileName: '', action: 'activate' })}
-                style={{ padding: '10px 24px', background: '#F5F5F5', color: '#333', border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer', fontSize: 14 }}>
-                Cancel
-              </button>
+              <CancelButton onClick={() => setConfirmDialog({ show: false, profileId: 0, profileName: '', action: 'activate' })} />
               <button onClick={handleActivate} disabled={saving}
                 style={{ padding: '10px 24px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: 6, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600, opacity: saving ? 0.6 : 1 }}>
                 {saving ? 'Activating...' : 'Activate Profile'}

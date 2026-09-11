@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import CloseButton from '../components/CloseButton';
+import CancelButton from '../components/CancelButton';
 import '../styles/RidePages.css';
 
 interface Ride {
@@ -281,7 +283,7 @@ export default function RideMonitoringPage() {
           <div className="ride-modal ride-modal--sm">
             <div className="ride-modal__header">
               <h2 className="ride-modal__title">Cancel Ride #{cancelModalRide.id}</h2>
-              <button className="ride-modal__close" onClick={() => setCancelModalRide(null)}>×</button>
+              <CloseButton onClick={() => setCancelModalRide(null)} />
             </div>
             <p className="ride-modal__desc">
               This will force-cancel the ride. The driver and user will be notified immediately.
@@ -294,9 +296,7 @@ export default function RideMonitoringPage() {
               placeholder="e.g. Safety concern, driver unresponsive…"
             />
             <div className="ride-modal__footer">
-              <button className="ride-btn ride-btn--outline" onClick={() => setCancelModalRide(null)}>
-                Go Back
-              </button>
+              <CancelButton text="Go Back" onClick={() => setCancelModalRide(null)} />
               <button className="ride-btn ride-btn--danger" onClick={handleCancelRide}>
                 Confirm Cancel
               </button>

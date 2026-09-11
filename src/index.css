@@ -34,3 +34,60 @@ img {
 .admin-sidebar-nav::-webkit-scrollbar-track { background: transparent; }
 .admin-sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 .admin-sidebar-nav { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent; }
+
+/* ── Shared Close controls (red Close / top-right X icon) ──── */
+.hj-btn-close {
+  padding: 6px 16px;
+  border: none;
+  border-radius: var(--hj-radius-sm, 8px);
+  background: var(--hj-danger, #EF4444);
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--hj-transition-fast, 150ms ease), transform var(--hj-transition-fast, 150ms ease);
+}
+.hj-btn-close:hover { background: #DC2626; }
+.hj-btn-close:active { background: #B91C1C; transform: translateY(1px); }
+.hj-btn-close:focus-visible { outline: 2px solid var(--hj-danger, #EF4444); outline-offset: 2px; }
+
+.hj-icon-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--hj-radius-sm, 8px);
+  background: var(--hj-danger, #EF4444);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--hj-transition-fast, 150ms ease), transform var(--hj-transition-fast, 150ms ease);
+}
+.hj-icon-close:hover { background: #DC2626; }
+.hj-icon-close:active { background: #B91C1C; transform: scale(0.94); }
+.hj-icon-close:focus-visible { outline: 2px solid var(--hj-danger, #EF4444); outline-offset: 2px; }
+
+/* ── Shared Cancel button (red bg, white text) ─────────────── */
+.hj-btn-cancel {
+  padding: 9px 18px;
+  border: none;
+  border-radius: var(--hj-radius-sm, 8px);
+  background: var(--hj-danger, #EF4444);
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--hj-transition-fast, 150ms ease), transform var(--hj-transition-fast, 150ms ease);
+}
+.hj-btn-cancel:hover { background: #DC2626; }
+.hj-btn-cancel:active { background: #B91C1C; transform: translateY(1px); }
+.hj-btn-cancel:focus-visible { outline: 2px solid var(--hj-danger, #EF4444); outline-offset: 2px; }
+.hj-btn-cancel:disabled { background: var(--hj-text-secondary, #6B7280); cursor: not-allowed; }

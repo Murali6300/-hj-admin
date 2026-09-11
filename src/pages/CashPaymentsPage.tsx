@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import { formatINR } from '../utils/formatCurrency';
 
 interface CashPayment {
   paymentId: number;
@@ -46,6 +47,8 @@ const STATUS_LABELS: Record<string, string> = {
   PENDING_USER_CONFIRMATION: 'Pending User Confirm',
   SUCCESS: 'Resolved',
   DISPUTED: 'Disputed',
+  REFUNDED: 'Refunded',
+  CANCELLED: 'Cancelled',
 };
 
 const quickFilters = [
@@ -65,6 +68,7 @@ export default function CashPaymentsPage() {
   const [total, setTotal] = useState(0);
   const [activeFilter, setActiveFilter] = useState('all');
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [searchInput, setSearchInput] = useState('');
   const [searchRideId, setSearchRideId] = useState('');
 
   const getDateRange = useCallback((filter: string) => {
@@ -103,20 +107,15 @@ export default function CashPaymentsPage() {
     setLoading(true);
     setError('');
     try {
-      if (searchRideId.trim()) {
-        const res = await api.get(`/payments/ride/${searchRideId.trim()}`);
-        setPayments([res.data]);
-        setTotal(1);
-      } else {
-        const params: Record<string, string | number> = { page: page - 1, size: 20 };
-        if (filterStatus !== 'ALL') params.status = filterStatus;
-        const range = getDateRange(activeFilter);
-        if (range.since) params.since = range.since;
-        if (range.until) params.until = range.until;
-        const res = await api.get('/payments/cash', { params });
-        setPayments(res.data.content || []);
-        setTotal(res.data.totalElements || 0);
-      }
+      const params: Record<string, string | number> = { page: page - 1, size: 20 };
+      if (filterStatus !== 'ALL') params.status = filterStatus;
+      if (searchRideId) params.rideId = Number(searchRideId);
+      const range = getDateRange(activeFilter);
+      if (range.since) params.since = range.since;
+      if (range.until) params.until = range.until;
+      const res = await api.get('/payments/cash', { params });
+      setPayments(res.data.content || []);
+      setTotal(res.data.totalElements || 0);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -134,6 +133,28 @@ export default function CashPaymentsPage() {
   useEffect(() => {
     fetchPayments();
   }, [fetchPayments]);
+
+  const handleSearch = () => {
+    setSearchRideId(searchInput.replace(/\D/g, ''));
+    setPage(1);
+  };
+
+  const handleSearchInputChange = (e: { target: { value: string } }) => {
+    const v = e.target.value;
+    setSearchInput(v);
+    if (v.replace(/\D/g, '') === '' && searchRideId !== '') {
+      setSearchRideId('');
+      setPage(1);
+    }
+  };
+
+  const handleClearFilters = () => {
+    setFilterStatus('ALL');
+    setActiveFilter('all');
+    setSearchInput('');
+    setSearchRideId('');
+    setPage(1);
+  };
 
   const handleResolve = async (paymentId: number) => {
     const resolution = prompt('Enter resolution notes:');
@@ -180,7 +201,7 @@ export default function CashPaymentsPage() {
               padding: '20px 16px',
               cursor: 'pointer',
             }}
-            onClick={() => { setFilterStatus('PENDING'); setPage(1); }}
+            onClick={() => { setSearchInput(''); setSearchRideId(''); setFilterStatus('PENDING'); setPage(1); }}
           >
             <div style={{ fontSize: 28, fontWeight: 700, color: '#F57C00' }}>{stats.pending}</div>
             <div style={{ fontSize: 13, color: '#BF360C', marginTop: 4 }}>Pending</div>
@@ -193,7 +214,7 @@ export default function CashPaymentsPage() {
               padding: '20px 16px',
               cursor: 'pointer',
             }}
-            onClick={() => { setFilterStatus('DISPUTED'); setPage(1); }}
+            onClick={() => { setSearchInput(''); setSearchRideId(''); setFilterStatus('DISPUTED'); setPage(1); }}
           >
             <div style={{ fontSize: 28, fontWeight: 700, color: '#C62828' }}>{stats.disputed}</div>
             <div style={{ fontSize: 13, color: '#AD1457', marginTop: 4 }}>Disputed</div>
@@ -206,7 +227,7 @@ export default function CashPaymentsPage() {
               padding: '20px 16px',
               cursor: 'pointer',
             }}
-            onClick={() => { setFilterStatus('SUCCESS'); setPage(1); }}
+            onClick={() => { setSearchInput(''); setSearchRideId(''); setFilterStatus('SUCCESS'); setPage(1); }}
           >
             <div style={{ fontSize: 28, fontWeight: 700, color: '#2E7D32' }}>{stats.resolved}</div>
             <div style={{ fontSize: 13, color: '#1B5E20', marginTop: 4 }}>Resolved</div>
@@ -232,6 +253,8 @@ export default function CashPaymentsPage() {
           <button
             key={f.value}
             onClick={() => {
+              setSearchInput('');
+              setSearchRideId('');
               setActiveFilter(f.value);
               setPage(1);
             }}
@@ -255,14 +278,16 @@ export default function CashPaymentsPage() {
         <input
           type="text"
           placeholder="Search by Ride ID..."
-          value={searchRideId}
-          onChange={(e) => setSearchRideId(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && fetchPayments()}
+          value={searchInput}
+          onChange={handleSearchInputChange}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 14 }}
         />
         <select
           value={filterStatus}
           onChange={(e) => {
+            setSearchInput('');
+            setSearchRideId('');
             setFilterStatus(e.target.value);
             setPage(1);
           }}
@@ -273,12 +298,11 @@ export default function CashPaymentsPage() {
           <option value="PENDING_USER_CONFIRMATION">Pending User Confirmation</option>
           <option value="DISPUTED">Disputed</option>
           <option value="SUCCESS">Resolved</option>
+          <option value="REFUNDED">Refunded</option>
+          <option value="CANCELLED">Cancelled</option>
         </select>
         <button
-          onClick={() => {
-            setPage(1);
-            fetchPayments();
-          }}
+          onClick={handleSearch}
           style={{
             padding: '8px 16px',
             background: '#16A34A',
@@ -303,14 +327,9 @@ export default function CashPaymentsPage() {
         >
           Export CSV
         </button>
-        {(filterStatus !== 'ALL' || activeFilter !== 'all') && (
+        {(filterStatus !== 'ALL' || activeFilter !== 'all' || searchInput.trim() !== '' || searchRideId !== '') && (
           <button
-            onClick={() => {
-              setFilterStatus('ALL');
-              setActiveFilter('all');
-              setSearchRideId('');
-              setPage(1);
-            }}
+            onClick={handleClearFilters}
             style={{
               padding: '8px 16px',
               background: '#F44336',
@@ -363,7 +382,7 @@ export default function CashPaymentsPage() {
                   <td style={tdStyle}>HJ{p.rideId}</td>
                   <td style={tdStyle}>{p.userName || '-'}</td>
                   <td style={tdStyle}>{p.driverName || '-'}</td>
-                  <td style={{ ...tdStyle, fontWeight: 600 }}>₹{p.totalFare.toFixed(0)}</td>
+                  <td style={{ ...tdStyle, fontWeight: 600 }}>{formatINR(p.totalFare, 0)}</td>
                   <td style={tdStyle}>
                     <span
                       style={{
@@ -450,8 +469,8 @@ export default function CashPaymentsPage() {
               <span style={{ padding: '6px 12px', fontSize: 14 }}>Page {page}</span>
               <button
                 onClick={() => setPage((p) => p + 1)}
-                disabled={payments.length < 20}
-                style={pageBtnStyle(payments.length < 20)}
+                disabled={page * 20 >= total}
+                style={pageBtnStyle(page * 20 >= total)}
               >
                 Next
               </button>

@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
+import { formatINR } from '../utils/formatCurrency';
+import CloseButton from '../components/CloseButton';
+import CancelButton from '../components/CancelButton';
 
 interface Coupon {
   id: number;
@@ -137,8 +140,8 @@ export default function CouponsPage() {
               <tr key={c.id} style={{ borderTop: '1px solid #eee' }}>
                 <td style={{ ...tdStyle, fontWeight: 700, color: '#1E88E5' }}>{c.code}</td>
                 <td style={tdStyle}>{c.description}</td>
-                <td style={tdStyle}>{c.discountType === 'PERCENTAGE' ? `${c.discountValue}%` : `₹${c.discountValue}`}</td>
-                <td style={tdStyle}>₹{c.minFare}</td>
+                <td style={tdStyle}>{c.discountType === 'PERCENTAGE' ? `${c.discountValue}%` : formatINR(c.discountValue)}</td>
+                <td style={tdStyle}>{formatINR(c.minFare)}</td>
                 <td style={tdStyle}>{c.usedCount}{c.usageLimit ? ` / ${c.usageLimit}` : ''}</td>
                 <td style={{ ...tdStyle, color: '#757575' }}>{new Date(c.validUntil).toLocaleDateString('en-IN')}</td>
                 <td style={tdStyle}>
@@ -159,7 +162,10 @@ export default function CouponsPage() {
       {showCreate && (
         <div style={modalOverlay}>
           <div style={{ ...modalContent, maxWidth: 560 }}>
-            <h2 style={{ fontSize: 18, marginBottom: 16 }}>{editCoupon ? 'Edit Coupon' : 'Create Coupon'}</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 18, margin: 0 }}>{editCoupon ? 'Edit Coupon' : 'Create Coupon'}</h2>
+              <CloseButton onClick={() => setShowCreate(false)} />
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Field label="Code" value={form.code} onChange={(v) => setForm({ ...form, code: v })} />
               <Field label="Discount Type" value={form.discountType} onChange={(v) => setForm({ ...form, discountType: v })} type="select" options={['PERCENTAGE', 'FIXED']} />
@@ -184,10 +190,7 @@ export default function CouponsPage() {
                 style={{ padding: '8px 16px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
                 {editCoupon ? 'Update' : 'Create'}
               </button>
-              <button onClick={() => setShowCreate(false)}
-                style={{ padding: '8px 16px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
-                Cancel
-              </button>
+              <CancelButton onClick={() => setShowCreate(false)} />
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import api from '../api';
+import { formatINR } from '../utils/formatCurrency';
 
 interface Ride {
   id: number;
@@ -30,20 +31,89 @@ interface Payment {
 export default function CancellationManagementPage() {
   const [cancelledRides, setCancelledRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
+  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [userFilter, setUserFilter] = useState('');
+  const [userInput, setUserInput] = useState('');
+  const [driverFilter, setDriverFilter] = useState('');
+  const [driverInput, setDriverInput] = useState('');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const pageSize = 20;
   const [refundId, setRefundId] = useState<number | null>(null);
 
-  const fetchCancelled = async () => {
+  const fetchCancelled = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get('/rides', { params: { status: 'CANCELLED', page, size: 20 } });
+      const params: Record<string, string | number> = { status: 'CANCELLED', page, size: pageSize, sortBy, sortDir };
+      if (search.trim()) params.search = search.trim();
+      if (userFilter.trim()) params.userName = userFilter.trim();
+      if (driverFilter.trim()) params.driverName = driverFilter.trim();
+      const res = await api.get('/rides', { params });
       setCancelledRides(res.data.content || []);
+      setTotal(res.data.totalElements || 0);
     } catch { /* ignore */ } finally {
       setLoading(false);
     }
+  }, [page, search, userFilter, driverFilter, sortBy, sortDir]);
+
+  useEffect(() => { fetchCancelled(); }, [fetchCancelled]);
+
+  const handleSearch = () => {
+    setPage(0);
+    setSearch(searchInput);
+    setUserFilter(userInput);
+    setDriverFilter(driverInput);
   };
 
-  useEffect(() => { fetchCancelled(); }, [page]);
+  const handleSearchInputChange = (e: { target: { value: string } }) => {
+    const v = e.target.value;
+    setSearchInput(v);
+    if (v.trim() === '' && search.trim() !== '') {
+      setSearch('');
+      setPage(0);
+    }
+  };
+
+  const handleUserFilter = () => {
+    setPage(0);
+    setUserFilter(userInput);
+  };
+
+  const handleUserInputChange = (e: { target: { value: string } }) => {
+    const v = e.target.value;
+    setUserInput(v);
+    if (v.trim() === '' && userFilter.trim() !== '') {
+      setUserFilter('');
+      setPage(0);
+    }
+  };
+
+  const handleDriverFilter = () => {
+    setPage(0);
+    setDriverFilter(driverInput);
+  };
+
+  const handleDriverInputChange = (e: { target: { value: string } }) => {
+    const v = e.target.value;
+    setDriverInput(v);
+    if (v.trim() === '' && driverFilter.trim() !== '') {
+      setDriverFilter('');
+      setPage(0);
+    }
+  };
+
+  const handleClearFilters = () => {
+    setSearchInput('');
+    setSearch('');
+    setUserInput('');
+    setUserFilter('');
+    setDriverInput('');
+    setDriverFilter('');
+    setPage(0);
+  };
 
   const handleRefund = async (rideId: number) => {
     if (!confirm('Process a refund for this cancelled ride? The full fare will be returned to the user.')) return;
@@ -69,7 +139,7 @@ export default function CancellationManagementPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
         <div style={{ background: '#fff', borderRadius: 10, padding: 16, borderLeft: '4px solid #F44336', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
           <p style={{ fontSize: 12, color: '#757575' }}>Total Cancelled</p>
-          <p style={{ fontSize: 24, fontWeight: 700, color: '#F44336' }}>{cancelledRides.length}</p>
+          <p style={{ fontSize: 24, fontWeight: 700, color: '#F44336' }}>{total}</p>
         </div>
         <div style={{ background: '#fff', borderRadius: 10, padding: 16, borderLeft: '4px solid #FF9800', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
           <p style={{ fontSize: 12, color: '#757575' }}>User Cancelled</p>
@@ -79,6 +149,49 @@ export default function CancellationManagementPage() {
           <p style={{ fontSize: 12, color: '#757575' }}>Driver Cancelled</p>
           <p style={{ fontSize: 24, fontWeight: 700, color: '#9C27B0' }}>{cancelledRides.filter(r => r.cancelledBy === 'DRIVER').length}</p>
         </div>
+      </div>
+
+      {/* Toolbar */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+        <input type="text" placeholder="Search ride ID, pickup or dropoff..." value={searchInput}
+          onChange={handleSearchInputChange}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 14, flexGrow: 1, minWidth: 220 }} />
+        <input type="text" placeholder="User name or phone..." value={userInput}
+          onChange={handleUserInputChange}
+          onKeyDown={(e) => e.key === 'Enter' && handleUserFilter()}
+          style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 14, width: 180 }} />
+        <input type="text" placeholder="Driver name or phone..." value={driverInput}
+          onChange={handleDriverInputChange}
+          onKeyDown={(e) => e.key === 'Enter' && handleDriverFilter()}
+          style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 14, width: 180 }} />
+        <button onClick={handleSearch}
+          style={{ padding: '8px 16px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>
+          Search
+        </button>
+        <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(0); }}
+          style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13 }}>
+          <option value="createdAt">Date</option>
+          <option value="actualFare">Fare</option>
+          <option value="status">Status</option>
+        </select>
+        <button onClick={() => { setSortDir(d => d === 'desc' ? 'asc' : 'desc'); setPage(0); }}
+          style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, cursor: 'pointer', background: '#fff' }}>
+          {sortDir === 'desc' ? 'Newest First' : 'Oldest First'}
+        </button>
+        <span style={{ fontSize: 13, color: '#757575' }}>{total} cancelled rides</span>
+        {(search.trim() !== '' || userFilter.trim() !== '' || driverFilter.trim() !== '') && (
+          <button onClick={handleClearFilters}
+            style={{ padding: '8px 16px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}>
+            Clear Filters
+          </button>
+        )}
+        {userFilter.trim() !== '' && (
+          <span style={{ fontSize: 12, color: '#FF9800' }}>User: {userFilter}</span>
+        )}
+        {driverFilter.trim() !== '' && (
+          <span style={{ fontSize: 12, color: '#9C27B0' }}>Driver: {driverFilter}</span>
+        )}
       </div>
 
       {loading ? (
@@ -112,7 +225,7 @@ export default function CancellationManagementPage() {
                   </span>
                 </td>
                 <td style={tdStyle} title={ride.cancellationReason}>{truncate(ride.cancellationReason, 30) || 'No reason'}</td>
-                <td style={tdStyle}>₹{ride.actualFare?.toFixed(0) || '0'}</td>
+                <td style={tdStyle}>{ride.actualFare != null ? formatINR(ride.actualFare, 0) : '0'}</td>
                 <td style={tdStyle}>
                   <button onClick={() => handleRefund(ride.id)} style={{ padding: '4px 10px', background: '#FF9800', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>
                     Process Refund
@@ -127,7 +240,7 @@ export default function CancellationManagementPage() {
       <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
         <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} style={pageBtnStyle}>Previous</button>
         <span style={{ padding: '6px 12px', fontSize: 14 }}>Page {page + 1}</span>
-        <button onClick={() => setPage(p => p + 1)} disabled={cancelledRides.length < 20} style={{ ...pageBtnStyle, opacity: cancelledRides.length < 20 ? 0.5 : 1 }}>Next</button>
+        <button onClick={() => setPage(p => p + 1)} disabled={(page + 1) * pageSize >= total} style={{ ...pageBtnStyle, opacity: (page + 1) * pageSize >= total ? 0.5 : 1 }}>Next</button>
       </div>
     </div>
   );

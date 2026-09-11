@@ -18,6 +18,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import api from '../api';
+import { formatINR } from '../utils/formatCurrency';
 import '../styles/Dashboard.css';
 
 /* ── Types ────────────────────────────────────────────────────── */
@@ -60,15 +61,15 @@ const REFRESH_MS = 60_000;
 
 const kpiDefs = [
   { key: 'completedToday' as const, label: "Today's Rides", icon: '🚕', colorClass: 'blue', format: (v: number) => v.toLocaleString() },
-  { key: 'totalRevenueToday' as const, label: "Today's Revenue", icon: '💰', colorClass: 'green', format: (v: number) => `₹${v.toLocaleString()}` },
+  { key: 'totalRevenueToday' as const, label: "Today's Revenue", icon: '💰', colorClass: 'green', format: (v: number) => formatINR(v) },
   { key: 'totalUsers' as const, label: 'Total Users', icon: '👥', colorClass: 'purple', format: (v: number) => v.toLocaleString() },
   { key: 'onlineDrivers' as const, label: 'Drivers Online', icon: '🟢', colorClass: 'green', format: (v: number) => String(v) },
   { key: 'activeRides' as const, label: 'Active Rides', icon: '🗺️', colorClass: 'blue', format: (v: number) => String(v) },
   { key: 'pendingDriverApprovals' as const, label: 'Pending Approvals', icon: '⏳', colorClass: 'orange', format: (v: number) => String(v) },
   { key: 'completedAllTime' as const, label: 'Completed Trips', icon: '✅', colorClass: 'green', format: (v: number) => v.toLocaleString() },
   { key: 'cancelledToday' as const, label: 'Cancelled Today', icon: '❌', colorClass: 'red', format: (v: number) => String(v) },
-  { key: 'totalRevenueAllTime' as const, label: 'Total Revenue', icon: '📊', colorClass: 'info', format: (v: number) => `₹${v.toLocaleString()}` },
-  { key: 'walletBalanceAggregate' as const, label: 'Wallet Balance', icon: '🏦', colorClass: 'purple', format: (v: number) => `₹${Number(v).toLocaleString()}` },
+  { key: 'totalRevenueAllTime' as const, label: 'Total Revenue', icon: '📊', colorClass: 'info', format: (v: number) => formatINR(v) },
+  { key: 'walletBalanceAggregate' as const, label: 'Wallet Balance', icon: '🏦', colorClass: 'purple', format: (v: number) => formatINR(Number(v)) },
   { key: 'totalDrivers' as const, label: 'Total Drivers', icon: '🚗', colorClass: 'orange', format: (v: number) => v.toLocaleString() },
   { key: 'newUsersToday' as const, label: 'New Users Today', icon: '🆕', colorClass: 'blue', format: (v: number) => String(v) },
 ];
@@ -213,7 +214,7 @@ export default function DashboardPage() {
             <div className="dash-welcome__stat-label">Rides Today</div>
           </div>
           <div className="dash-welcome__stat">
-            <div className="dash-welcome__stat-value">₹{stats.totalRevenueToday.toLocaleString()}</div>
+            <div className="dash-welcome__stat-value">{formatINR(stats.totalRevenueToday)}</div>
             <div className="dash-welcome__stat-label">Revenue Today</div>
           </div>
           <div className="dash-welcome__stat">
@@ -322,7 +323,7 @@ export default function DashboardPage() {
                   <YAxis fontSize={11} stroke="#94A3B8" />
                   <Tooltip
                     contentStyle={{ borderRadius: 12, border: '1px solid #E2E8F0', fontSize: 12 }}
-                    formatter={(v) => [`₹${Number(v).toLocaleString()}`, 'Revenue']}
+                    formatter={(v) => [formatINR(Number(v)), 'Revenue']}
                   />
                   <Area type="monotone" dataKey="revenue" stroke="#1E88E5" fill="url(#gradRevenue)" strokeWidth={2} />
                 </AreaChart>
@@ -335,7 +336,7 @@ export default function DashboardPage() {
                   <YAxis fontSize={11} stroke="#94A3B8" />
                   <Tooltip
                     contentStyle={{ borderRadius: 12, border: '1px solid #E2E8F0', fontSize: 12 }}
-                    formatter={(v) => [`₹${Number(v).toLocaleString()}`, 'Revenue']}
+                    formatter={(v) => [formatINR(Number(v)), 'Revenue']}
                   />
                   <Bar dataKey="revenue" fill="#22C55E" radius={[6, 6, 0, 0]} />
                 </BarChart>

@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, type CSSProperties } from 'react';
 import api from '../api';
 import { getVehicleIcon, getVehicleColor } from '../utils/vehicleIcons';
+import CloseButton from '../components/CloseButton';
+import CancelButton from '../components/CancelButton';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -342,9 +344,12 @@ export default function VehiclesPage() {
       {modalOpen && (
         <div style={modalOverlay} onClick={() => setModalOpen(false)}>
           <div style={{ ...modalContent, maxWidth: 500 }} onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ fontSize: 18, margin: '0 0 16px' }}>
-              {editingVehicle ? `Edit ${editingVehicle.displayName}` : 'Add Vehicle Type'}
-            </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 16px' }}>
+              <h2 style={{ fontSize: 18, margin: 0 }}>
+                {editingVehicle ? `Edit ${editingVehicle.displayName}` : 'Add Vehicle Type'}
+              </h2>
+              <CloseButton onClick={() => setModalOpen(false)} />
+            </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
@@ -427,10 +432,7 @@ export default function VehiclesPage() {
                 style={{ flex: 1, padding: '10px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 {actionLoading !== null ? 'Saving...' : editingVehicle ? 'Update' : 'Create'}
               </button>
-              <button onClick={() => setModalOpen(false)}
-                style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>
-                Cancel
-              </button>
+              <CancelButton onClick={() => setModalOpen(false)} style={{ flex: 1 }} />
             </div>
           </div>
         </div>
@@ -452,10 +454,7 @@ export default function VehiclesPage() {
                 style={{ flex: 1, padding: '10px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 {actionLoading === deleteTarget.id ? 'Deactivating...' : 'Deactivate'}
               </button>
-              <button onClick={() => setDeleteTarget(null)}
-                style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>
-                Cancel
-              </button>
+              <CancelButton onClick={() => setDeleteTarget(null)} style={{ flex: 1 }} />
             </div>
           </div>
         </div>

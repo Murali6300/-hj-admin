@@ -497,26 +497,6 @@
   color: var(--hj-text);
 }
 
-.ride-modal__close {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--hj-radius-sm);
-  border: none;
-  background: var(--hj-surface-hover);
-  color: var(--hj-text-secondary);
-  font-size: 18px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--hj-transition-fast);
-}
-
-.ride-modal__close:hover {
-  background: var(--hj-danger-light);
-  color: var(--hj-danger);
-}
-
 /* ── Detail Page — Map Card ───────────────────────────────────── */
 
 .ride-detail-grid {

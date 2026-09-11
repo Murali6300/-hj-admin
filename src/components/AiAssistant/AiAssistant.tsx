@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api';
 import { hasPermission } from '../../utils/adminPermissions';
+import CloseButton from '../CloseButton';
 import './AiAssistant.css';
 
 /* ── Types ────────────────────────────────────────────────────── */
@@ -141,13 +142,10 @@ export default function AiAssistant() {
                   Live intelligence
                 </div>
               </div>
-              <button
-                className="ai-assistant__close"
+              <CloseButton
                 onClick={() => setOpen(false)}
-                aria-label="Close assistant"
-              >
-                ✕
-              </button>
+                ariaLabel="Close assistant"
+              />
             </div>
             {briefing && (
               <div className="ai-assistant__greeting">

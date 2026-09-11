@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
 import api from '../api';
 import { getVehicleIcon } from '../utils/vehicleIcons';
+import { formatINR } from '../utils/formatCurrency';
 
 interface AnalyticsData {
   topDrivers: { name: string; rides: number; earnings: number; rating: number }[];
@@ -228,7 +229,7 @@ export default function AnalyticsPage() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" fontSize={11} />
                 <YAxis type="category" dataKey="name" fontSize={11} width={100} />
-                <Tooltip formatter={(v: any) => `\u20B9${Number(v).toLocaleString()}`} />
+                <Tooltip formatter={(v: any) => [formatINR(Number(v)), 'Earnings']} />
                 <Bar dataKey="earnings" fill="#4CAF50" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>

@@ -9,6 +9,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
 import { hasPermission } from '../utils/adminPermissions';
+import CancelButton from '../components/CancelButton';
 import '../styles/AiIntelligence.css';
 
 interface Goal {
@@ -139,7 +140,7 @@ export default function GoalTrackingPage() {
                         style={{ width: 120, padding: '6px 10px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 13 }}
                       />
                       <button className="ai-error__retry" onClick={() => saveGoal(g)} style={{ padding: '6px 12px', fontSize: 12 }}>Save</button>
-                      <button className="ai-header__refresh" style={{ padding: '6px 10px', fontSize: 12 }} onClick={() => setEditing(null)}>Cancel</button>
+                      <CancelButton onClick={() => setEditing(null)} style={{ padding: '6px 10px', fontSize: 12 }} />
                     </div>
                   )}
                 </div>

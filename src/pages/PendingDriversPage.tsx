@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import api from '../api';
 import { getVehicleIcon, getVehicleColor } from '../utils/vehicleIcons';
+import CloseButton from '../components/CloseButton';
+import CancelButton from '../components/CancelButton';
 
 function getDocumentUrl(url: string): string {
   if (!url) return url;
@@ -229,7 +231,7 @@ export default function PendingDriversPage() {
           <div style={{ ...modalContent, maxWidth: 700 }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ fontSize: 18, margin: 0 }}>Driver Documents — {detail?.driverInfo.name}</h2>
-              <button onClick={() => setDetail(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer' }}>×</button>
+              <CloseButton onClick={() => setDetail(null)} />
             </div>
 
             {detailLoading ? <p>Loading documents...</p> : detail && (
@@ -358,7 +360,7 @@ export default function PendingDriversPage() {
                 style={{ flex: 1, padding: '10px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 {actionLoading === rejectDriver.id ? 'Rejecting...' : 'Confirm Reject'}
               </button>
-              <button onClick={() => setRejectDriver(null)} style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <CancelButton onClick={() => setRejectDriver(null)} style={{ flex: 1 }} />
             </div>
           </div>
         </div>
@@ -378,7 +380,7 @@ export default function PendingDriversPage() {
                 style={{ flex: 1, padding: '10px', background: '#FF9800', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 {actionLoading === reuploadDriver.id ? 'Sending...' : 'Send Request'}
               </button>
-              <button onClick={() => setReuploadDriver(null)} style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <CancelButton onClick={() => setReuploadDriver(null)} style={{ flex: 1 }} />
             </div>
           </div>
         </div>
@@ -413,7 +415,7 @@ export default function PendingDriversPage() {
                 style={{ flex: 1, padding: '10px', background: docStatusAction === 'APPROVED' ? '#4CAF50' : '#F44336', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 {actionLoading === docStatusModal.driverId ? 'Updating...' : docStatusAction === 'APPROVED' ? 'Confirm Approve' : 'Confirm Reject'}
               </button>
-              <button onClick={() => setDocStatusModal(null)} style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <CancelButton onClick={() => setDocStatusModal(null)} style={{ flex: 1 }} />
             </div>
           </div>
         </div>

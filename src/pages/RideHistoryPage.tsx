@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import api from '../api';
+import { formatINR } from '../utils/formatCurrency';
+import CloseButton from '../components/CloseButton';
 import '../styles/RidePages.css';
 
 interface Ride {
@@ -298,12 +300,12 @@ export default function RideHistoryPage() {
                       </span>
                     </td>
                     <td>{ride.distanceKm ? `${ride.distanceKm.toFixed(1)} km` : '—'}</td>
-                    <td style={{ fontWeight: 600 }}>₹{(ride.actualFare ?? ride.estimatedFare ?? 0).toFixed(0)}</td>
+                    <td style={{ fontWeight: 600 }}>{formatINR(ride.actualFare ?? ride.estimatedFare ?? 0, 0)}</td>
                     <td style={{ color: '#FF9800', fontWeight: 600 }}>
-                      {ride.platformCommission != null ? `₹${ride.platformCommission.toFixed(0)}` : '—'}
+                      {ride.platformCommission != null ? formatINR(ride.platformCommission, 0) : '—'}
                     </td>
                     <td style={{ color: '#4CAF50', fontWeight: 600 }}>
-                      {ride.driverEarnings != null ? `₹${ride.driverEarnings.toFixed(0)}` : '—'}
+                      {ride.driverEarnings != null ? formatINR(ride.driverEarnings, 0) : '—'}
                     </td>
                     <td>
                       {ride.settlementStatus ? (
@@ -363,7 +365,7 @@ export default function RideHistoryPage() {
           <div className="ride-modal ride-modal--md">
             <div className="ride-modal__header">
               <h2 className="ride-modal__title">Ride #{detailRide.id}</h2>
-              <button className="ride-modal__close" onClick={() => setDetailRide(null)}>×</button>
+              <CloseButton onClick={() => setDetailRide(null)} />
             </div>
 
             <div className="ride-detail-modal__grid">
@@ -423,24 +425,24 @@ export default function RideHistoryPage() {
             <div className="ride-fare-cards">
               <div className="ride-fare-card">
                 <p className="ride-fare-card__label">Estimated Fare</p>
-                <p className="ride-fare-card__value">₹{(detailRide.estimatedFare ?? 0).toFixed(0)}</p>
+                <p className="ride-fare-card__value">{formatINR(detailRide.estimatedFare ?? 0, 0)}</p>
               </div>
               <div className="ride-fare-card">
                 <p className="ride-fare-card__label">Actual Fare</p>
                 <p className="ride-fare-card__value ride-fare-card__value--primary">
-                  ₹{(detailRide.actualFare ?? detailRide.estimatedFare ?? 0).toFixed(0)}
+                  {formatINR(detailRide.actualFare ?? detailRide.estimatedFare ?? 0, 0)}
                 </p>
               </div>
               <div className="ride-fare-card">
                 <p className="ride-fare-card__label">Commission (20%)</p>
                 <p className="ride-fare-card__value ride-fare-card__value--orange">
-                  ₹{(detailRide.platformCommission ?? ((detailRide.actualFare ?? detailRide.estimatedFare ?? 0) * 0.2)).toFixed(0)}
+                  {formatINR(detailRide.platformCommission ?? ((detailRide.actualFare ?? detailRide.estimatedFare ?? 0) * 0.2), 0)}
                 </p>
               </div>
               <div className="ride-fare-card">
                 <p className="ride-fare-card__label">Driver Earnings</p>
                 <p className="ride-fare-card__value ride-fare-card__value--primary">
-                  ₹{(detailRide.driverEarnings ?? ((detailRide.actualFare ?? detailRide.estimatedFare ?? 0) * 0.8)).toFixed(0)}
+                  {formatINR(detailRide.driverEarnings ?? ((detailRide.actualFare ?? detailRide.estimatedFare ?? 0) * 0.8), 0)}
                 </p>
               </div>
               {detailRide.settlementStatus && (

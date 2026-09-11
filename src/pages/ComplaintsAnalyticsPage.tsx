@@ -8,6 +8,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import api from '../api';
+import CloseButton from '../components/CloseButton';
 import '../styles/AiIntelligence.css';
 
 interface CategoryCount { category: string; count: number; percentage: number; avgSentiment: number; }
@@ -274,7 +275,7 @@ export default function ComplaintsAnalyticsPage() {
                 <div className="ai-section__label" style={{ marginBottom: 0 }}>
                   <span className="ai-section__label-icon">🎫</span> Ticket #{selectedId} — AI Analysis
                 </div>
-                <button className="ai-error__retry" onClick={() => setSelectedId(null)}>Close</button>
+                <CloseButton label onClick={() => setSelectedId(null)} />
               </div>
               {detailLoading ? (
                 <div className="ai-loading" style={{ minHeight: 120 }}>

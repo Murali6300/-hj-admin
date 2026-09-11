@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import CloseButton from '../components/CloseButton';
+import CancelButton from '../components/CancelButton';
 
 interface FraudFlag {
   id: number;
@@ -400,7 +402,10 @@ export default function FraudDetectionPage() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 16px' }}>Resolve Fraud Flag</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 16px' }}>
+              <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>Resolve Fraud Flag</h3>
+              <CloseButton onClick={() => setResolveModalFlag(null)} />
+            </div>
             <div
               style={{
                 padding: 12,
@@ -436,19 +441,7 @@ export default function FraudDetectionPage() {
               }}
             />
             <div style={{ display: 'flex', gap: 12, marginTop: 20, justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setResolveModalFlag(null)}
-                style={{
-                  padding: '8px 20px',
-                  borderRadius: 8,
-                  border: '1px solid #CBD5E1',
-                  background: '#fff',
-                  cursor: 'pointer',
-                  fontSize: 14,
-                }}
-              >
-                Cancel
-              </button>
+              <CancelButton onClick={() => setResolveModalFlag(null)} />
               <button
                 onClick={handleResolve}
                 disabled={resolving}

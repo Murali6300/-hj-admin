@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
+import CloseButton from '../components/CloseButton';
 
 interface Ticket {
   id: number;
@@ -151,7 +152,7 @@ export default function SupportTicketsPage() {
           <div style={{ background: '#fff', borderRadius: 12, padding: 30, maxWidth: 550, width: '90%', maxHeight: '80vh', overflow: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
               <h2 style={{ fontSize: 20 }}>Ticket #{selectedTicket.id}</h2>
-              <button onClick={() => setSelectedTicket(null)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer' }}>X</button>
+              <CloseButton onClick={() => setSelectedTicket(null)} />
             </div>
 
             <div style={{ fontSize: 14, lineHeight: 2 }}>

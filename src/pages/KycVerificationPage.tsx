@@ -8,6 +8,7 @@
 
 import { useState, useEffect } from 'react';
 import api from '../api';
+import CloseButton from '../components/CloseButton';
 import '../styles/AiIntelligence.css';
 
 interface KycDriver {
@@ -175,7 +176,7 @@ export default function KycVerificationPage() {
                 <div className="ai-section__label" style={{ marginBottom: 0 }}>
                   <span className="ai-section__label-icon">🔍</span> {detail.name} — AI Analysis
                 </div>
-                <button className="ai-error__retry" onClick={() => setDetail(null)}>Close</button>
+                <CloseButton label onClick={() => setDetail(null)} />
               </div>
               {detailLoading ? (
                 <div className="ai-loading" style={{ minHeight: 120 }}>

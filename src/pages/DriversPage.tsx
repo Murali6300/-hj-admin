@@ -1,7 +1,10 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import api from '../api';
 import { getVehicleIcon, getVehicleColor } from '../utils/vehicleIcons';
+import { formatINR } from '../utils/formatCurrency';
 import PermissionGate from '../components/PermissionGate';
+import CloseButton from '../components/CloseButton';
+import CancelButton from '../components/CancelButton';
 
 function getDocumentUrl(url: string): string {
   if (!url) return url;
@@ -164,6 +167,15 @@ export default function DriversPage() {
   useEffect(() => { fetchDrivers(); }, [fetchDrivers]);
 
   const handleSearch = () => { setPage(0); setSearch(searchInput); };
+
+  const handleSearchInputChange = (e: { target: { value: string } }) => {
+    const v = e.target.value;
+    setSearchInput(v);
+    if (v.trim() === '' && search.trim() !== '') {
+      setSearch('');
+      setPage(0);
+    }
+  };
 
   const handleViewDetail = async (driverId: number) => {
     setDetailLoading(true);
@@ -363,7 +375,7 @@ export default function DriversPage() {
       {/* Toolbar */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
         <input type="text" placeholder="Search name, email, phone, vehicle..." value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
+          onChange={handleSearchInputChange}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           style={inputStyle} />
         <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(0); }} style={inputStyle}>
@@ -437,7 +449,7 @@ export default function DriversPage() {
                 <td style={tdStyle}>
                   {d.ratingCount > 0 ? <span>⭐ {d.averageRating.toFixed(1)} <span style={{ color: '#999', fontSize: 11 }}>({d.ratingCount})</span></span> : <span style={{ color: '#999' }}>—</span>}
                 </td>
-                <td style={tdStyle}>₹{d.totalEarnings.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                <td style={tdStyle}>{formatINR(d.totalEarnings, 0)}</td>
                 <td style={tdStyle}>
                   <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                     <button onClick={() => handleViewDetail(d.id)} style={btnSmall('#1E88E5')} disabled={detailLoading}>View</button>
@@ -483,7 +495,7 @@ export default function DriversPage() {
           <div style={{ ...modalContent, maxWidth: 850 }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ fontSize: 18, margin: 0 }}>Driver Details</h2>
-              <button onClick={() => setDetail(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer' }}>×</button>
+              <CloseButton onClick={() => setDetail(null)} />
             </div>
 
             {detailLoading ? <p>Loading...</p> : detail && (
@@ -544,16 +556,16 @@ export default function DriversPage() {
                         <InfoItem label="Approval" value={detail.driverInfo.accountStatus} />
                         <InfoItem label="Online" value={detail.driverInfo.availabilityStatus === 'AVAILABLE' ? 'Online' : 'Offline'} />
                         <InfoItem label="Rating" value={detail.driverInfo.ratingCount > 0 ? `${detail.driverInfo.averageRating.toFixed(1)} (${detail.driverInfo.ratingCount})` : 'No ratings'} />
-                        {detail.wallet && <InfoItem label="Wallet Balance" value={`₹${detail.wallet.balance.toLocaleString('en-IN')}`} />}
+                        {detail.wallet && <InfoItem label="Wallet Balance" value={formatINR(detail.wallet.balance)} />}
                       </div>
 
                       <p style={{ fontSize: 13, fontWeight: 600, color: '#1E88E5', margin: '0 0 8px' }}>Statistics</p>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                         <InfoItem label="Total Rides" value={String(detail.driverInfo.totalRides)} />
-                        <InfoItem label="Total Earnings" value={`₹${detail.driverInfo.totalEarnings.toLocaleString('en-IN')}`} />
+                        <InfoItem label="Total Earnings" value={formatINR(detail.driverInfo.totalEarnings)} />
                         {detail.earnings && <>
                           <InfoItem label="Today's Rides" value={String(detail.earnings.todayRides)} />
-                          <InfoItem label="Today's Earnings" value={`₹${detail.earnings.todayEarnings.toFixed(0)}`} />
+                          <InfoItem label="Today's Earnings" value={formatINR(detail.earnings.todayEarnings, 0)} />
                           <InfoItem label="Week Rides" value={String(detail.earnings.weekRides)} />
                           <InfoItem label="Month Rides" value={String(detail.earnings.monthRides)} />
                         </>}
@@ -609,12 +621,12 @@ export default function DriversPage() {
                   {detailTab === 'earnings' && (
                     <>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
-                        <InfoItem label="Total Earnings" value={`₹${detail.earnings.totalNetEarnings.toLocaleString('en-IN')}`} color="#4CAF50" />
-                        <InfoItem label="Platform Commission" value={`₹${detail.earnings.totalPlatformCommission.toLocaleString('en-IN')}`} color="#F44336" />
+                        <InfoItem label="Total Earnings" value={formatINR(detail.earnings.totalNetEarnings)} color="#4CAF50" />
+                        <InfoItem label="Platform Commission" value={formatINR(detail.earnings.totalPlatformCommission)} color="#F44336" />
                         <InfoItem label="Total Rides" value={String(detail.earnings.totalRides)} />
-                        <InfoItem label="Today" value={`₹${detail.earnings.todayEarnings.toFixed(0)} (${detail.earnings.todayRides} rides)`} />
-                        <InfoItem label="This Week" value={`₹${detail.earnings.weekEarnings.toFixed(0)} (${detail.earnings.weekRides} rides)`} />
-                        <InfoItem label="This Month" value={`₹${detail.earnings.monthEarnings.toFixed(0)} (${detail.earnings.monthRides} rides)`} />
+                        <InfoItem label="Today" value={`${formatINR(detail.earnings.todayEarnings, 0)} (${detail.earnings.todayRides} rides)`} />
+                        <InfoItem label="This Week" value={`${formatINR(detail.earnings.weekEarnings, 0)} (${detail.earnings.weekRides} rides)`} />
+                        <InfoItem label="This Month" value={`${formatINR(detail.earnings.monthEarnings, 0)} (${detail.earnings.monthRides} rides)`} />
                       </div>
                     </>
                   )}
@@ -634,7 +646,7 @@ export default function DriversPage() {
                             <td style={tdStyle}>{r.pickupAddress || '—'}</td>
                             <td style={tdStyle}>{r.dropoffAddress || '—'}</td>
                             <td style={tdStyle}>{getStatusBadge(r.status)}</td>
-                            <td style={tdStyle}>₹{r.actualFare?.toFixed(0) || '—'}</td>
+                            <td style={tdStyle}>{r.actualFare != null ? formatINR(r.actualFare, 0) : '—'}</td>
                             <td style={tdStyle}>{r.actualDistanceKm ? `${r.actualDistanceKm.toFixed(1)} km` : '—'}</td>
                           </tr>
                         ))}
@@ -678,7 +690,7 @@ export default function DriversPage() {
                   <PermissionGate permission="DRIVERS_DELETE">
                     <button onClick={() => handleDelete(detail.driverInfo)} style={btnSmall('#B71C1C')}>Delete</button>
                   </PermissionGate>
-                  <button onClick={() => setDetail(null)} style={{ marginLeft: 'auto', ...btnSmall('#9E9E9E') }}>Close</button>
+                  <CloseButton label onClick={() => setDetail(null)} style={{ marginLeft: 'auto' }} />
                 </div>
               </>
             )}
@@ -692,7 +704,7 @@ export default function DriversPage() {
           <div style={{ ...modalContent, maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ fontSize: 18, margin: 0 }}>Edit Driver</h2>
-              <button onClick={() => setEditDriver(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer' }}>×</button>
+              <CloseButton onClick={() => setEditDriver(null)} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div><label style={labelStyle}>Name</label><input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} style={inputStyleModal} /></div>
@@ -703,7 +715,7 @@ export default function DriversPage() {
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
               <button onClick={handleEditSave} disabled={editSaving} style={{ ...btnPrimary, flex: 1 }}>{editSaving ? 'Saving...' : 'Save Changes'}</button>
-              <button onClick={() => setEditDriver(null)} style={{ ...btnSmall('#9E9E9E'), flex: 1 }}>Cancel</button>
+              <CancelButton onClick={() => setEditDriver(null)} style={{ flex: 1 }} />
             </div>
           </div>
         </div>
@@ -713,7 +725,10 @@ export default function DriversPage() {
       {approveTarget && (
         <div style={modalOverlay} onClick={() => setApproveTarget(null)}>
           <div style={{ ...modalContent, maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ fontSize: 18, margin: '0 0 12px' }}>Approve Driver?</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h2 style={{ fontSize: 18, margin: 0 }}>Approve Driver?</h2>
+              <CloseButton onClick={() => setApproveTarget(null)} />
+            </div>
             <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 8, marginBottom: 16 }}>
               <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{approveTarget.name}</p>
               <p style={{ fontSize: 13, color: '#555', margin: '4px 0 0' }}>{approveTarget.vehicleType} • {approveTarget.vehicleNumber}</p>
@@ -721,7 +736,7 @@ export default function DriversPage() {
             <p style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>The driver will be set to <strong>ACTIVE</strong> status and can start accepting rides.</p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={handleApproveConfirm} style={{ flex: 1, padding: '10px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Approve</button>
-              <button onClick={() => setApproveTarget(null)} style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <CancelButton onClick={() => setApproveTarget(null)} style={{ flex: 1 }} />
             </div>
           </div>
         </div>
@@ -731,7 +746,10 @@ export default function DriversPage() {
       {rejectTarget && (
         <div style={modalOverlay} onClick={() => setRejectTarget(null)}>
           <div style={{ ...modalContent, maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ fontSize: 18, margin: '0 0 12px' }}>Reject Driver?</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h2 style={{ fontSize: 18, margin: 0 }}>Reject Driver?</h2>
+              <CloseButton onClick={() => setRejectTarget(null)} />
+            </div>
             <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 8, marginBottom: 16 }}>
               <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{rejectTarget.name}</p>
               <p style={{ fontSize: 13, color: '#555', margin: '4px 0 0' }}>{rejectTarget.vehicleType} • {rejectTarget.vehicleNumber}</p>
@@ -755,7 +773,7 @@ export default function DriversPage() {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={handleRejectConfirm} disabled={!rejectReason} style={{ flex: 1, padding: '10px', background: rejectReason ? '#F44336' : '#ccc', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: rejectReason ? 'pointer' : 'not-allowed' }}>Reject</button>
-              <button onClick={() => setRejectTarget(null)} style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <CancelButton onClick={() => setRejectTarget(null)} style={{ flex: 1 }} />
             </div>
           </div>
         </div>
@@ -765,7 +783,10 @@ export default function DriversPage() {
       {suspendTarget && (
         <div style={modalOverlay} onClick={() => setSuspendTarget(null)}>
           <div style={{ ...modalContent, maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ fontSize: 18, margin: '0 0 12px' }}>Suspend Driver?</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h2 style={{ fontSize: 18, margin: 0 }}>Suspend Driver?</h2>
+              <CloseButton onClick={() => setSuspendTarget(null)} />
+            </div>
             <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 8, marginBottom: 16 }}>
               <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{suspendTarget.name}</p>
               <p style={{ fontSize: 13, color: '#555', margin: '4px 0 0' }}>{suspendTarget.vehicleType} • {suspendTarget.vehicleNumber}</p>
@@ -791,7 +812,7 @@ export default function DriversPage() {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={handleSuspendConfirm} disabled={!suspendReason} style={{ flex: 1, padding: '10px', background: suspendReason ? '#F44336' : '#ccc', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: suspendReason ? 'pointer' : 'not-allowed' }}>Suspend</button>
-              <button onClick={() => setSuspendTarget(null)} style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <CancelButton onClick={() => setSuspendTarget(null)} style={{ flex: 1 }} />
             </div>
           </div>
         </div>
@@ -801,7 +822,10 @@ export default function DriversPage() {
       {deleteTarget && (
         <div style={modalOverlay} onClick={() => setDeleteTarget(null)}>
           <div style={{ ...modalContent, maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ fontSize: 18, margin: '0 0 12px', color: '#F44336' }}>Deactivate Driver?</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h2 style={{ fontSize: 18, margin: 0, color: '#F44336' }}>Deactivate Driver?</h2>
+              <CloseButton onClick={() => setDeleteTarget(null)} />
+            </div>
             <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 8, marginBottom: 12 }}>
               <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{deleteTarget.name}</p>
               <p style={{ fontSize: 13, color: '#555', margin: '4px 0 0' }}>{deleteTarget.vehicleType} • {deleteTarget.vehicleNumber}</p>
@@ -811,7 +835,7 @@ export default function DriversPage() {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={handleDeleteConfirm} style={{ flex: 1, padding: '10px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Deactivate</button>
-              <button onClick={() => setDeleteTarget(null)} style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <CancelButton onClick={() => setDeleteTarget(null)} style={{ flex: 1 }} />
             </div>
           </div>
         </div>
@@ -821,7 +845,10 @@ export default function DriversPage() {
       {resetPwdTarget && (
         <div style={modalOverlay} onClick={() => setResetPwdTarget(null)}>
           <div style={{ ...modalContent, maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ fontSize: 18, margin: '0 0 12px' }}>Reset Driver Password?</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h2 style={{ fontSize: 18, margin: 0 }}>Reset Driver Password?</h2>
+              <CloseButton onClick={() => setResetPwdTarget(null)} />
+            </div>
             <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 8, marginBottom: 16 }}>
               <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{resetPwdTarget.name}</p>
               <p style={{ fontSize: 13, color: '#555', margin: '4px 0 0' }}>{resetPwdTarget.vehicleType} • {resetPwdTarget.vehicleNumber}</p>
@@ -829,7 +856,7 @@ export default function DriversPage() {
             <p style={{ fontSize: 13, color: '#555', marginBottom: 16 }}>Password will be reset to <code>HJ@12345</code>. The driver should change it on next login.</p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={handleResetPasswordConfirm} style={{ flex: 1, padding: '10px', background: '#9C27B0', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Reset</button>
-              <button onClick={() => setResetPwdTarget(null)} style={{ flex: 1, padding: '10px', background: '#9E9E9E', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <CancelButton onClick={() => setResetPwdTarget(null)} style={{ flex: 1 }} />
             </div>
           </div>
         </div>
@@ -999,7 +1026,7 @@ function TrackingModal({ driver, onClose }: { driver: DriverListResponse; onClos
       <div style={{ ...modalContent, maxWidth: 700 }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <h2 style={{ fontSize: 18, margin: 0 }}>Track: {driver.name}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer' }}>×</button>
+          <CloseButton onClick={onClose} />
         </div>
 
         <div style={{ display: 'flex', gap: 12, marginBottom: 12, fontSize: 13, color: '#555', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -1031,7 +1058,7 @@ function TrackingModal({ driver, onClose }: { driver: DriverListResponse; onClos
 
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
           <button onClick={fetchLocation} style={{ ...btnPrimary, background: '#00BCD4' }}>Refresh</button>
-          <button onClick={onClose} style={{ ...btnSmall('#9E9E9E'), padding: '8px 16px' }}>Close</button>
+          <CloseButton label onClick={onClose} style={{ padding: '8px 16px' }} />
         </div>
       </div>
     </div>
