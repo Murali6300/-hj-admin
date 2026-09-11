@@ -5,11 +5,12 @@
  * notifications, and profile. Content area renders child routes.
  */
 
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { hasPermission, getAdminRole, type Permission } from '../utils/adminPermissions';
 import api from '../api';
 import AiAssistant from './AiAssistant/AiAssistant';
+import hjLogo from '../assets/hj-logo.jpg';
 import '../styles/design-system.css';
 import '../styles/Layout.css';
 
@@ -138,6 +139,12 @@ const ChevronLeft = () => (
   </svg>
 );
 
+const ChevronDown = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+);
+
 const LogoutIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -150,10 +157,12 @@ const LogoutIcon = () => (
 
 export default function Layout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [adminName, setAdminName] = useState('Admin');
   const [adminRole, setAdminRole] = useState('ADMIN');
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [now, setNow] = useState(new Date());
   const [fraudCount, setFraudCount] = useState(0);
   const [searchInput, setSearchInput] = useState('');
@@ -213,6 +222,32 @@ export default function Layout() {
     return groups;
   }, [fraudCount, hasItemAccess]);
 
+const isPathActive = (itemPath: string, pathname: string): boolean => {
+  if (itemPath === '/') return pathname === '/';
+  return pathname === itemPath || pathname.startsWith(itemPath + '/');
+};
+
+const activeGroupLabel = useMemo(() => {
+  const pathname = location.pathname;
+  const group = filteredGroups.find((g) =>
+    g.items.some((item) => item.path && isPathActive(item.path, pathname)),
+  );
+  return group?.label || '';
+}, [location.pathname, filteredGroups]);
+
+const toggleGroup = (label: string) => {
+  setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
+};
+
+useEffect(() => {
+  const active = filteredGroups.find((g) =>
+    g.items.some((item) => item.path && isPathActive(item.path, location.pathname)),
+  );
+  if (active?.label) {
+    setOpenGroups((prev) => (prev[active.label] ? prev : { ...prev, [active.label]: true }));
+  }
+}, [location.pathname, filteredGroups]);
+
   const handleLogout = () => {
     if (!confirm('Log out of the admin portal?')) return;
     localStorage.removeItem('admin_token');
@@ -250,56 +285,12 @@ export default function Layout() {
         {/* Logo + Brand */}
         <div className="hj-sidebar__header">
           <div className="hj-sidebar__logo">
-            <svg width="40" height="40" viewBox="0 0 512 512">
-              <defs>
-                <linearGradient id="lhH" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#123D8A"/>
-                  <stop offset="100%" stopColor="#1E88E5"/>
-                </linearGradient>
-                <linearGradient id="lhJ" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#FF9800"/>
-                  <stop offset="60%" stopColor="#FFC107"/>
-                  <stop offset="100%" stopColor="#FF9800"/>
-                </linearGradient>
-                <linearGradient id="lhSwoosh" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#22C55E"/>
-                  <stop offset="35%" stopColor="#38BDF8"/>
-                  <stop offset="70%" stopColor="#1E88E5"/>
-                  <stop offset="100%" stopColor="#123D8A"/>
-                </linearGradient>
-              </defs>
-              <rect width="512" height="512" rx="108" fill="#F8FAFC"/>
-              <g transform="translate(256, 240)">
-                <path d="M-120,65 C-130,20 -108,-50 -65,-95 C-22,-140 45,-150 90,-115 C135,-80 145,-10 120,55 C110,90 75,112 32,122"
-                  fill="none" stroke="url(#lhSwoosh)" stroke-width="7" strokeLinecap="round" opacity="0.85"/>
-                <path d="M26,117 L38,128 L22,124" fill="none" stroke="#22C55E" stroke-width="3.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="0" cy="0" r="105" fill="none" stroke="#E2E8F0" stroke-width="1.2" opacity="0.35"/>
-                <rect x="-80" y="-58" width="16" height="116" rx="5" fill="url(#lhH)"/>
-                <rect x="-25" y="-58" width="16" height="116" rx="5" fill="url(#lhH)"/>
-                <rect x="-80" y="-14" width="71" height="16" rx="5" fill="url(#lhH)"/>
-                <g transform="skewX(-6)">
-                  <rect x="14" y="-58" width="16" height="102" rx="5" fill="url(#lhJ)"/>
-                  <path d="M14,44 C14,68 9,82 -10,88 C-24,93 -35,86 -37,74 C-39,62 -30,52 -18,50"
-                    fill="none" stroke="url(#lhJ)" stroke-width="16" strokeLinecap="round"/>
-                </g>
-                <g transform="translate(65, -34) scale(0.8)">
-                  <rect x="-10" y="16" width="40" height="12" rx="6" fill="#1E88E5"/>
-                  <rect x="26" y="8" width="7" height="24" rx="3.5" fill="#1E88E5"/>
-                  <rect x="23" y="3" width="12" height="5" rx="2.5" fill="#123D8A"/>
-                  <rect x="2" y="-10" width="18" height="20" rx="5" fill="#123D8A"/>
-                  <circle cx="11" cy="-18" r="9" fill="#22C55E"/>
-                  <circle cx="33" cy="38" r="7" fill="#0A1F44"/>
-                  <circle cx="33" cy="38" r="3.5" fill="#E2E8F0"/>
-                  <circle cx="-4" cy="38" r="7" fill="#0A1F44"/>
-                  <circle cx="-4" cy="38" r="3.5" fill="#E2E8F0"/>
-                </g>
-              </g>
-            </svg>
+            <img src={hjLogo} alt="HJ" className="hj-sidebar__logo-img" draggable={false} />
           </div>
           <div className="hj-sidebar__brand">
             <div className="hj-sidebar__brand-name">
-              <span style={{ color: '#123D8A' }}>HAPPY </span>
-              <span style={{ color: '#FF9800' }}>JOURNEY</span>
+              <span style={{ color: '#FFFFFF' }}>HAPPY </span>
+              <span style={{ color: '#FFFFFF' }}>JOURNEY</span>
             </div>
             <div className="hj-sidebar__brand-role">{adminRole.replace(/_/g, ' ')}</div>
           </div>
@@ -307,32 +298,51 @@ export default function Layout() {
 
         {/* Navigation */}
         <nav className="hj-sidebar__nav">
-          {filteredGroups.map((group, gi) => (
+          {filteredGroups.map((group, gi) => {
+            const open = group.label ? !!openGroups[group.label] : true;
+            return (
             <div className="hj-nav-group" key={`g-${gi}`}>
-              {group.label && <div className="hj-nav-group__label">{group.label}</div>}
-              {group.items.map((item) =>
-                item.path ? (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    end={item.path === '/'}
-                    className={({ isActive }) =>
-                      `hj-nav-item${isActive ? ' hj-nav-item--active' : ''}`
-                    }
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    <span className="hj-nav-item__icon">{item.icon}</span>
-                    <span className="hj-nav-item__label">{item.label}</span>
-                    {item.badge !== undefined && item.badge > 0 && (
-                      <span className="hj-nav-item__badge hj-nav-item__badge--alert">
-                        {item.badge}
-                      </span>
-                    )}
-                  </NavLink>
-                ) : null,
+              {group.label && (
+                <button
+                  type="button"
+                  className={`hj-nav-group__toggle${open ? ' hj-nav-group__toggle--open' : ''}${group.label === activeGroupLabel ? ' hj-nav-group__toggle--active' : ''}`}
+                  onClick={() => toggleGroup(group.label)}
+                  aria-expanded={open}
+                >
+                  <span className="hj-nav-group__toggle-label">{group.label}</span>
+                  <span className="hj-nav-group__toggle-chevron">
+                    <ChevronDown />
+                  </span>
+                </button>
+              )}
+              {open && (
+                <div className="hj-nav-group__items hj-nav-group__items--animate">
+                  {group.items.map((item) =>
+                    item.path ? (
+                      <NavLink
+                        key={item.path}
+                        to={item.path}
+                        end={item.path === '/'}
+                        className={({ isActive }) =>
+                          `hj-nav-item${isActive ? ' hj-nav-item--active' : ''}`
+                        }
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        <span className="hj-nav-item__icon">{item.icon}</span>
+                        <span className="hj-nav-item__label">{item.label}</span>
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <span className="hj-nav-item__badge hj-nav-item__badge--alert">
+                            {item.badge}
+                          </span>
+                        )}
+                      </NavLink>
+                    ) : null,
+                  )}
+                </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </nav>
 
         {/* Logout */}

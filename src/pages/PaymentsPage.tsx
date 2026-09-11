@@ -11,8 +11,6 @@ interface Payment {
   pickupAddress?: string;
   dropoffAddress?: string;
   createdAt: string;
-  razorpayOrderId?: string;
-  razorpayPaymentId?: string;
   userName?: string;
   driverName?: string;
   refundId?: string;
@@ -40,7 +38,7 @@ export default function PaymentsPage() {
   const [total, setTotal] = useState(0);
   const [invoicePayment, setInvoicePayment] = useState<Payment | null>(null);
 
-  const METHODS = ['ALL', 'CASH', 'UPI', 'CREDIT_CARD', 'DEBIT_CARD', 'CARD', 'WALLET', 'RAZORPAY'];
+  const METHODS = ['ALL', 'CASH', 'UPI', 'WALLET'];
 
   const fetchPayments = async () => {
     setLoading(true); setError('');
@@ -80,8 +78,6 @@ export default function PaymentsPage() {
       <tr><td class="label">Destination</td><td>${p.dropoffAddress || 'N/A'}</td></tr>
       <tr><td class="label">Payment Method</td><td>${p.paymentMethod}</td></tr>
       <tr><td class="label">Transaction ID</td><td>${p.transactionId || 'N/A'}</td></tr>
-      ${p.razorpayOrderId ? `<tr><td class="label">Razorpay Order ID</td><td>${p.razorpayOrderId}</td></tr>` : ''}
-      ${p.razorpayPaymentId ? `<tr><td class="label">Razorpay Payment ID</td><td>${p.razorpayPaymentId}</td></tr>` : ''}
       <tr><td class="label">Status</td><td>${p.paymentStatus}</td></tr>
       <tr><td class="label">Commission</td><td>₹${(p.platformCommission ?? 0).toFixed(0)}</td></tr>
       <tr><td class="label">Driver Earnings</td><td>₹${(p.driverEarnings ?? 0).toFixed(0)}</td></tr>
@@ -96,8 +92,8 @@ export default function PaymentsPage() {
   };
 
   const handleExport = () => {
-    const csv = ['Payment ID,Ride ID,User,Driver,Amount,Commission,Driver Earnings,Method,Status,Settlement,Razorpay Order ID,Razorpay Payment ID,Transaction ID,Created At',
-      ...payments.map(p => `${p.paymentId},${p.rideId},"${(p.userName || '').replace(/"/g, '""')}","${(p.driverName || '').replace(/"/g, '""')}",${p.totalFare},${p.platformCommission ?? ''},${p.driverEarnings ?? ''},${p.paymentMethod},${p.paymentStatus},${p.settlementStatus ?? ''},${p.razorpayOrderId || ''},${p.razorpayPaymentId || ''},${p.transactionId || ''},${p.createdAt}`)].join('\n');
+    const csv = ['Payment ID,Ride ID,User,Driver,Amount,Commission,Driver Earnings,Method,Status,Settlement,Transaction ID,Created At',
+      ...payments.map(p => `${p.paymentId},${p.rideId},"${(p.userName || '').replace(/"/g, '""')}","${(p.driverName || '').replace(/"/g, '""')}",${p.totalFare},${p.platformCommission ?? ''},${p.driverEarnings ?? ''},${p.paymentMethod},${p.paymentStatus},${p.settlementStatus ?? ''},${p.transactionId || ''},${p.createdAt}`)].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'payments-export.csv'; a.click();
@@ -156,7 +152,6 @@ export default function PaymentsPage() {
                 <th style={thStyle}>Method</th>
                 <th style={thStyle}>Status</th>
                 <th style={thStyle}>Settlement</th>
-                <th style={thStyle}>Razorpay Order</th>
                 <th style={thStyle}>Transaction ID</th>
                 <th style={thStyle}>Refund</th>
                 <th style={thStyle}>Date</th>
@@ -192,9 +187,6 @@ export default function PaymentsPage() {
                         {p.settlementStatus}
                       </span>
                     ) : '-'}
-                  </td>
-                  <td style={{ ...tdStyle, color: '#757575', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.razorpayOrderId || ''}>
-                    {p.razorpayOrderId ? p.razorpayOrderId.substring(0, 16) + '...' : '-'}
                   </td>
                   <td style={{ ...tdStyle, color: '#757575' }}>{p.transactionId || '-'}</td>
                   <td style={tdStyle}>
@@ -261,12 +253,6 @@ export default function PaymentsPage() {
                   <tr><td style={invLabel}>Destination</td><td style={invVal}>{invoicePayment.dropoffAddress || 'N/A'}</td></tr>
                   <tr><td style={invLabel}>Method</td><td style={invVal}>{invoicePayment.paymentMethod}</td></tr>
                   <tr><td style={invLabel}>Transaction ID</td><td style={invVal}>{invoicePayment.transactionId || 'N/A'}</td></tr>
-                  {invoicePayment.razorpayOrderId && (
-                    <tr><td style={invLabel}>Razorpay Order ID</td><td style={invVal}>{invoicePayment.razorpayOrderId}</td></tr>
-                  )}
-                  {invoicePayment.razorpayPaymentId && (
-                    <tr><td style={invLabel}>Razorpay Payment ID</td><td style={invVal}>{invoicePayment.razorpayPaymentId}</td></tr>
-                  )}
                   <tr><td style={invLabel}>Status</td><td style={invVal}><span style={{ color: STATUS_COLORS[invoicePayment.paymentStatus], fontWeight: 600 }}>{invoicePayment.paymentStatus}</span></td></tr>
                   <tr><td style={invLabel}>Commission</td><td style={invVal}>₹{(invoicePayment.platformCommission ?? 0).toFixed(0)}</td></tr>
                   <tr><td style={invLabel}>Driver Earnings</td><td style={invVal}>₹{(invoicePayment.driverEarnings ?? 0).toFixed(0)}</td></tr>
