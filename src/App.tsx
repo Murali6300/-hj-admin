@@ -24,6 +24,7 @@ import AuditLogsPage from './pages/AuditLogsPage';
 import RolesPermissionsPage from './pages/RolesPermissionsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import CompanyPaymentPage from './pages/CompanyPaymentPage';
+import FinanceSettlementsPage from './pages/FinanceSettlementsPage';
 import CashPaymentsPage from './pages/CashPaymentsPage';
 import CashPaymentDetailPage from './pages/CashPaymentDetailPage';
 import FraudDetectionPage from './pages/FraudDetectionPage';
@@ -76,6 +77,7 @@ export default function App() {
           <Route path="cash-payments" element={<RoleProtectedRoute permission="PAYMENTS_VIEW"><CashPaymentsPage /></RoleProtectedRoute>} />
           <Route path="cash-payments/:paymentId" element={<RoleProtectedRoute permission="PAYMENTS_VIEW"><CashPaymentDetailPage /></RoleProtectedRoute>} />
           <Route path="company-payment" element={<RoleProtectedRoute permission="PAYMENTS_MANAGE"><CompanyPaymentPage /></RoleProtectedRoute>} />
+          <Route path="finance/settlements" element={<RoleProtectedRoute permission="FINANCE_VIEW"><FinanceSettlementsPage /></RoleProtectedRoute>} />
           <Route path="rides" element={<RideMonitoringPage />} />
           <Route path="rides/history" element={<RoleProtectedRoute permission="RIDES_VIEW"><RideHistoryPage /></RoleProtectedRoute>} />
           <Route path="rides/:id" element={<RideDetailPage />} />
