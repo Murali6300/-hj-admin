@@ -149,3 +149,82 @@ img {
   padding: 0;
   flex-shrink: 0;
 }
+
+/* ── Shared Edit button (blue bg, white text) ─────────────── */
+.hj-btn-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: var(--hj-radius-sm, 8px);
+  background: #1E88E5;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--hj-transition-fast, 150ms ease), transform var(--hj-transition-fast, 150ms ease);
+}
+.hj-btn-edit:hover { background: #1565C0; }
+.hj-btn-edit:active { background: #0D47A1; transform: translateY(1px); }
+.hj-btn-edit:focus-visible { outline: 2px solid #1E88E5; outline-offset: 2px; }
+.hj-btn-edit:disabled { background: var(--hj-text-secondary, #6B7280); cursor: not-allowed; }
+.hj-btn-edit--icon {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* ── Shared Remove button (red bg, white text) ────────────── */
+.hj-btn-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: var(--hj-radius-sm, 8px);
+  background: var(--hj-danger, #EF4444);
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--hj-transition-fast, 150ms ease), transform var(--hj-transition-fast, 150ms ease);
+}
+.hj-btn-remove:hover { background: #DC2626; }
+.hj-btn-remove:active { background: #B91C1C; transform: translateY(1px); }
+.hj-btn-remove:focus-visible { outline: 2px solid var(--hj-danger, #EF4444); outline-offset: 2px; }
+.hj-btn-remove:disabled { background: var(--hj-text-secondary, #6B7280); cursor: not-allowed; }
+.hj-btn-remove--icon {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* ── Uniform table-row action buttons ─────────────────────── */
+.hj-td-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+}
+.hj-td-actions .hj-btn-edit,
+.hj-td-actions .hj-btn-deactivate,
+.hj-td-actions .hj-btn-activate,
+.hj-td-actions .hj-btn-remove {
+  height: 34px;
+  min-width: 116px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+@media (max-width: 900px) {
+  .hj-td-actions { flex-wrap: wrap; }
+}

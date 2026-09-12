@@ -5,6 +5,8 @@ import CloseButton from '../components/CloseButton';
 import CancelButton from '../components/CancelButton';
 import DeactivateButton from '../components/DeactivateButton';
 import ActivateButton from '../components/ActivateButton';
+import EditButton from '../components/EditButton';
+import RemoveButton from '../components/RemoveButton';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -326,14 +328,14 @@ export default function VehiclesPage() {
                     </span>
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'right' }}>
-                    <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                      <button onClick={() => openEdit(v)} style={{ padding: '4px 10px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 4, fontSize: 11, cursor: 'pointer' }}>Edit</button>
+                    <div className="hj-td-actions">
+                      <EditButton onClick={() => openEdit(v)} disabled={actionLoading === v.id} />
                       {v.isActive ? (
                         <DeactivateButton onClick={() => handleToggleActive(v)} disabled={actionLoading === v.id} text={actionLoading === v.id ? '...' : 'Deactivate'} />
                       ) : (
                         <ActivateButton onClick={() => handleToggleActive(v)} disabled={actionLoading === v.id} text={actionLoading === v.id ? '...' : 'Activate'} />
                       )}
-                      <DeactivateButton onClick={() => setDeleteTarget(v)} text="Remove" />
+                      <RemoveButton onClick={() => setDeleteTarget(v)} />
                     </div>
                   </td>
                 </tr>
