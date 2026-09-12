@@ -12,8 +12,15 @@ interface AdminUser {
   fullName: string;
   role: string;
   isActive: boolean;
+  active?: boolean;
   lastLoginAt: string | null;
   createdAt: string;
+}
+
+// The backend DTO may serialize the active flag as "isActive" OR (older build)
+// as "active". Normalize so the UI always reads a boolean.
+function normalizeAdmin(a: AdminUser): AdminUser {
+  return { ...a, isActive: typeof a.active === 'boolean' ? a.active : a.isActive };
 }
 
 const ROLE_COLORS: Record<string, string> = {
@@ -52,6 +59,7 @@ export default function RolesPermissionsPage() {
   const [totalAdmins, setTotalAdmins] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [roleCounts, setRoleCounts] = useState<Record<string, number>>({});
+  const [togglingId, setTogglingId] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [editAdmin, setEditAdmin] = useState<AdminUser | null>(null);
   const [form, setForm] = useState({ email: '', password: '', fullName: '', role: 'SUPPORT' });
@@ -67,12 +75,12 @@ export default function RolesPermissionsPage() {
         api.get('/admin-users', { params }),
         api.get('/admin-users', { params: { page: 0, size: 100 } }),
       ]);
-      setAdmins(listRes.data.content || listRes.data || []);
+      setAdmins((listRes.data.content || listRes.data || []).map(normalizeAdmin));
       setTotalAdmins(listRes.data.totalElements ?? listRes.data.length ?? 0);
       setTotalPages(listRes.data.totalPages ?? 1);
       const counts: Record<string, number> = {};
       ROLES.forEach((r) => { counts[r] = 0; });
-      const statsList = statsRes.data.content || statsRes.data || [];
+      const statsList = (statsRes.data.content || statsRes.data || []).map(normalizeAdmin);
       statsList.forEach((a: AdminUser) => { if (counts[a.role] !== undefined) counts[a.role] += 1; });
       setRoleCounts(counts);
     } catch {
@@ -136,15 +144,22 @@ export default function RolesPermissionsPage() {
   };
 
   const handleToggleActive = async (a: AdminUser) => {
-    const msg = a.isActive
+    if (togglingId !== null) return;
+    const wasActive = a.isActive;
+    const msg = wasActive
       ? `Deactivate admin "${a.fullName}"? They will not be able to log in until reactivated.`
       : `Activate admin "${a.fullName}"? They will be able to log in immediately.`;
     if (!confirm(msg)) return;
+    setTogglingId(a.id);
     try {
       await api.put(`/admin-users/${a.id}/toggle-active`);
-      fetchAdmins();
+      await fetchAdmins();
+      alert(`${a.fullName} has been ${wasActive ? 'deactivated' : 'activated'}.`);
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to toggle account status.');
+      const message = err?.response?.data?.message || 'Failed to update account status.';
+      alert(message);
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -242,9 +257,9 @@ export default function RolesPermissionsPage() {
                     <td style={tdStyle}>
                       <button onClick={() => openEdit(a)} style={{ marginRight: 6, padding: '4px 10px', background: '#FFC107', color: '#333', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>Edit</button>
                       {a.isActive ? (
-                        <DeactivateButton onClick={() => handleToggleActive(a)} text={a.isActive ? 'Deactivate' : 'Activate'} style={{ marginRight: 6 }} />
+                        <DeactivateButton onClick={() => handleToggleActive(a)} disabled={togglingId === a.id} text={togglingId === a.id ? 'Working...' : 'Deactivate'} style={{ marginRight: 6 }} />
                       ) : (
-                        <ActivateButton onClick={() => handleToggleActive(a)} style={{ marginRight: 6 }} />
+                        <ActivateButton onClick={() => handleToggleActive(a)} disabled={togglingId === a.id} text={togglingId === a.id ? 'Working...' : 'Activate'} style={{ marginRight: 6 }} />
                       )}
                       <button onClick={() => handleDelete(a)}
                         style={{ padding: '4px 10px', background: '#F44336', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>

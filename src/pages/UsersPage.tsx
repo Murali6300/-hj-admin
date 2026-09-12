@@ -120,6 +120,9 @@ export default function UsersPage() {
   const [page, setPage] = useState(0);
   const pageSize = 20;
 
+  // Per-user action guard so repeated clicks cannot fire duplicate status requests.
+  const [actionUserId, setActionUserId] = useState<number | null>(null);
+
   // Detail modal
   const [detailUser, setDetailUser] = useState<UserDetailResponse | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -167,39 +170,92 @@ export default function UsersPage() {
   };
 
   const handleSuspend = async (id: number) => {
+    if (actionUserId !== null) return;
     if (!confirm('Suspend this user?')) return;
-    await api.put(`/users/${id}/suspend`);
-    fetchUsers();
+    setActionUserId(id);
+    try {
+      await api.put(`/users/${id}/suspend`);
+      await fetchUsers();
+      alert('User suspended.');
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to suspend user. Please try again.');
+    } finally {
+      setActionUserId(null);
+    }
   };
 
   const handleActivate = async (id: number) => {
+    if (actionUserId !== null) return;
     if (!confirm('Activate this user? They will regain full access to the app.')) return;
-    await api.put(`/users/${id}/activate`);
-    fetchUsers();
+    setActionUserId(id);
+    try {
+      await api.put(`/users/${id}/activate`);
+      await fetchUsers();
+      alert('User activated successfully.');
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to activate user. Please try again.');
+    } finally {
+      setActionUserId(null);
+    }
   };
 
   const handleApproveReactivation = async (id: number) => {
+    if (actionUserId !== null) return;
     if (!confirm('Approve reactivation? The account will be set to ACTIVE and the user can log in again.')) return;
-    await api.put(`/users/${id}/reactivation/approve`);
-    fetchUsers();
+    setActionUserId(id);
+    try {
+      await api.put(`/users/${id}/reactivation/approve`);
+      await fetchUsers();
+      alert('Reactivation approved. User is now ACTIVE.');
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to approve reactivation.');
+    } finally {
+      setActionUserId(null);
+    }
   };
 
   const handleRejectReactivation = async (id: number) => {
+    if (actionUserId !== null) return;
     if (!confirm('Reject reactivation request? The account stays deactivated.')) return;
-    await api.put(`/users/${id}/reactivation/reject`);
-    fetchUsers();
+    setActionUserId(id);
+    try {
+      await api.put(`/users/${id}/reactivation/reject`);
+      await fetchUsers();
+      alert('Reactivation request rejected.');
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to reject reactivation request.');
+    } finally {
+      setActionUserId(null);
+    }
   };
 
   const handleResetPassword = async (id: number) => {
+    if (actionUserId !== null) return;
     if (!confirm('Reset this user password to default (HJ@12345)?')) return;
-    const res = await api.put(`/users/${id}/reset-password`);
-    alert(res.data.message);
+    setActionUserId(id);
+    try {
+      const res = await api.put(`/users/${id}/reset-password`);
+      alert(res.data.message || 'Password reset to default.');
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to reset password.');
+    } finally {
+      setActionUserId(null);
+    }
   };
 
   const handleDelete = async (id: number) => {
+    if (actionUserId !== null) return;
     if (!confirm('Deactivate this user? They will be blocked from logging in, but their history is preserved and they can be reactivated later.')) return;
-    await api.delete(`/users/${id}`);
-    fetchUsers();
+    setActionUserId(id);
+    try {
+      await api.delete(`/users/${id}`);
+      await fetchUsers();
+      alert('User deactivated.');
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to deactivate user. Please try again.');
+    } finally {
+      setActionUserId(null);
+    }
   };
 
   const handleEdit = (user: UserListResponse) => {
@@ -349,20 +405,20 @@ export default function UsersPage() {
                     <PermissionGate permission="USERS_UPDATE">
                       {user.accountStatus === 'REACTIVATION_REQUESTED' && (
                         <>
-                          <button onClick={() => handleApproveReactivation(user.id)} style={btnSmall('#4CAF50')}>Approve Reactivation</button>
-                          <button onClick={() => handleRejectReactivation(user.id)} style={btnSmall('#F44336')}>Reject</button>
+                          <button onClick={() => handleApproveReactivation(user.id)} disabled={actionUserId === user.id} style={btnSmall('#4CAF50')}>Approve Reactivation</button>
+                          <button onClick={() => handleRejectReactivation(user.id)} disabled={actionUserId === user.id} style={btnSmall('#F44336')}>Reject</button>
                         </>
                       )}
-                      <button onClick={() => handleEdit(user)} style={btnSmall('#FF9800')}>Edit</button>
+                      <button onClick={() => handleEdit(user)} disabled={actionUserId === user.id} style={btnSmall('#FF9800')}>Edit</button>
                       {user.accountStatus === 'ACTIVE' ? (
-                        <button onClick={() => handleSuspend(user.id)} style={btnSmall('#F44336')}>Suspend</button>
+                        <button onClick={() => handleSuspend(user.id)} disabled={actionUserId === user.id} style={btnSmall('#F44336')}>Suspend</button>
                       ) : (
-                        <ActivateButton onClick={() => handleActivate(user.id)} />
+                        <ActivateButton onClick={() => handleActivate(user.id)} disabled={actionUserId === user.id} />
                       )}
-                      <button onClick={() => handleResetPassword(user.id)} style={btnSmall('#9C27B0')}>Reset PW</button>
+                      <button onClick={() => handleResetPassword(user.id)} disabled={actionUserId === user.id} style={btnSmall('#9C27B0')}>Reset PW</button>
                     </PermissionGate>
                     <PermissionGate permission="USERS_DELETE">
-                      <DeactivateButton onClick={() => handleDelete(user.id)} text="Deactivate" />
+                      <DeactivateButton onClick={() => handleDelete(user.id)} disabled={actionUserId === user.id} text="Deactivate" />
                     </PermissionGate>
                     {user.flaggedForReview && (
                       <PermissionGate permission="USERS_UPDATE">
@@ -586,11 +642,11 @@ export default function UsersPage() {
                   <button onClick={() => { setDetailUser(null); handleEdit(detailUser.userInfo); }} style={btnSmall('#FF9800')}>Edit User</button>
                   <PermissionGate permission="USERS_UPDATE">
                     {detailUser.userInfo.accountStatus === 'ACTIVE' ? (
-                      <button onClick={() => { handleSuspend(detailUser.userInfo.id); setDetailUser(null); }} style={btnSmall('#F44336')}>Suspend</button>
+                      <button onClick={() => { handleSuspend(detailUser.userInfo.id); setDetailUser(null); }} disabled={actionUserId === detailUser.userInfo.id} style={btnSmall('#F44336')}>Suspend</button>
                     ) : (
-                      <button onClick={() => { handleActivate(detailUser.userInfo.id); setDetailUser(null); }} style={btnSmall('#4CAF50')}>Activate</button>
+                      <ActivateButton onClick={() => { handleActivate(detailUser.userInfo.id); setDetailUser(null); }} disabled={actionUserId === detailUser.userInfo.id} />
                     )}
-                    <button onClick={() => { handleResetPassword(detailUser.userInfo.id); }} style={btnSmall('#9C27B0')}>Reset Password</button>
+                    <button onClick={() => { handleResetPassword(detailUser.userInfo.id); }} disabled={actionUserId === detailUser.userInfo.id} style={btnSmall('#9C27B0')}>Reset Password</button>
                   </PermissionGate>
                   <CloseButton label onClick={() => setDetailUser(null)} style={{ marginLeft: 'auto' }} />
                 </div>
