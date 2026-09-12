@@ -44,6 +44,7 @@ interface Settlement {
   commissionAmount: number;
   driverAmount: number;
   status: string;
+  direction?: string;
   paymentReference?: string;
   idempotencyKey?: string;
   processedAt?: string;
@@ -67,6 +68,9 @@ interface RideFinancial {
   commissionRate: number;
   driverEarnings: number;
   paymentMethod?: string;
+  paymentCollector?: string;
+  settlementDirection?: string;
+  settlementAmount?: number;
   paymentStatus?: string;
   settlementStatus: string;
   reconciliationStatus?: string;
@@ -116,6 +120,8 @@ interface RideFilter {
   settlementStatus: string;
   paymentMethod: string;
   rideStatus: string;
+  paymentCollector: string;
+  settlementDirection: string;
   from: string;
   to: string;
   sort: SortState;
@@ -143,8 +149,25 @@ const EMPTY_MODALS: ModalState = { createBatch: false, reconcile: null, adjustDr
 
 const emptyRideFilter = (): RideFilter => ({
   search: '', rideId: '', driverId: '', paymentStatus: '', settlementStatus: '', paymentMethod: '',
-  rideStatus: '', from: '', to: '', sort: { field: 'createdAt', dir: 'desc' },
+  rideStatus: '', paymentCollector: '', settlementDirection: '', from: '', to: '', sort: { field: 'createdAt', dir: 'desc' },
 });
+
+const PAYMENT_COLLECTOR_OPTIONS = ['DRIVER', 'COMPANY'];
+const SETTLEMENT_DIRECTION_OPTIONS = ['DRIVER_TO_COMPANY', 'COMPANY_TO_DRIVER', 'NONE'];
+
+// Human-readable label + colour for the settlement direction so the admin sees
+// "who owes whom" at a glance rather than a raw enum.
+const directionLabel = (d?: string): string => {
+  if (d === 'DRIVER_TO_COMPANY') return 'Driver → Company';
+  if (d === 'COMPANY_TO_DRIVER') return 'Company → Driver';
+  if (d === 'NONE') return 'None';
+  return '-';
+};
+const directionColor = (d?: string): string => {
+  if (d === 'DRIVER_TO_COMPANY') return '#E65100';
+  if (d === 'COMPANY_TO_DRIVER') return '#1565C0';
+  return '#9E9E9E';
+};
 
 const emptySettlementFilter = (): SettlementFilter => ({
   search: '', driverId: '', status: '', from: '', to: '', sort: { field: 'createdAt', dir: 'desc' },
@@ -166,7 +189,7 @@ const SETTLEMENT_STATUS_OPTIONS = ['PENDING', 'ELIGIBLE', 'PROCESSING', 'SETTLED
 const PAYMENT_METHOD_OPTIONS = ['CASH', 'UPI', 'CARD', 'CREDIT_CARD', 'DEBIT_CARD', 'WALLET', 'RAZORPAY'];
 const RIDE_STATUS_OPTIONS = ['REQUESTED', 'ACCEPTED', 'DRIVER_EN_ROUTE', 'DRIVER_ARRIVED', 'IN_PROGRESS', 'PAYMENT_PENDING', 'COMPLETED', 'CANCELLED', 'NO_DRIVERS_AVAILABLE'];
 
-const RIDE_SORTABLE = ['rideId', 'driverId', 'grossFare', 'companyCommission', 'commissionGstAmount', 'driverEarnings', 'paymentMethod', 'paymentStatus', 'settlementStatus', 'createdAt'];
+const RIDE_SORTABLE = ['rideId', 'driverId', 'grossFare', 'companyCommission', 'commissionGstAmount', 'driverEarnings', 'paymentMethod', 'paymentCollector', 'settlementDirection', 'settlementAmount', 'paymentStatus', 'settlementStatus', 'createdAt'];
 const SETTLEMENT_SORTABLE = ['settlementReference', 'driverId', 'totalRides', 'grossAmount', 'commissionAmount', 'driverAmount', 'status', 'createdAt'];
 
 const thStyle: React.CSSProperties = { padding: '12px 16px', fontSize: 13, fontWeight: 600, textAlign: 'left' };
@@ -248,6 +271,8 @@ export default function FinanceSettlementsPage() {
       if (f.settlementStatus) params.settlementStatus = f.settlementStatus;
       if (f.paymentMethod) params.paymentMethod = f.paymentMethod;
       if (f.rideStatus) params.rideStatus = f.rideStatus;
+      if (f.paymentCollector) params.paymentCollector = f.paymentCollector;
+      if (f.settlementDirection) params.settlementDirection = f.settlementDirection;
       if (f.from) params.from = f.from;
       if (f.to) params.to = f.to;
       params.sort = `${f.sort.field},${f.sort.dir}`;
@@ -310,7 +335,8 @@ export default function FinanceSettlementsPage() {
     downloadCsv('/finance/reports/ride-financials.csv', 'ride-financials.csv', buildCsvParams({
       search: f.search.trim(), rideId: f.rideId.trim(), driverId: f.driverId.trim(),
       paymentStatus: f.paymentStatus, settlementStatus: f.settlementStatus, paymentMethod: f.paymentMethod,
-      rideStatus: f.rideStatus, from: f.from, to: f.to,
+      rideStatus: f.rideStatus, paymentCollector: f.paymentCollector, settlementDirection: f.settlementDirection,
+      from: f.from, to: f.to,
     }));
   };
 
@@ -381,6 +407,8 @@ export default function FinanceSettlementsPage() {
   if (rideFilter.settlementStatus) rideChips.push({ key: 'settlementStatus', label: `Settlement: ${rideFilter.settlementStatus}` });
   if (rideFilter.paymentMethod) rideChips.push({ key: 'paymentMethod', label: `Method: ${rideFilter.paymentMethod}` });
   if (rideFilter.rideStatus) rideChips.push({ key: 'rideStatus', label: `Ride Status: ${rideFilter.rideStatus}` });
+  if (rideFilter.paymentCollector) rideChips.push({ key: 'paymentCollector', label: `Collected By: ${rideFilter.paymentCollector}` });
+  if (rideFilter.settlementDirection) rideChips.push({ key: 'settlementDirection', label: `Direction: ${directionLabel(rideFilter.settlementDirection)}` });
   if (rideFilter.from) rideChips.push({ key: 'from', label: `From: ${rideFilter.from}` });
   if (rideFilter.to) rideChips.push({ key: 'to', label: `To: ${rideFilter.to}` });
 
@@ -495,6 +523,7 @@ export default function FinanceSettlementsPage() {
                     <th style={thStyle}><SortHeader label="Gross" field="grossAmount" sort={settleFilter.sort} onSort={sortSettlements} /></th>
                     <th style={thStyle}><SortHeader label="Commission" field="commissionAmount" sort={settleFilter.sort} onSort={sortSettlements} /></th>
                     <th style={thStyle}><SortHeader label="Driver Amount" field="driverAmount" sort={settleFilter.sort} onSort={sortSettlements} /></th>
+                    <th style={thStyle}>Direction</th>
                     <th style={thStyle}><SortHeader label="Status" field="status" sort={settleFilter.sort} onSort={sortSettlements} /></th>
                     <th style={thStyle}>Payment Ref</th>
                     <th style={thStyle}><SortHeader label="Created" field="createdAt" sort={settleFilter.sort} onSort={sortSettlements} /></th>
@@ -510,6 +539,9 @@ export default function FinanceSettlementsPage() {
                       <td style={tdStyle}>{formatINR(s.grossAmount)}</td>
                       <td style={tdStyle}>{formatINR(s.commissionAmount)}</td>
                       <td style={{ ...tdStyle, fontWeight: 600, color: '#2E7D32' }}>{formatINR(s.driverAmount)}</td>
+                      <td style={tdStyle}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: directionColor(s.direction) }}>{directionLabel(s.direction)}</span>
+                      </td>
                       <td style={tdStyle}>
                         <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 12, fontWeight: 600, color: '#fff', background: SETTLE_STATUS_COLORS[s.status] || '#9E9E9E' }}>{s.status}</span>
                       </td>
@@ -571,6 +603,14 @@ export default function FinanceSettlementsPage() {
               <option value="">All Ride Status</option>
               {RIDE_STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
+            <select value={rideDraft.paymentCollector} onChange={(e) => setRideDraft((d) => ({ ...d, paymentCollector: e.target.value }))} style={selectStyle} title="Who collected the payment">
+              <option value="">All Collectors</option>
+              {PAYMENT_COLLECTOR_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select value={rideDraft.settlementDirection} onChange={(e) => setRideDraft((d) => ({ ...d, settlementDirection: e.target.value }))} style={selectStyle} title="Settlement direction">
+              <option value="">All Directions</option>
+              {SETTLEMENT_DIRECTION_OPTIONS.map((s) => <option key={s} value={s}>{directionLabel(s)}</option>)}
+            </select>
             <input type="date" value={rideDraft.from} onChange={(e) => setRideDraft((d) => ({ ...d, from: e.target.value }))} style={inputStyle} title="From date" />
             <input type="date" value={rideDraft.to} onChange={(e) => setRideDraft((d) => ({ ...d, to: e.target.value }))} style={inputStyle} title="To date" />
             <button onClick={applyRideFilters} style={{ padding: '8px 16px', background: '#1E88E5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Apply</button>
@@ -600,6 +640,9 @@ export default function FinanceSettlementsPage() {
                     <th style={thStyle}><SortHeader label="GST" field="commissionGstAmount" sort={rideFilter.sort} onSort={sortRides} /></th>
                     <th style={thStyle}><SortHeader label="Driver Earnings" field="driverEarnings" sort={rideFilter.sort} onSort={sortRides} /></th>
                     <th style={thStyle}><SortHeader label="Method" field="paymentMethod" sort={rideFilter.sort} onSort={sortRides} /></th>
+                    <th style={thStyle}><SortHeader label="Collected By" field="paymentCollector" sort={rideFilter.sort} onSort={sortRides} /></th>
+                    <th style={thStyle}><SortHeader label="Settlement Dir." field="settlementDirection" sort={rideFilter.sort} onSort={sortRides} /></th>
+                    <th style={thStyle}>Settle Amt</th>
                     <th style={thStyle}><SortHeader label="Payment" field="paymentStatus" sort={rideFilter.sort} onSort={sortRides} /></th>
                     <th style={thStyle}><SortHeader label="Settlement" field="settlementStatus" sort={rideFilter.sort} onSort={sortRides} /></th>
                     <th style={thStyle}>Recon.</th>
@@ -617,6 +660,15 @@ export default function FinanceSettlementsPage() {
                       <td style={tdStyle}>{formatINR(r.commissionGstAmount)}</td>
                       <td style={{ ...tdStyle, fontWeight: 600, color: '#2E7D32' }}>{formatINR(r.driverEarnings)}</td>
                       <td style={tdStyle}>{r.paymentMethod || '-'}</td>
+                      <td style={tdStyle}>
+                        {r.paymentCollector
+                          ? <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, color: '#fff', background: r.paymentCollector === 'DRIVER' ? '#6A1B9A' : '#00838F' }}>{r.paymentCollector}</span>
+                          : '-'}
+                      </td>
+                      <td style={tdStyle}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: directionColor(r.settlementDirection) }}>{directionLabel(r.settlementDirection)}</span>
+                      </td>
+                      <td style={{ ...tdStyle, fontWeight: 600 }}>{r.settlementAmount != null ? formatINR(r.settlementAmount) : '-'}</td>
                       <td style={tdStyle}>
                         <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 12, fontWeight: 600, color: '#fff', background: (r.paymentStatus === 'SUCCESS' ? '#4CAF50' : r.paymentStatus === 'REFUNDED' ? '#FF6D00' : r.paymentStatus === 'DISPUTED' ? '#E91E63' : '#FFC107') }}>{r.paymentStatus || '-'}</span>
                       </td>

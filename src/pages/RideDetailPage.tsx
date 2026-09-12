@@ -45,6 +45,22 @@ interface RideDetail {
   settlementStatus: string | null;
 }
 
+// Subset of the finance record needed for the ride detail payment card.
+interface RideFinanceInfo {
+  paymentCollector?: string | null;
+  settlementDirection?: string | null;
+  settlementAmount?: number | null;
+  companyCommission?: number | null;
+  driverEarnings?: number | null;
+}
+
+const financeDirectionLabel = (d?: string | null): string => {
+  if (d === 'DRIVER_TO_COMPANY') return 'Driver → Company';
+  if (d === 'COMPANY_TO_DRIVER') return 'Company → Driver';
+  if (d === 'NONE') return 'None';
+  return '-';
+};
+
 interface TimelineStep {
   label: string;
   time: string | null;
@@ -94,6 +110,8 @@ export default function RideDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [cancelModal, setCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  // Finance snapshot for this ride (authoritative collector / settlement direction).
+  const [finance, setFinance] = useState<RideFinanceInfo | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<unknown>(null);
 
@@ -109,9 +127,25 @@ export default function RideDetailPage() {
     }
   }, [id]);
 
+  // The finance record (collector, settlement direction/amount) lives in the
+  // finance module, not on the ride row. Fetch it best-effort so the admin can
+  // see "who collected" and "who owes whom" without changing the ride endpoint.
+  const fetchFinance = useCallback(async () => {
+    if (!id) return;
+    try {
+      const res = await api.get('/finance/rides', { params: { rideId: Number(id), size: 1 } });
+      const rows = (res.data?.content ?? []) as RideFinanceInfo[];
+      setFinance(rows.length > 0 ? rows[0] : null);
+    } catch {
+      // Finance record may not exist for legacy rides — non-fatal.
+      setFinance(null);
+    }
+  }, [id]);
+
   useEffect(() => {
     fetchRide();
-  }, [fetchRide]);
+    fetchFinance();
+  }, [fetchRide, fetchFinance]);
 
   // Load Leaflet dynamically and render map
   useEffect(() => {
@@ -466,6 +500,19 @@ export default function RideDetailPage() {
                 <span className="ride-info-row__label">Payment</span>
                 <span className="ride-info-row__value">{ride.paymentMethod}</span>
               </div>
+              {finance?.paymentCollector && (
+                <div className="ride-info-row">
+                  <span className="ride-info-row__label">Collected By</span>
+                  <span className="ride-info-row__value">
+                    <span style={{
+                      padding: '2px 8px', borderRadius: 4, fontSize: 12, fontWeight: 600, color: '#fff',
+                      background: finance.paymentCollector === 'DRIVER' ? '#6A1B9A' : '#00838F',
+                    }}>
+                      {finance.paymentCollector}
+                    </span>
+                  </span>
+                </div>
+              )}
               <div className="ride-info-row">
                 <span className="ride-info-row__label">Amount</span>
                 <span className="ride-info-row__value ride-info-row__value--bold">
@@ -484,6 +531,22 @@ export default function RideDetailPage() {
                   {formatINR(ride.driverEarnings ?? 0, 0)}
                 </span>
               </div>
+              {finance?.settlementDirection && finance.settlementDirection !== 'NONE' && (
+                <div className="ride-info-row">
+                  <span className="ride-info-row__label">Settlement Direction</span>
+                  <span className="ride-info-row__value" style={{ fontWeight: 600, color: finance.settlementDirection === 'DRIVER_TO_COMPANY' ? '#E65100' : '#1565C0' }}>
+                    {financeDirectionLabel(finance.settlementDirection)}
+                  </span>
+                </div>
+              )}
+              {finance?.settlementAmount != null && finance.settlementDirection !== 'NONE' && (
+                <div className="ride-info-row">
+                  <span className="ride-info-row__label">Settlement Amount</span>
+                  <span className="ride-info-row__value ride-info-row__value--bold">
+                    {formatINR(finance.settlementAmount, 0)}
+                  </span>
+                </div>
+              )}
               <div className="ride-info-row">
                 <span className="ride-info-row__label">Settlement</span>
                 <span className="ride-info-row__value">
