@@ -1,62 +1,21 @@
-/* ── Floating FAB ─────────────────────────────────────────────── */
-
-.ai-assistant-fab {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 56px;
-  padding: 0 18px;
-  border: none;
-  border-radius: var(--hj-radius-full);
-  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
-  color: #fff;
-  box-shadow: var(--hj-shadow-xl);
-  cursor: pointer;
-  z-index: 1200;
-  transition: transform var(--hj-transition-base), box-shadow var(--hj-transition-base);
-}
-
-.ai-assistant-fab:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 22px 28px rgba(17, 24, 39, 0.18);
-}
-
-.ai-assistant-fab--active {
-  background: linear-gradient(135deg, #1D4ED8 0%, #6D28D9 100%);
-}
+/* ── Header Action Button ──────────────────────────────────────── *
+ * Rendered in the top admin header beside the Notification bell via
+ * the shared `.hj-header__btn` styles (Layout.css). This file only
+ * contributes the icon size and the open/"active" accent state.
+ */
 
 .ai-assistant-fab__icon {
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1;
-}
-
-.ai-assistant-fab__label {
-  font-family: var(--hj-font-body);
-  font-size: var(--hj-text-md);
-  font-weight: var(--hj-weight-semibold);
-  white-space: nowrap;
-}
-
-.ai-assistant-fab__badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 5px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--hj-radius-full);
-  background: var(--hj-danger);
-  border: 2px solid #fff;
-  font-size: 11px;
-  font-weight: 700;
-  color: #fff;
-  animation: hj-pulse-soft 2s ease-in-out infinite;
+}
+
+.hj-header__btn.ai-assistant-fab--active,
+.hj-header__btn.ai-assistant-fab--active:hover {
+  background: var(--hj-primary-100);
+  color: var(--hj-primary-dark);
 }
 
 /* ── Panel ───────────────────────────────────────────────────── */
@@ -64,10 +23,10 @@
 .ai-assistant {
   position: fixed;
   right: 24px;
-  bottom: 92px;
+  top: calc(var(--hj-header-height) + 12px);
   width: 400px;
   max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 120px);
+  max-height: calc(100vh - var(--hj-header-height) - 24px);
   display: flex;
   flex-direction: column;
   background: var(--hj-surface);
@@ -76,7 +35,7 @@
   box-shadow: 0 24px 48px rgba(17, 24, 39, 0.16);
   z-index: 1200;
   overflow: hidden;
-  animation: hj-scale-in var(--hj-transition-base), hj-slide-up var(--hj-transition-base);
+  animation: hj-scale-in var(--hj-transition-base), hj-slide-down var(--hj-transition-base);
 }
 
 .ai-assistant__header {
@@ -495,17 +454,6 @@
 @media (max-width: 640px) {
   .ai-assistant {
     right: 16px;
-    bottom: 84px;
     width: calc(100vw - 32px);
-  }
-
-  .ai-assistant-fab {
-    right: 16px;
-    bottom: 16px;
-    padding: 0 14px;
-  }
-
-  .ai-assistant-fab__label {
-    display: none;
   }
 }

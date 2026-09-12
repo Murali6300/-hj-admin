@@ -69,6 +69,7 @@ const navGroups: NavGroup[] = [
       { path: '/payments', label: 'Payments', icon: '💳', permission: 'PAYMENTS_VIEW' },
       { path: '/cash-payments', label: 'Cash Payments', icon: '💵', permission: 'PAYMENTS_VIEW' },
       { path: '/company-payment', label: 'Company Payments', icon: '🏦', permission: 'PAYMENTS_MANAGE' },
+      { path: '/finance/settlements', label: 'Settlements & Finance', icon: '🧾', permission: 'FINANCE_VIEW' },
       { path: '/earnings', label: 'Earnings & Commission', icon: '💰', permission: 'REPORTS_VIEW' },
       { path: '/coupons', label: 'Coupons & Offers', icon: '🎟️', permission: 'COUPONS_VIEW' },
     ],
@@ -399,6 +400,9 @@ useEffect(() => {
               <span className="hj-header__btn-badge" />
             </button>
 
+            {/* AI Operations Assistant (every admin screen) */}
+            {hasPermission('DASHBOARD_VIEW') && <AiAssistant />}
+
             {/* Quick Action */}
             <button className="hj-header__quick-action">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -437,9 +441,6 @@ useEffect(() => {
           onClick={() => setMobileOpen(false)}
         />
       )}
-
-      {/* AI Operations Intelligence Assistant (every admin screen) */}
-      {hasPermission('DASHBOARD_VIEW') && <AiAssistant />}
     </div>
   );
 }
