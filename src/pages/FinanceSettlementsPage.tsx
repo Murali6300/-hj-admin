@@ -56,6 +56,7 @@ interface RideFinancial {
   id: number;
   rideId: number;
   driverId: number;
+  driverName?: string;
   userId: number;
   paymentId?: number;
   grossFare: number;
@@ -518,7 +519,7 @@ export default function FinanceSettlementsPage() {
                 <thead>
                   <tr style={{ background: '#f5f5f5' }}>
                     <th style={thStyle}><SortHeader label="Reference" field="settlementReference" sort={settleFilter.sort} onSort={sortSettlements} /></th>
-                    <th style={thStyle}><SortHeader label="Driver" field="driverId" sort={settleFilter.sort} onSort={sortSettlements} /></th>
+                    <th style={thStyle}><SortHeader label="Driver ID" field="driverId" sort={settleFilter.sort} onSort={sortSettlements} /></th>
                     <th style={thStyle}><SortHeader label="Rides" field="totalRides" sort={settleFilter.sort} onSort={sortSettlements} /></th>
                     <th style={thStyle}><SortHeader label="Gross" field="grossAmount" sort={settleFilter.sort} onSort={sortSettlements} /></th>
                     <th style={thStyle}><SortHeader label="Commission" field="commissionAmount" sort={settleFilter.sort} onSort={sortSettlements} /></th>
@@ -633,7 +634,8 @@ export default function FinanceSettlementsPage() {
                 <thead>
                   <tr style={{ background: '#f5f5f5' }}>
                     <th style={thStyle}><SortHeader label="Ride" field="rideId" sort={rideFilter.sort} onSort={sortRides} /></th>
-                    <th style={thStyle}><SortHeader label="Driver" field="driverId" sort={rideFilter.sort} onSort={sortRides} /></th>
+                    <th style={thStyle}><SortHeader label="Driver ID" field="driverId" sort={rideFilter.sort} onSort={sortRides} /></th>
+                    <th style={thStyle}>Driver Name</th>
                     <th style={thStyle}><SortHeader label="Gross Fare" field="grossFare" sort={rideFilter.sort} onSort={sortRides} /></th>
                     <th style={thStyle}>Discount</th>
                     <th style={thStyle}><SortHeader label="Commission" field="companyCommission" sort={rideFilter.sort} onSort={sortRides} /></th>
@@ -654,6 +656,7 @@ export default function FinanceSettlementsPage() {
                     <tr key={r.id} style={{ borderBottom: '1px solid #E0E0E0' }}>
                       <td style={{ ...tdStyle, fontWeight: 600 }}>{r.rideId}</td>
                       <td style={tdStyle}>{r.driverId}</td>
+                      <td style={tdStyle}>{r.driverName || '-'}</td>
                       <td style={tdStyle}>{formatINR(r.grossFare)}</td>
                       <td style={tdStyle}>{formatINR(r.discountAmount)}</td>
                       <td style={tdStyle}>{formatINR(r.companyCommission)}</td>
